@@ -1,9 +1,11 @@
 import React from 'react';
+import TributeList from './TributeList';
 
 const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory }) => {
   if (!gameEngine) return null;
   
   const alivePlayers = gameEngine.players.filter(p => p.isAlive);
+  const fallenPlayers = gameEngine.players.filter(p => !p.isAlive);
   const totalPlayers = gameEngine.players.length;
 
   const getPhaseDisplayName = (phase) => {
@@ -36,25 +38,20 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
         </div>
       </header>
 
-      <section className="event-display" aria-label="Game events" aria-live="polite">
-        {events.map((event, index) => (
-          <div key={index} className="event-line" dangerouslySetInnerHTML={{ __html: event }}>
-          </div>
-        ))}
+      <section className="left-panel">
+        <TributeList 
+          players={alivePlayers} 
+          type="alive" 
+          title="Alive Tributes" 
+        />
       </section>
-      
-      <div className="controls">
-        <section className="alive-tributes" aria-labelledby="alive-tributes-heading">
-          <h3 id="alive-tributes-heading">Alive Tributes ({alivePlayers.length})</h3>
-          <ul className="tribute-list">
-            {alivePlayers.map(player => (
-              <li key={player.id} className="tribute-item">
-                <span className="tribute-name">{player.name}</span>
-                <span className="tribute-district" aria-label={`District ${player.district}`}>D{player.district}</span>
-                <span className="tribute-kills" aria-label={`${player.kills} kills`}>{player.kills} kills</span>
-              </li>
-            ))}
-          </ul>
+
+      <div className="center-panel">
+        <section className="event-display" aria-label="Game events" aria-live="polite">
+          {events.map((event, index) => (
+            <div key={index} className="event-line" dangerouslySetInnerHTML={{ __html: event }}>
+            </div>
+          ))}
         </section>
         
         <div className="action-controls">
@@ -69,6 +66,14 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
           )}
         </div>
       </div>
+
+      <section className="right-panel">
+        <TributeList 
+          players={fallenPlayers} 
+          type="fallen" 
+          title="Fallen Tributes" 
+        />
+      </section>
     </div>
   );
 };

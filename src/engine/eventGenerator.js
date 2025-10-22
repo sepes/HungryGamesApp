@@ -10,10 +10,11 @@ function shuffle(array) {
 }
 
 export class EventGenerator {
-    constructor(players) {
+    constructor(players, gameEngine) {
         this.allPlayers = players;
         this.deadThisRound = [];
         this.usedThisSegment = new Set();
+        this.gameEngine = gameEngine;
         this.updateAlivePlayers();
     }
 
@@ -238,6 +239,7 @@ export class EventGenerator {
 
         victim.isAlive = false;
         victim.diedInPhase = phase;
+        victim.diedOnDay = this.gameEngine.day;
         killer.kills = (killer.kills || 0) + 1;
         this.deadThisRound.push(victim);
         this.usedThisSegment.add(victim.id);
@@ -295,6 +297,7 @@ export class EventGenerator {
 
         player.isAlive = false;
         player.diedInPhase = 'day';
+        player.diedOnDay = this.gameEngine.day;
         this.deadThisRound.push(player);
 
         return template.replace('{player}', this.highlightPlayerName(player.name));
@@ -324,6 +327,7 @@ export class EventGenerator {
 
         player.isAlive = false;
         player.diedInPhase = 'night';
+        player.diedOnDay = this.gameEngine.day;
         this.deadThisRound.push(player);
 
         return template.replace('{player}', this.highlightPlayerName(player.name));
@@ -349,6 +353,7 @@ export class EventGenerator {
 
         victim.isAlive = false;
         victim.diedInPhase = 'night';
+        victim.diedOnDay = this.gameEngine.day;
         killer.kills = (killer.kills || 0) + 1;
         this.deadThisRound.push(victim);
         this.usedThisSegment.add(victim.id);
