@@ -16,6 +16,24 @@ const SetupScreen = ({ onStart }) => {
     setNames(newNames);
   };
 
+  // Helper function to find duplicate names
+  const findDuplicateNames = () => {
+    const nameCounts = {};
+    const duplicates = new Set();
+    
+    names.forEach(name => {
+      const trimmedName = name.trim().toLowerCase();
+      if (trimmedName) {
+        nameCounts[trimmedName] = (nameCounts[trimmedName] || 0) + 1;
+        if (nameCounts[trimmedName] > 1) {
+          duplicates.add(trimmedName);
+        }
+      }
+    });
+    
+    return duplicates;
+  };
+
   const randomizeNames = () => {
     const newNames = [];
     const usedNames = new Set();
@@ -121,9 +139,15 @@ const SetupScreen = ({ onStart }) => {
                     <div className="district-tributes" role="group" aria-labelledby={`district-${districtIndex + 1}-heading`}>
                       {districtTributes.map((name, tributeIndex) => {
                         const globalIndex = startIndex + tributeIndex;
+                        const duplicates = findDuplicateNames();
+                        const isDuplicate = name.trim() && duplicates.has(name.trim().toLowerCase());
+                        
                         return (
-                          <div key={globalIndex} className="name-input-group">
+                          <div key={globalIndex} className={`name-input-group ${isDuplicate ? 'has-duplicate' : ''}`}>
                             <label htmlFor={`tribute-${globalIndex}`}>Tribute {tributeIndex + 1}</label>
+                            {isDuplicate && (
+                              <div className="duplicate-error">Duplicate name!</div>
+                            )}
                             <input
                               id={`tribute-${globalIndex}`}
                               type="text"

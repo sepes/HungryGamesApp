@@ -3,6 +3,7 @@ import SetupScreen from './components/SetupScreen';
 import SimulationScreen from './components/SimulationScreen';
 import WinnerScreen from './components/WinnerScreen';
 import { GameEngine } from './engine/gameEngine';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 function App() {

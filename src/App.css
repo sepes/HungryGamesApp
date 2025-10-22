@@ -202,6 +202,21 @@
     box-shadow: 0 0 4px rgba(77, 184, 184, 0.3);
 }
 
+
+/* Duplicate name highlighting */
+
+.name-input-group.has-duplicate input {
+    border: 2px solid #dc3545;
+    background: #2d1b1b;
+}
+
+.duplicate-error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
 .start-button {
     background-color: #cc8844;
     color: #0a0a0a;
