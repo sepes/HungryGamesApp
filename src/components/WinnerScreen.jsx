@@ -13,44 +13,77 @@ const WinnerScreen = ({ winner, eventHistory, onReset }) => {
         <h1 className="winner-title">VICTOR</h1>
       </div>
       
-      <section className="winner-info" aria-labelledby="winner-details-heading">
-        <article className="winner-card">
-          <h2 className="winner-name" id="winner-details-heading">{winner.name}</h2>
-          <dl className="winner-details">
-            <div className="detail-item">
-              <dt className="detail-label">District:</dt>
-              <dd className="detail-value" aria-label={`District ${winner.district}`}>{winner.district}</dd>
+      <div className="left-panel">
+        <section className="alive-tributes" aria-labelledby="winner-stats-heading">
+          <h3 id="winner-stats-heading">Victor Stats</h3>
+          <div className="winner-stats">
+            <div className="stat-item">
+              <span className="stat-label">Name:</span>
+              <span className="stat-value">{winner.name}</span>
             </div>
-            <div className="detail-item">
-              <dt className="detail-label">Kills:</dt>
-              <dd className="detail-value" aria-label={`${winner.kills} kills`}>{winner.kills}</dd>
+            <div className="stat-item">
+              <span className="stat-label">District:</span>
+              <span className="stat-value">D{winner.district}</span>
             </div>
-            <div className="detail-item">
-              <dt className="detail-label">Days Survived:</dt>
-              <dd className="detail-value" aria-label={`${daysSimulated} days survived`}>{daysSimulated}</dd>
+            <div className="stat-item">
+              <span className="stat-label">Kills:</span>
+              <span className="stat-value">{winner.kills}</span>
             </div>
-            <div className="detail-item">
-              <dt className="detail-label">Total Events:</dt>
-              <dd className="detail-value" aria-label={`${totalEvents} total events`}>{totalEvents}</dd>
+            <div className="stat-item">
+              <span className="stat-label">Days Survived:</span>
+              <span className="stat-value">{daysSimulated}</span>
             </div>
-          </dl>
-        </article>
-      </section>
+          </div>
+        </section>
+      </div>
+      
+      <div className="center-panel">
+        <section className="winner-info" aria-labelledby="winner-details-heading">
+          <article className="winner-card">
+            <h2 className="winner-name" id="winner-details-heading">{winner.name}</h2>
+            <dl className="winner-details">
+              <div className="detail-item">
+                <dt className="detail-label">District:</dt>
+                <dd className="detail-value" aria-label={`District ${winner.district}`}>{winner.district}</dd>
+              </div>
+              <div className="detail-item">
+                <dt className="detail-label">Kills:</dt>
+                <dd className="detail-value" aria-label={`${winner.kills} kills`}>{winner.kills}</dd>
+              </div>
+              <div className="detail-item">
+                <dt className="detail-label">Days Survived:</dt>
+                <dd className="detail-value" aria-label={`${daysSimulated} days survived`}>{daysSimulated}</dd>
+              </div>
+              <div className="detail-item">
+                <dt className="detail-label">Total Events:</dt>
+                <dd className="detail-value" aria-label={`${totalEvents} total events`}>{totalEvents}</dd>
+              </div>
+            </dl>
+          </article>
+        </section>
 
-      <section className="final-message" aria-labelledby="victory-declaration-heading">
-        <h3 id="victory-declaration-heading">Victory Declaration</h3>
-        <p>
-          {winner.name} has emerged victorious from the 74th Hunger Games, 
-          outlasting all other tributes in a 
-          brutal competition that lasted {daysSimulated} days.
-          {winner.kills > 0 && ` With ${winner.kills} kill${winner.kills > 1 ? 's' : ''}, they proved their dominance in the arena.`}
-        </p>
-      </section>
+        <section className="final-message" aria-labelledby="victory-declaration-heading">
+          <h3 id="victory-declaration-heading">Victory Declaration</h3>
+          <p>
+            {winner.name} has emerged victorious from the 74th Hunger Games, 
+            outlasting all other tributes in a 
+            brutal competition that lasted {daysSimulated} days.
+            {winner.kills > 0 && ` With ${winner.kills} kill${winner.kills > 1 ? 's' : ''}, they proved their dominance in the arena.`}
+          </p>
+        </section>
 
-      <div className="action-buttons">
-        <button onClick={onReset} className="reset-button" aria-label="Start a new Hunger Games simulation">
-          New Game
-        </button>
+        <div className="action-buttons">
+          <button onClick={onReset} className="reset-button" aria-label="Start a new Hunger Games simulation">
+            New Game
+          </button>
+        </div>
+      </div>
+
+      <div className="right-panel">
+        <section className="fallen-tributes" aria-labelledby="fallen-tributes-heading">
+          <h3 id="fallen-tributes-heading">Fallen Tributes</h3>
+          <p>All other tributes have fallen in the arena.</p>
+        </section>
       </div>
 
       <details className="history-details" aria-label="Game history">

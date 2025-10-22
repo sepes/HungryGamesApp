@@ -5,7 +5,7 @@ export class GameEngine {
         this.players = players;
         this.day = 1;
         this.phase = 'cornucopia';
-        this.eventGenerator = new EventGenerator(players);
+        this.eventGenerator = new EventGenerator(players, this);
         this.totalDays = 0;
     }
 
@@ -151,7 +151,7 @@ export class GameEngine {
         this.phase = 'cornucopia';
         this.gameOver = false;
         this.winner = null;
-        this.eventGenerator = new EventGenerator(this.players);
+        this.eventGenerator = new EventGenerator(this.players, this);
     }
 
     // Force end game (for testing or emergency)

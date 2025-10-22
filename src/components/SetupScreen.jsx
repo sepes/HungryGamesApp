@@ -59,7 +59,8 @@ const SetupScreen = ({ onStart }) => {
       isAlive: true,
       kills: 0,
       items: [],
-      diedInPhase: null
+      diedInPhase: null,
+      diedOnDay: null
     }));
 
     onStart(players);
@@ -67,87 +68,106 @@ const SetupScreen = ({ onStart }) => {
 
   return (
     <div className="setup-screen">
-      <h1>Hunger Games Simulator</h1>
+      <header className="game-header">
+        <h1>Hunger Games Simulator</h1>
+      </header>
       
-      <section aria-labelledby="tribute-count-heading">
-        <h2 id="tribute-count-heading">Select Number of Tributes</h2>
-        <fieldset>
-          <legend className="sr-only">Choose the number of tributes for the game</legend>
-          <div className="button-group" aria-labelledby="tribute-count-heading">
-            {[12, 24, 48].map(count => (
-              <button
-                key={count}
-                className={`count-button ${playerCount === count ? 'active' : ''}`}
-                onClick={() => handleCountChange(count)}
-                aria-pressed={playerCount === count}
-                aria-label={`${count} tributes`}
-              >
-                {count} Tributes
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      </section>
-
-      <section aria-labelledby="tribute-names-heading">
-        <h2 id="tribute-names-heading">Enter Tribute Names</h2>
-        <button onClick={randomizeNames} className="randomize-button" aria-label="Generate random names for all tributes">
-          Randomize All Names
-        </button>
-        
-        <fieldset>
-          <legend className="sr-only">Enter names for each tribute</legend>
-          <div className="districts-container">
-            {Array.from({ length: 12 }, (_, districtIndex) => {
-              const tributesPerDistrict = playerCount / 12;
-              const startIndex = districtIndex * tributesPerDistrict;
-              const districtTributes = names.slice(startIndex, startIndex + tributesPerDistrict);
-              
-              return (
-                <div key={districtIndex} className="district-group">
-                  <h3 className="district-title" id={`district-${districtIndex + 1}-heading`}>District {districtIndex + 1}</h3>
-                  <div className="district-tributes" role="group" aria-labelledby={`district-${districtIndex + 1}-heading`}>
-                    {districtTributes.map((name, tributeIndex) => {
-                      const globalIndex = startIndex + tributeIndex;
-                      return (
-                        <div key={globalIndex} className="name-input-group">
-                          <label htmlFor={`tribute-${globalIndex}`}>Tribute {tributeIndex + 1}</label>
-                          <input
-                            id={`tribute-${globalIndex}`}
-                            type="text"
-                            value={name}
-                            onChange={(e) => handleNameChange(globalIndex, e.target.value)}
-                            placeholder="Enter name"
-                            maxLength={30}
-                            aria-label={`Tribute {tributeIndex + 1} from District {districtIndex + 1}`}
-                            aria-describedby={globalIndex === 0 ? "name-instructions" : undefined}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </fieldset>
-      </section>
-
-      <div aria-live="polite" aria-atomic="true">
-        {validationMessage && (
-          <div role="alert" className="validation-message">
-            {validationMessage}
-          </div>
-        )}
+      <div className="left-panel">
+        <section className="setup-info">
+          <h3>Game Setup</h3>
+          <p>Configure your Hunger Games simulation by selecting the number of tributes and entering their names.</p>
+        </section>
       </div>
+      
+      <div className="center-panel">
+        <section aria-labelledby="tribute-count-heading">
+          <h2 id="tribute-count-heading">Select Number of Tributes</h2>
+          <fieldset>
+            <legend className="sr-only">Choose the number of tributes for the game</legend>
+            <div className="button-group" aria-labelledby="tribute-count-heading">
+              {[12, 24, 48].map(count => (
+                <button
+                  key={count}
+                  className={`count-button ${playerCount === count ? 'active' : ''}`}
+                  onClick={() => handleCountChange(count)}
+                  aria-pressed={playerCount === count}
+                  aria-label={`${count} tributes`}
+                >
+                  {count} Tributes
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </section>
 
-      <div id="name-instructions" className="sr-only">
+        <section aria-labelledby="tribute-names-heading">
+          <h2 id="tribute-names-heading">Enter Tribute Names</h2>
+          <button onClick={randomizeNames} className="randomize-button" aria-label="Generate random names for all tributes">
+            Randomize All Names
+          </button>
+        
+          
+          <fieldset>
+            <legend className="sr-only">Enter names for each tribute</legend>
+            <div className="districts-container">
+              {Array.from({ length: 12 }, (_, districtIndex) => {
+                const tributesPerDistrict = playerCount / 12;
+                const startIndex = districtIndex * tributesPerDistrict;
+                const districtTributes = names.slice(startIndex, startIndex + tributesPerDistrict);
+                
+                return (
+                  <div key={districtIndex} className="district-group">
+                    <h3 className="district-title" id={`district-${districtIndex + 1}-heading`}>District {districtIndex + 1}</h3>
+                    <div className="district-tributes" role="group" aria-labelledby={`district-${districtIndex + 1}-heading`}>
+                      {districtTributes.map((name, tributeIndex) => {
+                        const globalIndex = startIndex + tributeIndex;
+                        return (
+                          <div key={globalIndex} className="name-input-group">
+                            <label htmlFor={`tribute-${globalIndex}`}>Tribute {tributeIndex + 1}</label>
+                            <input
+                              id={`tribute-${globalIndex}`}
+                              type="text"
+                              value={name}
+                              onChange={(e) => handleNameChange(globalIndex, e.target.value)}
+                              placeholder="Enter name"
+                              maxLength={30}
+                              aria-label={`Tribute {tributeIndex + 1} from District {districtIndex + 1}`}
+                              aria-describedby={globalIndex === 0 ? "name-instructions" : undefined}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </fieldset>
+        </section>
+
+        <div aria-live="polite" aria-atomic="true">
+          {validationMessage && (
+            <div role="alert" className="validation-message">
+              {validationMessage}
+            </div>
+          )}
+        </div>
+
+      <div id="name-instructions" className="name-instructions">
         Enter a unique name for each tribute. Names must be unique across all districts.
       </div>
 
-      <button onClick={startGame} className="start-button" aria-label="Start the Hunger Games simulation">
-        Start the Games
-      </button>
+        <button onClick={startGame} className="start-button" aria-label="Start the Hunger Games simulation">
+          Start the Games
+        </button>
+      </div>
+      
+      <div className="right-panel">
+        <section className="setup-info">
+          <h3>Game Rules</h3>
+          <p>The Hunger Games will begin with the Cornucopia bloodbath, followed by day and night phases until only one tribute remains.</p>
+        </section>
+      </div>
     </div>
   );
 }
