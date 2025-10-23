@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SetupScreen from './components/SetupScreen';
 import SimulationScreen from './components/SimulationScreen';
 import WinnerScreen from './components/WinnerScreen';
+import SettingsPanel from './components/SettingsPanel';
 import { GameEngine } from './engine/gameEngine';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -14,6 +15,7 @@ function App() {
   const [winner, setWinner] = useState(null);
   const [eventHistory, setEventHistory] = useState([]);
   const [showVictoryButton, setShowVictoryButton] = useState(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
 
   const startGame = (players) => {
     const engine = new GameEngine(players);
@@ -53,6 +55,14 @@ function App() {
 
   return (
     <div className="app" role="application" aria-label="Hunger Games Simulator">
+      <button 
+        onClick={() => setShowSettingsPanel(true)} 
+        className="settings-button"
+        aria-label="Open settings panel"
+      >
+        ⚙
+      </button>
+      
       <main aria-live="polite" aria-label={`Current phase: ${gamePhase}`}>
         {gamePhase === 'setup' && (
           <SetupScreen onStart={startGame} />
@@ -77,6 +87,12 @@ function App() {
           />
         )}
       </main>
+      
+      <SettingsPanel 
+        isOpen={showSettingsPanel}
+        onClose={() => setShowSettingsPanel(false)}
+        onResetGame={resetGame}
+      />
     </div>
   );
 }

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import TributesPanel from './TributesPanel';
-import SettingsPanel from './SettingsPanel';
 
 const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame }) => {
   const [showTributesPanel, setShowTributesPanel] = useState(false);
-  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   
   if (!gameEngine) return null;
   
@@ -29,14 +27,6 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
         aria-label="View all tributes"
       >
         Tributes
-      </button>
-      
-      <button 
-        onClick={() => setShowSettingsPanel(true)} 
-        className="settings-button"
-        aria-label="Open settings panel"
-      >
-        ⚙
       </button>
       
       <header className="game-header">
@@ -87,12 +77,6 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
         gameEngine={gameEngine}
         isOpen={showTributesPanel}
         onClose={() => setShowTributesPanel(false)}
-      />
-      
-      <SettingsPanel 
-        isOpen={showSettingsPanel}
-        onClose={() => setShowSettingsPanel(false)}
-        onResetGame={onResetGame}
       />
     </div>
   );

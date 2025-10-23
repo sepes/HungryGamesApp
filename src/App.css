@@ -1063,3 +1063,123 @@
         max-height: 30vh;
     }
 }
+
+
+/* Debug Terminal Styles */
+
+.terminal-container {
+    margin-top: 15px;
+    border: 2px solid var(--accent-primary);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.debug-terminal {
+    background: var(--color-black);
+    color: var(--color-white);
+    font-family: 'SUSE Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+}
+
+.terminal-output {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: var(--color-black);
+    border-bottom: 1px solid var(--accent-primary);
+}
+
+.terminal-output-line {
+    margin: 0;
+    padding: 2px 0;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.terminal-command {
+    color: var(--color-white);
+    font-weight: bold;
+}
+
+.terminal-system {
+    color: var(--color-very-light-gray);
+}
+
+.terminal-error {
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.terminal-warning {
+    color: #ffaa00;
+    font-weight: bold;
+}
+
+.terminal-info {
+    color: #4488ff;
+    font-weight: bold;
+}
+
+.terminal-input-form {
+    display: flex;
+    background: var(--color-black);
+    border-top: 1px solid var(--accent-primary);
+}
+
+.terminal-input-line {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 10px;
+}
+
+.terminal-prompt {
+    color: var(--color-white);
+    margin-right: 8px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.terminal-input {
+    background: transparent;
+    border: none;
+    color: var(--color-white);
+    font-family: 'SUSE Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+    flex: 1;
+    padding: 0;
+}
+
+.terminal-input::placeholder {
+    color: var(--color-light-gray);
+}
+
+.terminal-input:focus {
+    outline: none;
+}
+
+
+/* Terminal scrollbar styling */
+
+.terminal-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+    background: var(--color-dark-gray);
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 4px;
+}
+
+.terminal-output::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
+}
