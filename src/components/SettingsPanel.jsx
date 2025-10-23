@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
+import DebugTerminal from './DebugTerminal';
 
 const SettingsPanel = ({ isOpen, onClose, onResetGame }) => {
   const containerRef = useFocusTrap(isOpen);
+  const [showTerminal, setShowTerminal] = useState(false);
 
   return (
     <div className={`settings-panel ${isOpen ? 'open' : ''}`} ref={containerRef}>
@@ -29,6 +31,23 @@ const SettingsPanel = ({ isOpen, onClose, onResetGame }) => {
             >
               Reset Game
             </button>
+          </div>
+          
+          {/* Debug Terminal Section */}
+          <div className="settings-section">
+            <h3>Debug Terminal</h3>
+            <button 
+              onClick={() => setShowTerminal(!showTerminal)} 
+              className="transition-button small"
+              aria-label={showTerminal ? "Hide debug terminal" : "Show debug terminal"}
+            >
+              {showTerminal ? 'Hide Terminal' : 'Show Terminal'}
+            </button>
+            {showTerminal && (
+              <div className="terminal-container">
+                <DebugTerminal />
+              </div>
+            )}
           </div>
           
           {/* Future Settings Sections */}
