@@ -72,6 +72,7 @@ function App() {
           <WinnerScreen 
             winner={winner}
             eventHistory={eventHistory}
+            gameEngine={gameEngine}
             onReset={resetGame}
           />
         )}

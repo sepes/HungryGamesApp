@@ -35,7 +35,7 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
           <h2>All Tributes</h2>
           <button 
             onClick={onClose} 
-            className="tributes-close-button"
+            className="danger-button close"
             aria-label="Close tributes panel"
           >
             ×
