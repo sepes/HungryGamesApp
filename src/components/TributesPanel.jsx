@@ -19,11 +19,11 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
     if (player.isAlive) return null;
     
     if (player.diedInPhase === 'cornucopia') {
-      return 'fell in Cornucopia';
+      return 'Fell in Cornucopia';
     } else if (player.diedInPhase === 'day') {
-      return `fell on Day ${player.diedOnDay}`;
+      return `Fell on Day ${player.diedOnDay}`;
     } else if (player.diedInPhase === 'night') {
-      return `fell on Night ${player.diedOnDay}`;
+      return `Fell on Night ${player.diedOnDay}`;
     }
     return 'Unknown';
   };
@@ -67,7 +67,7 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
                           <span className="tribute-status-alive">Alive</span>
                         ) : (
                           <span className="tribute-status-fallen">
-                            Fallen {formatDeathInfo(player)}
+                            {formatDeathInfo(player)}
                           </span>
                         )}
                       </div>
