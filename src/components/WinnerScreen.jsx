@@ -1,11 +1,15 @@
 import React from 'react';
 
-const WinnerScreen = ({ winner, eventHistory, onReset }) => {
+const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
   if (!winner) return null;
   
   // Calculate statistics
   const daysSimulated = Math.floor(eventHistory.length / 3); // Rough estimate
-  const totalEvents = eventHistory.flat().length;
+
+  // Create sorted list of fallen tributes (excluding winner)
+  const fallenTributes = gameEngine?.players
+    .filter(player => !player.isAlive)
+    .sort((a, b) => b.kills - a.kills) || [];
 
   return (
     <div className="winner-container">
@@ -23,7 +27,7 @@ const WinnerScreen = ({ winner, eventHistory, onReset }) => {
             </div>
             <div className="stat-item">
               <span className="stat-label">District:</span>
-              <span className="stat-value">D{winner.district}</span>
+              <span className="stat-value">{winner.district}</span>
             </div>
             <div className="stat-item">
               <span className="stat-label">Kills:</span>
@@ -40,25 +44,7 @@ const WinnerScreen = ({ winner, eventHistory, onReset }) => {
       <div className="center-panel">
         <section className="winner-info" aria-labelledby="winner-details-heading">
           <article className="winner-card">
-            <h2 className="winner-name" id="winner-details-heading">{winner.name}</h2>
-            <dl className="winner-details">
-              <div className="detail-item">
-                <dt className="detail-label">District:</dt>
-                <dd className="detail-value" aria-label={`District ${winner.district}`}>{winner.district}</dd>
-              </div>
-              <div className="detail-item">
-                <dt className="detail-label">Kills:</dt>
-                <dd className="detail-value" aria-label={`${winner.kills} kills`}>{winner.kills}</dd>
-              </div>
-              <div className="detail-item">
-                <dt className="detail-label">Days Survived:</dt>
-                <dd className="detail-value" aria-label={`${daysSimulated} days survived`}>{daysSimulated}</dd>
-              </div>
-              <div className="detail-item">
-                <dt className="detail-label">Total Events:</dt>
-                <dd className="detail-value" aria-label={`${totalEvents} total events`}>{totalEvents}</dd>
-              </div>
-            </dl>
+            <h2 className="winner-name" id="winner-details-heading">{winner.name} from District {winner.district}</h2>
           </article>
         </section>
 
@@ -73,7 +59,7 @@ const WinnerScreen = ({ winner, eventHistory, onReset }) => {
         </section>
 
         <div className="action-buttons">
-          <button onClick={onReset} className="reset-button" aria-label="Start a new Hunger Games simulation">
+          <button onClick={onReset} className="transition-button large" aria-label="Start a new Hunger Games simulation">
             New Game
           </button>
         </div>
@@ -82,7 +68,21 @@ const WinnerScreen = ({ winner, eventHistory, onReset }) => {
       <div className="right-panel">
         <section className="fallen-tributes" aria-labelledby="fallen-tributes-heading">
           <h3 id="fallen-tributes-heading">Fallen Tributes</h3>
-          <p>All other tributes have fallen in the arena.</p>
+          <div className="fallen-tributes-list">
+            {fallenTributes.map(player => (
+              <div key={player.id} className="tribute-item tribute-fallen">
+                  <div className="tribute-name-section">
+                    <span className="tribute-name">{player.name}</span>
+                  </div>
+                  <div className="tribute-kills">
+                    {player.kills} kills
+                  </div>
+                <div className="tribute-district">
+                  D{player.district}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
       </div>
 

@@ -1,4 +1,95 @@
 @import './styles/colors.css';
+
+/* Base Transition Button Class */
+
+.transition-button {
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    border: 3px outset var(--accent-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    text-shadow: var(--shadow-color);
+    transition: all 0.2s;
+}
+
+.transition-button:hover {
+    background: var(--accent-primary);
+    border: 3px inset var(--accent-secondary);
+}
+
+
+/* Size Modifier Classes */
+
+.transition-button.small {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: 3px outset var(--accent-secondary);
+}
+
+.transition-button.medium {
+    padding: 12px 24px;
+    font-size: 16px;
+    border: 3px outset var(--accent-secondary);
+}
+
+.transition-button.large {
+    padding: 15px 30px;
+    font-size: 18px;
+    border: 4px outset var(--accent-secondary);
+}
+
+.transition-button.large:hover {
+    border: 4px inset var(--accent-secondary);
+}
+
+
+/* Active state for count buttons */
+
+.transition-button.active {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border: 3px inset var(--accent-primary);
+    text-shadow: var(--shadow-color);
+}
+
+
+/* Danger Button Class */
+
+.danger-button {
+    background: var(--error-color);
+    color: var(--text-primary);
+    border: 3px outset var(--error-color);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.danger-button:hover {
+    background: var(--accent-primary);
+    border: 3px inset var(--error-color);
+}
+
+
+/* Danger button size variants */
+
+.danger-button.small {
+    padding: 12px 24px;
+    font-size: 16px;
+    text-shadow: var(--shadow-color);
+}
+
+.danger-button.close {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .app {
     width: 100%;
     margin: 0;
@@ -60,54 +151,9 @@
 
 .button-group {
     display: flex;
-    justify-content: center;
+    justify-content: start;
     gap: 15px;
     margin-bottom: 20px;
-}
-
-.count-button {
-    padding: 12px 24px;
-    font-size: 16px;
-    border: 3px outset var(--accent-primary);
-    background: var(--accent-secondary);
-    color: var(--bg-primary);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: bold;
-    text-shadow: var(--shadow-color);
-}
-
-.count-button:hover {
-    border: 3px inset var(--accent-primary);
-    background: var(--accent-primary);
-    /*color: var(--text-secondary);*/
-}
-
-.count-button.active {
-    background: var(--accent-primary);
-    color: var(--bg-primary);
-    border: 3px inset var(--accent-primary);
-    text-shadow: var(--shadow-color);
-}
-
-.randomize-button {
-    background: var(--accent-secondary);
-    color: var(--bg-primary);
-    border: 3px outset var(--accent-secondary);
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-bottom: 20px;
-    transition: all 0.2s;
-    font-weight: bold;
-    text-shadow: var(--shadow-color);
-}
-
-.randomize-button:hover {
-    background: var(--accent-primary);
-    border: 3px inset var(--accent-secondary);
 }
 
 .name-instructions {
@@ -217,25 +263,6 @@
     font-size: 12px;
     margin-bottom: 5px;
     font-weight: bold;
-}
-
-.start-button {
-    background-color: var(--accent-secondary);
-    color: var(--bg-primary);
-    border: 4px outset var(--accent-secondary);
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.2rem;
-    font-weight: bold;
-    transition: all 0.2s;
-    margin-top: 1rem;
-    text-shadow: var(--shadow-color);
-}
-
-.start-button:hover {
-    background-color: var(--accent-primary);
-    border: 4px inset var(--accent-primary);
 }
 
 
@@ -434,6 +461,14 @@
     text-shadow: var(--shadow-color);
 }
 
+.fallen-tributes-list {
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .fallen-tribute-item {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -544,7 +579,6 @@
     align-items: center;
     padding: 8px 12px;
     background: var(--color-beige);
-    border: 2px solid var(--color-sage-green);
     border-radius: 4px;
     font-size: 14px;
     color: var(--text-primary);
@@ -624,27 +658,6 @@
     color: var(--accent-secondary);
     font-size: 24px;
     text-shadow: var(--shadow-color);
-}
-
-.tributes-close-button {
-    background: var(--error-color);
-    color: var(--text-primary);
-    border: 3px outset var(--error-color);
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.tributes-close-button:hover {
-    filter: brightness(1.2);
-    border: 3px inset var(--error-color);
 }
 
 .tributes-panel-body {
@@ -762,27 +775,6 @@
     text-shadow: var(--shadow-color);
 }
 
-.settings-close-button {
-    background: var(--error-color);
-    color: var(--text-primary);
-    border: 3px outset var(--error-color);
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.settings-close-button:hover {
-    filter: brightness(1.2);
-    border: 3px inset var(--error-color);
-}
-
 .settings-panel-body {
     flex: 1;
     overflow-y: auto;
@@ -801,24 +793,6 @@
     color: var(--accent-secondary);
     font-size: 18px;
     text-shadow: var(--shadow-color);
-}
-
-.settings-reset-button {
-    padding: 12px 24px;
-    background: var(--error-color);
-    color: var(--text-primary);
-    border: 3px outset var(--error-color);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    text-shadow: var(--shadow-color);
-    transition: all 0.2s;
-}
-
-.settings-reset-button:hover {
-    background: var(--accent-primary);
-    border: 3px inset var(--error-color);
 }
 
 
@@ -874,24 +848,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-}
-
-.next-button {
-    padding: 15px 30px;
-    font-size: 18px;
-    background: var(--accent-secondary);
-    color: var(--bg-primary);
-    border: 4px outset var(--accent-secondary);
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s;
-    text-shadow: var(--shadow-color);
-}
-
-.next-button:hover {
-    background: var(--accent-primary);
-    border: 4px inset var(--accent-secondary);
 }
 
 
@@ -990,24 +946,6 @@
 
 .action-buttons {
     margin: 30px 0;
-}
-
-.reset-button {
-    padding: 15px 30px;
-    font-size: 18px;
-    background: var(--accent-secondary);
-    color: var(--bg-primary);
-    border: 4px outset var(--accent-secondary);
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s;
-    text-shadow: var(--shadow-color);
-}
-
-.reset-button:hover {
-    background: var(--accent-primary);
-    border: 4px inset var(--accent-secondary);
 }
 
 .history-details {

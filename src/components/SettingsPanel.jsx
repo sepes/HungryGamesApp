@@ -11,7 +11,7 @@ const SettingsPanel = ({ isOpen, onClose, onResetGame }) => {
           <h2>Settings</h2>
           <button 
             onClick={onClose} 
-            className="settings-close-button"
+            className="danger-button close"
             aria-label="Close settings panel"
           >
             ×
@@ -24,7 +24,7 @@ const SettingsPanel = ({ isOpen, onClose, onResetGame }) => {
             <h3>Game Controls</h3>
             <button 
               onClick={onResetGame} 
-              className="settings-reset-button"
+              className="danger-button small"
               aria-label="Reset game and return to setup screen"
             >
               Reset Game

@@ -145,12 +145,11 @@ const SetupScreen = ({ onStart }) => {
         <section aria-labelledby="tribute-count-heading">
           <h2 id="tribute-count-heading">Select Number of Tributes</h2>
           <fieldset>
-            <legend className="sr-only">Choose the number of tributes for the game</legend>
             <div className="button-group" aria-labelledby="tribute-count-heading">
               {[12, 24, 48].map(count => (
                 <button
                   key={count}
-                  className={`count-button ${playerCount === count ? 'active' : ''}`}
+                  className={`transition-button small ${playerCount === count ? 'active' : ''}`}
                   onClick={() => handleCountChange(count)}
                   aria-pressed={playerCount === count}
                   aria-label={`${count} tributes`}
@@ -165,7 +164,7 @@ const SetupScreen = ({ onStart }) => {
         <section aria-labelledby="tribute-names-heading">
           <div className="tribute-names-heading section-heading">
             <h2 id="tribute-names-heading">Enter names for each tribute</h2>
-            <button onClick={randomizeEmptyNames} className="randomize-button small" aria-label="Generate random names for empty tribute fields">
+            <button onClick={randomizeEmptyNames} className="transition-button small" aria-label="Generate random names for empty tribute fields">
               Randomize Unnamed
             </button>
           </div>
@@ -225,7 +224,7 @@ const SetupScreen = ({ onStart }) => {
       </div>
       
       <div className="right-panel">
-        <button onClick={startGame} className="start-button" aria-label="Start the Hunger Games simulation">
+        <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
           Start the Games
         </button>
       </div>

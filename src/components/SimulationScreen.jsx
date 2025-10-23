@@ -72,11 +72,11 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
       <section className="right-panel">
         <div className="action-controls">
           {showVictoryButton ? (
-            <button onClick={onShowVictory} className="victory-button" aria-label="View victory screen">
+            <button onClick={onShowVictory} className="transition-button large" aria-label="View victory screen">
               View Victory
             </button>
           ) : (
-            <button onClick={() => onNext()} className="next-button" aria-label="Advance to next game phase">
+            <button onClick={() => onNext()} className="transition-button large" aria-label="Advance to next game phase">
               Next Phase →
             </button>
           )}
