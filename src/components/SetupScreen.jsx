@@ -34,20 +34,38 @@ const SetupScreen = ({ onStart }) => {
     return duplicates;
   };
 
-  const randomizeNames = () => {
-    const newNames = [];
+  const randomizeEmptyNames = () => {
+    const newNames = [...names];
     const usedNames = new Set();
     
+    // Collect all existing names (including empty ones)
+    names.forEach(name => {
+      if (name.trim()) {
+        usedNames.add(name.trim().toLowerCase());
+      }
+    });
+    
+    // Only randomize empty fields
     for (let i = 0; i < playerCount; i++) {
-      let name;
-      do {
-        name = generateRandomName();
-      } while (usedNames.has(name));
-      usedNames.add(name);
-      newNames.push(name);
+      if (!newNames[i].trim()) {
+        let name;
+        do {
+          name = generateRandomName();
+        } while (usedNames.has(name.toLowerCase()));
+        usedNames.add(name.toLowerCase());
+        newNames[i] = name;
+      }
     }
     
     setNames(newNames);
+    
+    // Focus the start button after randomizing
+    setTimeout(() => {
+      const startButton = document.querySelector('.start-button');
+      if (startButton) {
+        startButton.focus();
+      }
+    }, 0);
   };
 
   const [validationMessage, setValidationMessage] = useState('');
@@ -91,10 +109,36 @@ const SetupScreen = ({ onStart }) => {
       </header>
       
       <div className="left-panel">
-        <section className="setup-info">
-          <h3>Game Setup</h3>
-          <p>Configure your Hunger Games simulation by selecting the number of tributes and entering their names.</p>
-        </section>
+
+      <section className="setup-info">
+        <h3>Game Rules</h3>
+        <p>
+          The Hunger Games will begin with the Cornucopia bloodbath, followed by day and night phases
+          until only one tribute remains.
+        </p>
+      </section>
+
+      <section className="setup-info">
+        <h3>Game Setup</h3>
+        <p>
+          Configure your Hunger Games simulation by selecting the number of tributes and entering their names.
+        </p>
+      </section>
+
+      <section className="setup-info">
+        <h3>Naming Requirements</h3>
+        <ul>
+          <li>Every tribute must have a name</li>
+          <li>All names must be unique</li>
+          <li>Names are limited to 30 characters</li>
+          </ul>
+          <ul>
+          <p>Tips:</p>
+          <li>
+            Use the &quot;Randomize Unnamed&quot; button to fill empty fields
+          </li>
+        </ul>
+      </section>
       </div>
       
       <div className="center-panel">
@@ -119,14 +163,15 @@ const SetupScreen = ({ onStart }) => {
         </section>
 
         <section aria-labelledby="tribute-names-heading">
-          <h2 id="tribute-names-heading">Enter Tribute Names</h2>
-          <button onClick={randomizeNames} className="randomize-button" aria-label="Generate random names for all tributes">
-            Randomize All Names
-          </button>
+          <div className="tribute-names-heading section-heading">
+            <h2 id="tribute-names-heading">Enter names for each tribute</h2>
+            <button onClick={randomizeEmptyNames} className="randomize-button small" aria-label="Generate random names for empty tribute fields">
+              Randomize Unnamed
+            </button>
+          </div>
         
           
           <fieldset>
-            <legend className="sr-only">Enter names for each tribute</legend>
             <div className="districts-container">
               {Array.from({ length: 12 }, (_, districtIndex) => {
                 const tributesPerDistrict = playerCount / 12;
@@ -177,20 +222,12 @@ const SetupScreen = ({ onStart }) => {
           )}
         </div>
 
-      <div id="name-instructions" className="name-instructions">
-        Enter a unique name for each tribute. Names must be unique across all districts.
-      </div>
-
-        <button onClick={startGame} className="start-button" aria-label="Start the Hunger Games simulation">
-          Start the Games
-        </button>
       </div>
       
       <div className="right-panel">
-        <section className="setup-info">
-          <h3>Game Rules</h3>
-          <p>The Hunger Games will begin with the Cornucopia bloodbath, followed by day and night phases until only one tribute remains.</p>
-        </section>
+        <button onClick={startGame} className="start-button" aria-label="Start the Hunger Games simulation">
+          Start the Games
+        </button>
       </div>
     </div>
   );

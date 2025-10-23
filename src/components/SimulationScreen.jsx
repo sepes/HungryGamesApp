@@ -1,11 +1,14 @@
-import React from 'react';
-import TributeList from './TributeList';
+import React, { useState } from 'react';
+import TributesPanel from './TributesPanel';
+import SettingsPanel from './SettingsPanel';
 
-const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory }) => {
+const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame }) => {
+  const [showTributesPanel, setShowTributesPanel] = useState(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  
   if (!gameEngine) return null;
   
   const alivePlayers = gameEngine.players.filter(p => p.isAlive);
-  const fallenPlayers = gameEngine.players.filter(p => !p.isAlive);
   const totalPlayers = gameEngine.players.length;
 
   const getPhaseDisplayName = (phase) => {
@@ -20,8 +23,27 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
 
   return (
     <div className="simulation-container">
+      <button 
+        onClick={() => setShowTributesPanel(true)} 
+        className="tributes-button"
+        aria-label="View all tributes"
+      >
+        Tributes
+      </button>
+      
+      <button 
+        onClick={() => setShowSettingsPanel(true)} 
+        className="settings-button"
+        aria-label="Open settings panel"
+      >
+        ⚙
+      </button>
+      
       <header className="game-header">
         <h2>Hunger Games Simulation</h2>
+      </header>
+
+      <section className="left-panel">
         <div className="game-stats" role="status" aria-label="Game statistics">
           <div className="stat">
             <span className="stat-label">Day:</span>
@@ -36,14 +58,6 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
             <span className="stat-value" aria-label={`${alivePlayers.length} out of ${totalPlayers} tributes alive`}>{alivePlayers.length}/{totalPlayers}</span>
           </div>
         </div>
-      </header>
-
-      <section className="left-panel">
-        <TributeList 
-          players={alivePlayers} 
-          type="alive" 
-          title="Alive Tributes" 
-        />
       </section>
 
       <div className="center-panel">
@@ -53,7 +67,9 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
             </div>
           ))}
         </section>
-        
+      </div>
+
+      <section className="right-panel">
         <div className="action-controls">
           {showVictoryButton ? (
             <button onClick={onShowVictory} className="victory-button" aria-label="View victory screen">
@@ -65,15 +81,19 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
             </button>
           )}
         </div>
-      </div>
-
-      <section className="right-panel">
-        <TributeList 
-          players={fallenPlayers} 
-          type="fallen" 
-          title="Fallen Tributes" 
-        />
       </section>
+      
+      <TributesPanel 
+        gameEngine={gameEngine}
+        isOpen={showTributesPanel}
+        onClose={() => setShowTributesPanel(false)}
+      />
+      
+      <SettingsPanel 
+        isOpen={showSettingsPanel}
+        onClose={() => setShowSettingsPanel(false)}
+        onResetGame={onResetGame}
+      />
     </div>
   );
 };

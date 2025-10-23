@@ -97,16 +97,13 @@ export class GameEngine {
     }
 
     getPhaseHeader(phase = this.phase) {
-        const alive = this.players.filter(p => p.isAlive).length;
-        const total = this.players.length;
-
         switch (phase) {
             case 'cornucopia':
-                return `=== THE 74TH HUNGER GAMES ===\n\nThe gong sounds. Let the games begin!\n\nTributes: ${alive}/${total}`;
+                return `=== THE 74TH HUNGER GAMES ===`;
             case 'day':
-                return `=== Day ${this.day} ===\n\nThe sun rises over the arena.\n\nTributes remaining: ${alive}/${total}`;
+                return `=== Day ${this.day} ===`;
             case 'night':
-                return `=== Day ${this.day} - Night Falls ===\n\nDarkness blankets the arena.\n\nTributes remaining: ${alive}/${total}`;
+                return `=== Day ${this.day} - Night Falls ===`;
             case 'fallen':
                 return `=== Fallen Tributes ===`;
             default:

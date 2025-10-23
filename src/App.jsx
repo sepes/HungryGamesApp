@@ -65,6 +65,7 @@ function App() {
             currentPhase={currentPhase}
             showVictoryButton={showVictoryButton}
             onShowVictory={showVictory}
+            onResetGame={resetGame}
           />
         )}
         {gamePhase === 'winner' && (
