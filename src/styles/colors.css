@@ -1,0 +1,56 @@
+/* 
+ * Color System - Black and White Theme
+ * 
+ * This system uses a two-layer approach for easy theme swapping:
+ * 1. Color Palette: Defines the actual color values
+ * 2. Semantic Mappings: Maps semantic names to palette colors
+ * 
+ * To change themes, only update the palette values below.
+ * The semantic mappings will automatically use the new colors.
+ */
+
+:root {
+    /* Color Palette - Black and White Theme */
+    --color-black: #000000;
+    --color-dark-gray: #1a1a1a;
+    --color-medium-gray: #2a2a2a;
+    --color-light-gray: #888888;
+    --color-very-light-gray: #cccccc;
+    --color-white: #ffffff;
+    --color-off-white: #e0e0e0;
+    --color-sage-green: #81b29a;
+    --color-terracotta: #e07a5f;
+    --color-error: #dc3545;
+    --color-success: #28a745;
+    --color-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+    --color-shadow-light: 0 0 4px rgba(0, 0, 0, 0.3);
+    --color-shadow-medium: 0 0 8px rgba(0, 0, 0, 0.4);
+    --color-shadow-heavy: 0 0 12px rgba(0, 0, 0, 0.4);
+    --color-shadow-drop: 0 2px 4px rgba(0, 0, 0, 0.4);
+    /* Semantic Color Mappings - References palette colors */
+    --bg-primary: var(--color-black);
+    --bg-secondary: var(--color-dark-gray);
+    --bg-tertiary: var(--color-medium-gray);
+    --text-primary: var(--color-white);
+    --text-secondary: var(--color-off-white);
+    --text-highlight: var(--color-sage-green);
+    --text-highlight-secondary: var(--color-terracotta);
+    --accent-primary: var(--color-light-gray);
+    --accent-secondary: var(--color-very-light-gray);
+    --error-color: var(--color-error);
+    --success-color: var(--color-success);
+    --shadow-color: var(--color-shadow);
+    --shadow-light: var(--color-shadow-light);
+    --shadow-medium: var(--color-shadow-medium);
+    --shadow-heavy: var(--color-shadow-heavy);
+    --shadow-drop: var(--color-shadow-drop);
+}
+
+
+/* Brown Theme Color Palette 
+
+    --color-beige: #f2cc8f;
+    --color-terracotta: #e07a5f;
+    --color-dark-blue: #3d405b;
+    --color-sage-green: #81b29a;
+    --color-cream: #f4f1de;*/

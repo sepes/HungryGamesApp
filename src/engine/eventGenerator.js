@@ -246,9 +246,9 @@ export class EventGenerator {
         this.usedThisSegment.add(killer.id);
 
         return template
-            .replace('{killer}', this.highlightPlayerName(killer.name))
-            .replace('{victim}', this.highlightPlayerName(victim.name))
-            .replace('{weapon}', weapon);
+            .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
+            .replace(/\{victim\}/g, this.highlightPlayerName(victim.name))
+            .replace(/\{weapon\}/g, weapon);
     }
 
     generateEscape(player) {
@@ -262,8 +262,8 @@ export class EventGenerator {
         }
 
         return template
-            .replace('{player}', this.highlightPlayerName(player.name))
-            .replace('{item}', item);
+            .replace(/\{player\}/g, this.highlightPlayerName(player.name))
+            .replace(/\{item\}/g, item);
     }
 
     generateSupplyGrab(player) {
@@ -278,8 +278,8 @@ export class EventGenerator {
         }
 
         return template
-            .replace('{player}', this.highlightPlayerName(player.name))
-            .replace('{weapon}', weapon);
+            .replace(/\{player\}/g, this.highlightPlayerName(player.name))
+            .replace(/\{weapon\}/g, weapon);
     }
 
     generateTeamwork(player1, player2) {
@@ -287,8 +287,8 @@ export class EventGenerator {
         const template = templates[Math.floor(Math.random() * templates.length)];
 
         return template
-            .replace('{player1}', this.highlightPlayerName(player1.name))
-            .replace('{player2}', this.highlightPlayerName(player2.name));
+            .replace(/\{player1\}/g, this.highlightPlayerName(player1.name))
+            .replace(/\{player2\}/g, this.highlightPlayerName(player2.name));
     }
 
     generateAccidentalDeath(player) {
@@ -300,7 +300,7 @@ export class EventGenerator {
         player.diedOnDay = this.gameEngine.day;
         this.deadThisRound.push(player);
 
-        return template.replace('{player}', this.highlightPlayerName(player.name));
+        return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
     generateSurvival(player, type) {
@@ -308,7 +308,7 @@ export class EventGenerator {
         const templates = eventTemplates.day[key];
         const template = templates[Math.floor(Math.random() * templates.length)];
 
-        return template.replace('{player}', this.highlightPlayerName(player.name));
+        return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
     generateAlliance(player1, player2) {
@@ -316,8 +316,8 @@ export class EventGenerator {
         const template = templates[Math.floor(Math.random() * templates.length)];
 
         return template
-            .replace('{player1}', this.highlightPlayerName(player1.name))
-            .replace('{player2}', this.highlightPlayerName(player2.name));
+            .replace(/\{player1\}/g, this.highlightPlayerName(player1.name))
+            .replace(/\{player2\}/g, this.highlightPlayerName(player2.name));
     }
 
     generateNightDeath(player, type) {
@@ -330,21 +330,21 @@ export class EventGenerator {
         player.diedOnDay = this.gameEngine.day;
         this.deadThisRound.push(player);
 
-        return template.replace('{player}', this.highlightPlayerName(player.name));
+        return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
     generateNightSurvival(player) {
         const templates = eventTemplates.night.survival_night;
         const template = templates[Math.floor(Math.random() * templates.length)];
 
-        return template.replace('{player}', this.highlightPlayerName(player.name));
+        return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
     generateEmotional(player) {
         const templates = eventTemplates.night.emotional;
         const template = templates[Math.floor(Math.random() * templates.length)];
 
-        return template.replace('{player}', this.highlightPlayerName(player.name));
+        return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
     generateBetrayal(killer, victim) {
@@ -359,8 +359,8 @@ export class EventGenerator {
         this.usedThisSegment.add(victim.id);
 
         return template
-            .replace('{killer}', this.highlightPlayerName(killer.name))
-            .replace('{victim}', this.highlightPlayerName(victim.name));
+            .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
+            .replace(/\{victim\}/g, this.highlightPlayerName(victim.name));
     }
 
     generateSpecialEvent() {
