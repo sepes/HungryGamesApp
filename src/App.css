@@ -903,7 +903,7 @@
 .winner-name {
     font-size: 36px;
     margin: 0 0 20px 0;
-    color: var(--accent-primary);
+    color: var(--text-highlight);
     text-shadow: var(--shadow-color);
 }
 
@@ -950,28 +950,9 @@
 
 .action-buttons {
     margin: 30px 0;
-}
-
-.history-details {
-    margin-top: 40px;
-    text-align: left;
-    background: var(--bg-tertiary);
-    border: 3px solid var(--accent-primary);
-    border-radius: 10px;
-    padding: 20px;
-}
-
-.history-details summary {
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 10px;
-    background: var(--accent-primary);
-    color: var(--bg-primary);
-    border: 2px outset var(--accent-primary);
-    border-radius: 5px;
-    margin-bottom: 15px;
-    text-shadow: var(--shadow-color);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 .history-log {
@@ -995,6 +976,88 @@
     border: none;
     border-top: 2px solid var(--accent-secondary);
     margin: 15px 0;
+}
+
+
+/* History Modal Styles */
+
+.history-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.history-modal {
+    width: 90vw;
+    max-width: 1200px;
+    height: 85vh;
+    max-height: 800px;
+    background: var(--bg-secondary);
+    border: 4px solid var(--accent-primary);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.history-modal-backdrop:not(.closing) .history-modal {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.history-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0;
+}
+
+.history-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 3px solid var(--accent-primary);
+    background: var(--bg-tertiary);
+    border-radius: 8px 8px 0 0;
+}
+
+.history-modal-header h2 {
+    margin: 0;
+    color: var(--accent-secondary);
+    font-size: 28px;
+    text-shadow: var(--shadow-color);
+}
+
+.history-modal-body {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+}
+
+.history-modal-body .history-log {
+    height: 100%;
+    max-height: none;
+    overflow-y: auto;
+    background: var(--bg-primary);
+    color: var(--accent-secondary);
+    padding: 20px;
+    border: none;
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 

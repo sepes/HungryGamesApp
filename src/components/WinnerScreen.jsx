@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import HistoryModal from './HistoryModal';
 
 const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
+  const [showHistory, setShowHistory] = useState(false);
+  
   if (!winner) return null;
   
   // Calculate statistics
@@ -62,6 +65,13 @@ const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
           <button onClick={onReset} className="transition-button large" aria-label="Start a new Hunger Games simulation">
             New Game
           </button>
+          <button 
+            onClick={() => setShowHistory(true)} 
+            className="transition-button large" 
+            aria-label="View complete game history"
+          >
+            View Full Game History
+          </button>
         </div>
       </div>
 
@@ -86,19 +96,11 @@ const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
         </section>
       </div>
 
-      <details className="history-details" aria-label="Game history">
-        <summary>View Full Game History</summary>
-        <div className="history-log" role="log" aria-label="Complete game event history">
-          {eventHistory.map((segment, idx) => (
-            <div key={idx} className="history-segment">
-              {segment.map((event, i) => (
-                <div key={i} className="history-event">{event}</div>
-              ))}
-              <hr className="segment-divider" />
-            </div>
-          ))}
-        </div>
-      </details>
+      <HistoryModal 
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+        eventHistory={eventHistory}
+      />
     </div>
   );
 };
