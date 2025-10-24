@@ -370,7 +370,11 @@
 }
 
 .right-panel {
-    grid-area: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 10px;
     background: var(--bg-tertiary);
     border: 3px solid var(--accent-secondary);
     border-radius: 8px;

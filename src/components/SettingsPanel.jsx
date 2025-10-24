@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import DebugTerminal from './DebugTerminal';
 
-const SettingsPanel = ({ isOpen, onClose, onResetGame }) => {
+const SettingsPanel = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton }) => {
   const containerRef = useFocusTrap(isOpen);
   const [showTerminal, setShowTerminal] = useState(false);
 
@@ -45,7 +45,13 @@ const SettingsPanel = ({ isOpen, onClose, onResetGame }) => {
             </button>
             {showTerminal && (
               <div className="terminal-container">
-                <DebugTerminal />
+                <DebugTerminal 
+                  gameEngine={gameEngine}
+                  gamePhase={gamePhase}
+                  onNext={onNext}
+                  onShowVictory={onShowVictory}
+                  showVictoryButton={showVictoryButton}
+                />
               </div>
             )}
           </div>

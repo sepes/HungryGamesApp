@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const DebugTerminal = () => {
+const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton }) => {
   const [output, setOutput] = useState([
     { type: 'system', text: 'Debug Terminal initialized. Type "help" for available commands.' }
   ]);
   const [input, setInput] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isAutoplaying, setIsAutoplaying] = useState(false);
   const inputRef = useRef(null);
   const outputRef = useRef(null);
 
@@ -28,6 +29,35 @@ const DebugTerminal = () => {
     setOutput(prev => [...prev, { type, text }]);
   };
 
+  const autoplayGame = async () => {
+    if (gamePhase !== 'simulation') {
+      addOutput('error', 'Autoplay is only available during simulation phase.');
+      return;
+    }
+
+    if (isAutoplaying) {
+      addOutput('error', 'Autoplay is already running.');
+      return;
+    }
+
+    setIsAutoplaying(true);
+    addOutput('info', 'Starting autoplay... Game will advance automatically until a winner is found.');
+    
+    const autoplayInterval = setInterval(() => {
+      if (showVictoryButton) {
+        clearInterval(autoplayInterval);
+        setIsAutoplaying(false);
+        addOutput('info', 'Autoplay complete! Winner found.');
+        return;
+      }
+      
+      if (gamePhase === 'winner' && onNext) {
+        onNext();
+      }
+    }, 100); // Advance every 100ms
+  };
+
+
   const executeCommand = (command) => {
     const trimmedCommand = command.trim().toLowerCase();
     
@@ -46,6 +76,7 @@ const DebugTerminal = () => {
         addOutput('system', '  clear    - Clear the terminal output');
         addOutput('system', '  version  - Show terminal version');
         addOutput('system', '  test     - Test color coding (info/warning/error)');
+        addOutput('system', '  autoplay - Automatically advance game until winner is found');
         addOutput('system', '');
         addOutput('system', 'More commands will be added in future updates. PS: there is no cheats to have your name win the game.');
         break;
@@ -63,6 +94,10 @@ const DebugTerminal = () => {
         addOutput('info', 'This is an info message (blue)');
         addOutput('warning', 'This is a warning message (yellow)');
         addOutput('error', 'This is an error message (red)');
+        break;
+        
+      case 'autoplay':
+        autoplayGame();
         break;
         
       case '':
