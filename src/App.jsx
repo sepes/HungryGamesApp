@@ -92,6 +92,11 @@ function App() {
         isOpen={showSettingsPanel}
         onClose={() => setShowSettingsPanel(false)}
         onResetGame={resetGame}
+        gameEngine={gameEngine}
+        gamePhase={gamePhase}
+        onNext={handleNext}
+        onShowVictory={showVictory}
+        showVictoryButton={showVictoryButton}
       />
     </div>
   );
