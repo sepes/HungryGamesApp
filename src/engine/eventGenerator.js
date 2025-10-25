@@ -618,18 +618,62 @@ export class EventGenerator {
 
     // Event generation methods
     generateKill(killer, victim, phase) {
-        const templates = eventTemplates[phase].kills || eventTemplates[phase].combat_kills || eventTemplates[phase].stealth_kills;
-        const template = templates[Math.floor(Math.random() * templates.length)];
-
-        // Use actual weapon from killer's inventory if available
-        let weapon = 'bare hands';
+        // Get killer's weapons
         const killerWeapons = killer.inventory.filter(item => ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name));
 
+        let templates, weapon = 'bare hands';
+
+        // Select weapon-specific templates based on killer's inventory
         if (killerWeapons.length > 0) {
             const usedWeapon = killerWeapons[Math.floor(Math.random() * killerWeapons.length)];
             weapon = usedWeapon.name;
+
+            // Map weapon names to template categories
+            const weaponTemplateMap = {
+                'sword': `${phase}_kills` || 'sword_kills',
+                'knife': `${phase}_kills` || 'knife_kills',
+                'bow': `${phase}_kills` || 'bow_kills',
+                'spear': `${phase}_kills` || 'spear_kills',
+                'axe': `${phase}_kills` || 'axe_kills',
+                'mace': `${phase}_kills` || 'axe_kills', // Use axe templates for mace
+                'trident': `${phase}_kills` || 'spear_kills', // Use spear templates for trident
+                'dagger': `${phase}_kills` || 'knife_kills', // Use knife templates for dagger
+                'sickle': `${phase}_kills` || 'knife_kills', // Use knife templates for sickle
+                'machete': `${phase}_kills` || 'sword_kills', // Use sword templates for machete
+                'club': `${phase}_kills` || 'axe_kills' // Use axe templates for club
+            };
+
+            const templateKey = weaponTemplateMap[weapon];
+            templates = eventTemplates[phase][templateKey];
+
+            // Fallback to generic weapon templates if specific ones don't exist
+            if (!templates) {
+                templates = eventTemplates[phase][`${weapon}_kills`] ||
+                    eventTemplates[phase][`${weapon}_${phase}_kills`] ||
+                    eventTemplates[phase].kills ||
+                    eventTemplates[phase].combat_kills ||
+                    eventTemplates[phase].stealth_kills;
+            }
+
             this.consumeItem(killer, weapon);
+        } else {
+            // No weapons - use bare hands or improvised templates
+            if (Math.random() < 0.7) {
+                templates = eventTemplates[phase].bare_hands_kills ||
+                    eventTemplates[phase][`bare_hands_${phase}_kills`] ||
+                    eventTemplates[phase].kills ||
+                    eventTemplates[phase].combat_kills ||
+                    eventTemplates[phase].stealth_kills;
+            } else {
+                templates = eventTemplates[phase].improvised_kills ||
+                    eventTemplates[phase][`improvised_${phase}_kills`] ||
+                    eventTemplates[phase].kills ||
+                    eventTemplates[phase].combat_kills ||
+                    eventTemplates[phase].stealth_kills;
+            }
         }
+
+        const template = templates[Math.floor(Math.random() * templates.length)];
 
         victim.isAlive = false;
         victim.diedInPhase = phase;
@@ -759,6 +803,28 @@ export class EventGenerator {
         // Form alliance
         this.formAlliance(player1, player2);
 
+        // Check if this is a food/water sharing event and apply stat effects
+        if (template.includes('shares their food') || template.includes('shares food')) {
+            // Both players gain strength from sharing food
+            player1.strength = Math.min(100, (player1.strength || 0) + 5);
+            player2.strength = Math.min(100, (player2.strength || 0) + 5);
+            // Mental health boost from sharing
+            this.updateMentalHealth(player1, 3, 'sharing food');
+            this.updateMentalHealth(player2, 3, 'receiving food');
+        } else if ((template.includes('gives') && template.includes('water')) || (template.includes('offers') && template.includes('water'))) {
+            // Both players gain strength from sharing water
+            player1.strength = Math.min(100, (player1.strength || 0) + 3);
+            player2.strength = Math.min(100, (player2.strength || 0) + 3);
+            // Mental health boost from sharing
+            this.updateMentalHealth(player1, 2, 'sharing water');
+            this.updateMentalHealth(player2, 2, 'receiving water');
+        } else if (template.includes('tends to') && template.includes('wounds')) {
+            // Healing wounds - receiver gains strength, healer gains mental health
+            player2.strength = Math.min(100, (player2.strength || 0) + 8);
+            this.updateMentalHealth(player1, 4, 'helping ally');
+            this.updateMentalHealth(player2, 5, 'being cared for');
+        }
+
         // Replace placeholders
         let result = template
             .replace(/\{player1\}/g, this.highlightPlayerName(player1.name))
@@ -777,18 +843,24 @@ export class EventGenerator {
         const templates = eventTemplates.day.alliance_hunting;
         const template = templates[Math.floor(Math.random() * templates.length)];
 
+        // Create alliance member names string
+        const memberNames = allianceMembers.map(member => this.highlightPlayerName(member.name)).join(', ');
+
         // Alliance hunting bonus to mental health
         allianceMembers.forEach(member => {
             this.updateMentalHealth(member, 3, 'alliance hunting');
             this.updateCourage(member, 2, 'group activity');
         });
 
-        return template;
+        return template.replace(/\{alliance_members\}/g, memberNames);
     }
 
     generateAllianceCombat(allianceMembers, targetAlliance) {
         const templates = eventTemplates.day.alliance_combat;
         const template = templates[Math.floor(Math.random() * templates.length)];
+
+        // Create alliance member names string
+        const memberNames = allianceMembers.map(member => this.highlightPlayerName(member.name)).join(', ');
 
         // Combat affects all participants
         [...allianceMembers, ...targetAlliance].forEach(member => {
@@ -796,12 +868,15 @@ export class EventGenerator {
             this.updateCourage(member, 5, 'group combat');
         });
 
-        return template;
+        return template.replace(/\{alliance_members\}/g, memberNames);
     }
 
     generateAllianceVictory(allianceMembers) {
         const templates = eventTemplates.day.alliance_victory;
         const template = templates[Math.floor(Math.random() * templates.length)];
+
+        // Create alliance member names string
+        const memberNames = allianceMembers.map(member => this.highlightPlayerName(member.name)).join(', ');
 
         // Victory bonus for all alliance members
         allianceMembers.forEach(member => {
@@ -809,7 +884,7 @@ export class EventGenerator {
             this.updateCourage(member, 10, 'victory');
         });
 
-        return template;
+        return template.replace(/\{alliance_members\}/g, memberNames);
     }
 
     generateNightDeath(player, type) {
@@ -900,7 +975,35 @@ export class EventGenerator {
             this.updateMentalHealth(player, 2, 'gear comfort');
         } else if (eventType === 'gear_failure') {
             this.updateMentalHealth(player, -3, 'gear failure');
+        } else if (eventType === 'desperation_events') {
+            this.updateMentalHealth(player, -2, 'desperation');
         }
+
+        return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
+    }
+
+    // Generate item-specific events
+    generateItemEvent(player, itemName) {
+        const itemEventMap = {
+            'rope': 'rope_usage',
+            'matches': 'matches_usage',
+            'medicine': 'medicine_usage',
+            'food': 'food_usage',
+            'water': 'water_usage',
+            'backpack': 'backpack_usage',
+            'sleeping bag': 'sleeping_bag_usage'
+        };
+
+        const eventType = itemEventMap[itemName];
+        if (!eventType) return null;
+
+        const templates = eventTemplates.cornucopia[eventType] || eventTemplates.day[eventType] || eventTemplates.night[eventType];
+        if (!templates) return null;
+
+        const template = templates[Math.floor(Math.random() * templates.length)];
+
+        // Consume the item
+        this.consumeItem(player, itemName);
 
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
