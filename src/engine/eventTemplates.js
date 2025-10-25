@@ -34,6 +34,31 @@ export const eventTemplates = {
             "{player} secures a {weapon} from the Cornucopia",
             "{player} takes medicine and bandages",
             "{player} collects a sleeping bag and dried food"
+        ],
+        item_events: [
+            "{player} uses their rope to climb to safety",
+            "{player} starts a fire with their matches",
+            "{player} treats their wounds with medicine",
+            "{player} shares food with an ally",
+            "{player} uses their backpack as shelter",
+            "{player} sets a trap with their rope",
+            "{player} uses their sleeping bag for warmth",
+            "{player} creates a makeshift weapon from rope and sticks"
+        ],
+        item_exhaustion: [
+            "{player} uses their last match to start a fire",
+            "{player} breaks their weapon in combat",
+            "{player} exhausts their medicine supply",
+            "{player} uses up their rope for shelter",
+            "{player} consumes their last food",
+            "{player} runs out of water"
+        ],
+        looting: [
+            "{killer} searches {victim}'s body and finds useful items",
+            "{killer} takes {victim}'s weapons and supplies",
+            "{killer} loots {victim}'s backpack for valuable gear",
+            "{killer} strips {victim} of their equipment",
+            "{killer} searches {victim}'s belongings for anything useful"
         ]
     },
 
@@ -94,6 +119,59 @@ export const eventTemplates = {
             "{player1} and {player2} hunt together",
             "{player1} gives {player2} extra water",
             "{player1} and {player2} make camp together"
+        ],
+        district_alliances: [
+            "{player1} and {player2} recognize each other from District {district} and decide to stick together",
+            "{player1} and {player2} bond over their shared District {district} background",
+            "{player1} and {player2} form an alliance, united by their District {district} heritage",
+            "{player1} and {player2} find comfort in their shared District {district} origins",
+            "{player1} and {player2} team up, remembering their District {district} training together",
+            "{player1} and {player2} form a District {district} alliance for mutual protection"
+        ],
+        alliance_hunting: [
+            "The alliance hunts for other tributes together",
+            "The alliance scouts the area for potential targets",
+            "The alliance sets up an ambush for unsuspecting tributes",
+            "The alliance coordinates a search pattern to find enemies",
+            "The alliance plans their next move against remaining tributes",
+            "The alliance tracks down a lone tribute",
+            "The alliance sets traps to catch other tributes"
+        ],
+        alliance_combat: [
+            "The alliance engages in combat with another group",
+            "The alliance fights against a rival alliance",
+            "The alliance launches a coordinated attack",
+            "The alliance defends their territory from intruders",
+            "The alliance battles for control of resources",
+            "The alliance fights to eliminate competition",
+            "The alliance engages in a fierce group battle"
+        ],
+        alliance_victory: [
+            "The alliance successfully eliminates their targets",
+            "The alliance claims victory in the battle",
+            "The alliance secures their position",
+            "The alliance gains valuable supplies from their victory",
+            "The alliance strengthens their bond through shared combat",
+            "The alliance celebrates their successful hunt",
+            "The alliance consolidates their power"
+        ],
+        courage_events: [
+            "{player} boldly hunts for other tributes",
+            "{player} confronts a dangerous situation head-on",
+            "{player} takes a calculated risk to gain supplies",
+            "{player} stands their ground against threats"
+        ],
+        cowardice_events: [
+            "{player} hides in the bushes, too scared to move",
+            "{player} flees at the first sign of danger",
+            "{player} cowers behind cover, paralyzed with fear",
+            "{player} avoids all confrontation"
+        ],
+        mental_breakdown: [
+            "{player} has a mental breakdown and makes poor decisions",
+            "{player} becomes paranoid and attacks shadows",
+            "{player} loses focus and stumbles into danger",
+            "{player} starts talking to themselves"
         ]
     },
 
@@ -142,6 +220,24 @@ export const eventTemplates = {
             "{killer} poisons {victim} after gaining their trust",
             "{killer} leads {victim} into a trap",
             "{killer} waits until {victim} falls asleep then attacks"
+        ],
+        suicide_attempts: [
+            "{player} considers ending it all but finds the strength to continue",
+            "{player} contemplates suicide but is interrupted by sounds",
+            "{player} nearly gives up but remembers their family",
+            "{player} fights off suicidal thoughts"
+        ],
+        gear_survival: [
+            "{player} uses their sleeping bag to stay warm",
+            "{player} finds shelter with their backpack",
+            "{player} uses medicine to treat their wounds",
+            "{player} starts a fire with their matches"
+        ],
+        gear_failure: [
+            "{player} shivers without proper shelter",
+            "{player} suffers from untreated wounds",
+            "{player} struggles to stay warm",
+            "{player} becomes weak from lack of supplies"
         ]
     },
 

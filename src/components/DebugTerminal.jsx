@@ -81,6 +81,7 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
         addOutput('system', '  version  - Show terminal version');
         addOutput('system', '  test     - Test color coding (info/warning/error)');
         addOutput('system', '  autoplay - Automatically advance game until winner is found');
+        addOutput('system', '  stats    - Show detailed player statistics');
         addOutput('system', '');
         addOutput('system', 'More commands will be added in future updates. PS: there is no cheats to have your name win the game.');
         break;
@@ -102,6 +103,60 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
         
       case 'autoplay':
         autoplayGame();
+        break;
+        
+      case 'stats':
+        if (!gameEngine) {
+          addOutput('error', 'No game engine available. Start a game first.');
+          break;
+        }
+        
+        addOutput('system', '=== DETAILED PLAYER STATISTICS ===');
+        addOutput('system', '');
+        
+        // Per-player stats
+        gameEngine.players.forEach(player => {
+          const status = player.isAlive ? 'ALIVE' : 'DEAD';
+          const inventory = player.inventory ? player.inventory.map(item => `${item.name}(${item.uses})`).join(', ') : 'None';
+          const alliances = player.alliances ? player.alliances.map(allyId => {
+            const ally = gameEngine.players.find(p => p.id === allyId);
+            return ally ? ally.name : 'Unknown';
+          }).join(', ') : 'None';
+          
+          addOutput('info', `${player.name} (District ${player.district}) - ${status}`);
+          addOutput('system', `  Kills: ${player.kills || 0}`);
+          addOutput('system', `  Mental Health: ${Math.round(player.mentalHealth || 75)}/100`);
+          addOutput('system', `  Courage: ${Math.round(player.courage || 50)}/100`);
+          addOutput('system', `  Cowardice: ${Math.round(player.cowardice || 0)}/100`);
+          addOutput('system', `  Inventory: ${inventory}`);
+          addOutput('system', `  Alliances: ${alliances}`);
+          addOutput('system', '');
+        });
+        
+        // Summary statistics
+        const alivePlayers = gameEngine.players.filter(p => p.isAlive);
+        const avgMentalHealth = alivePlayers.reduce((sum, p) => sum + (p.mentalHealth || 75), 0) / alivePlayers.length;
+        const mostEquipped = alivePlayers.reduce((best, player) => {
+          const currentItems = (player.inventory || []).length;
+          const bestItems = (best.inventory || []).length;
+          return currentItems > bestItems ? player : best;
+        }, alivePlayers[0]);
+        const mostDangerous = alivePlayers.reduce((best, player) => {
+          const currentScore = (player.kills || 0) + (player.inventory || []).filter(item => 
+            ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name)
+          ).length;
+          const bestScore = (best.kills || 0) + (best.inventory || []).filter(item => 
+            ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name)
+          ).length;
+          return currentScore > bestScore ? player : best;
+        }, alivePlayers[0]);
+        
+        addOutput('system', '=== SUMMARY STATISTICS ===');
+        addOutput('system', `Average Mental Health: ${Math.round(avgMentalHealth)}/100`);
+        addOutput('system', `Most Well-Equipped: ${mostEquipped ? mostEquipped.name : 'N/A'} (${(mostEquipped?.inventory || []).length} items)`);
+        addOutput('system', `Most Dangerous: ${mostDangerous ? mostDangerous.name : 'N/A'} (${mostDangerous?.kills || 0} kills, ${(mostDangerous?.inventory || []).filter(item => 
+          ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name)
+        ).length} weapons)`);
         break;
         
       case '':

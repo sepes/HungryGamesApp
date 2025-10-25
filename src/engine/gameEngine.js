@@ -2,10 +2,19 @@ import { EventGenerator } from './eventGenerator.js';
 
 export class GameEngine {
     constructor(players) {
-        this.players = players;
+        // Initialize players with extended stats
+        this.players = players.map(player => ({
+            ...player,
+            inventory: [],
+            alliances: [],
+            mentalHealth: 75,
+            courage: 50,
+            strength: 0,
+            cowardice: 0
+        }));
         this.day = 1;
         this.phase = 'cornucopia';
-        this.eventGenerator = new EventGenerator(players, this);
+        this.eventGenerator = new EventGenerator(this.players, this);
         this.totalDays = 0;
         this.fallenTributeData = [];
     }
