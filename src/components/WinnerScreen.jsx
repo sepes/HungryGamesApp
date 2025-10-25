@@ -54,7 +54,7 @@ const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
         <section className="final-message" aria-labelledby="victory-declaration-heading">
           <h3 id="victory-declaration-heading">Victory Declaration</h3>
           <p>
-            {winner.name} has emerged victorious from the 74th Hunger Games, 
+            {winner.name} has emerged victorious from the this year's Hunger Games, 
             outlasting all other tributes in a 
             brutal competition that lasted {daysSimulated} days.
             {winner.kills > 0 && ` With ${winner.kills} kill${winner.kills > 1 ? 's' : ''}, they proved their dominance in the arena.`}

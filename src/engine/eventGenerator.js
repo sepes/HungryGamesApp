@@ -395,7 +395,7 @@ export class EventGenerator {
         const lines = [`${this.deadThisRound.length} cannon shot${this.deadThisRound.length > 1 ? 's' : ''} can be heard in the distance.`, ""];
         lines.push("Fallen Tributes:");
         this.deadThisRound.forEach(p => {
-            lines.push(`  • ${p.name} - District ${p.district}`);
+            lines.push(`  • ${this.highlightPlayerName(p.name)} - District ${p.district}`);
         });
 
         return lines;

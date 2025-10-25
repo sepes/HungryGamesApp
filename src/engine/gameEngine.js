@@ -111,7 +111,7 @@ export class GameEngine {
     getPhaseHeader(phase = this.phase) {
         switch (phase) {
             case 'cornucopia':
-                return `=== THE 74TH HUNGER GAMES ===`;
+                return `=== THE HUNGER GAMES ===`;
             case 'day':
                 return `=== Day ${this.day} ===`;
             case 'night':
@@ -128,7 +128,7 @@ export class GameEngine {
             ``,
             `=== VICTORY ===`,
             ``,
-            `Ladies and gentlemen, the winner of the 74th Hunger Games...`,
+            `Ladies and gentlemen, the winner of the this year's Hunger Games...`,
             ``,
             `${winner.name.toUpperCase()} FROM DISTRICT ${winner.district}!`,
             ``,

@@ -152,7 +152,7 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
                     ) : (
                       <>
                         <div className="fallen-tribute-name">
-                          {tributeData[fallenAnimation.currentIndex].name}
+                            {tributeData[fallenAnimation.currentIndex].name}
                         </div>
                         <div className="fallen-tribute-district" hidden={tributeData[fallenAnimation.currentIndex].isEmpty}>
                           District {tributeData[fallenAnimation.currentIndex].district}
