@@ -2,60 +2,97 @@ export const eventTemplates = {
     cornucopia: {
         // Weapon-specific kills
         sword_kills: [
-            "{killer} swings their sword with deadly precision, cutting down {victim}",
-            "{killer} thrusts their sword through {victim}'s chest in a brutal strike",
-            "{killer} decapitates {victim} with a swift sword stroke",
-            "{killer} slashes {victim} across the throat with their blade",
-            "{killer} impales {victim} on their sword as they charge forward"
+            "{killer} grabs a sword from the Cornucopia and quickly slices {victim} to death",
+            "{killer} snatches a sword and thrusts it through {victim}'s chest in the chaos",
+            "{killer} grabs a sword and decapitates {victim} with a swift stroke",
+            "{killer} seizes a sword and slashes {victim} across the throat",
+            "{killer} grabs a sword and impales {victim} as they both reach for supplies",
+            "{killer} snatches a sword and cleaves {victim} in half with a powerful swing",
+            "{killer} grabs a sword and runs {victim} through in a fatal thrust",
+            "{killer} seizes a sword and slices {victim}'s head clean off",
+            "{killer} grabs a sword and delivers a devastating blow that kills {victim} instantly",
+            "{killer} snatches a sword and strikes {victim} down with deadly precision"
         ],
         knife_kills: [
-            "{killer} stabs {victim} repeatedly with their knife in a frenzied attack",
-            "{killer} slits {victim}'s throat with a quick knife stroke",
-            "{killer} plunges their knife into {victim}'s heart",
-            "{killer} throws their knife with deadly accuracy, hitting {victim} in the chest",
-            "{killer} slashes {victim} across the face with their blade"
+            "{killer} grabs a knife from the Cornucopia and stabs {victim} repeatedly in a frenzied attack",
+            "{killer} snatches a knife and slits {victim}'s throat in the chaos",
+            "{killer} grabs a knife and plunges it into {victim}'s heart",
+            "{killer} seizes a knife and throws it with deadly accuracy, hitting {victim} in the chest",
+            "{killer} grabs a knife and slashes {victim} across the face",
+            "{killer} snatches a knife and drives it deep into {victim}'s stomach",
+            "{killer} grabs a knife and cuts {victim}'s throat with a swift motion",
+            "{killer} seizes a knife and stabs {victim} in the back",
+            "{killer} grabs a knife and slashes {victim}'s chest",
+            "{killer} snatches a knife and plunges it into {victim}'s neck"
         ],
         bow_kills: [
-            "{killer} draws their bow and shoots {victim} through the heart",
-            "{killer} fires an arrow that pierces {victim}'s skull",
-            "{killer} shoots {victim} in the back as they try to flee",
-            "{killer} aims carefully and sends an arrow through {victim}'s throat",
-            "{killer} fires multiple arrows, one finding {victim}'s vital organs"
+            "{killer} and {victim} fight for a bow, {victim} gets sliced in the back by a passing tribute, leaving the bow for {killer}",
+            "{killer} grabs a bow from the Cornucopia and shoots {victim} through the heart",
+            "{killer} snatches a bow and fires an arrow that pierces {victim}'s skull",
+            "{killer} grabs a bow and shoots {victim} in the back as they try to flee",
+            "{killer} seizes a bow and aims carefully, sending an arrow through {victim}'s throat",
+            "{killer} grabs a bow and fires multiple arrows, one finding {victim}'s vital organs",
+            "{killer} snatches a bow and takes careful aim, shooting {victim} through the eye",
+            "{killer} grabs a bow and fires an arrow that embeds itself in {victim}'s chest",
+            "{killer} seizes a bow and shoots {victim} in the leg, then finishes them with another arrow",
+            "{killer} grabs a bow and sends an arrow through {victim}'s heart from a distance"
         ],
         spear_kills: [
-            "{killer} thrusts their spear through {victim}'s abdomen",
-            "{killer} throws their spear with deadly force, impaling {victim}",
-            "{killer} stabs {victim} in the chest with their spear",
-            "{killer} uses their spear to pin {victim} against the Cornucopia",
-            "{killer} strikes {victim} with a powerful spear thrust"
+            "{killer} grabs a spear from the Cornucopia and thrusts it through {victim}'s abdomen",
+            "{killer} snatches a spear and throws it with deadly force, impaling {victim}",
+            "{killer} grabs a spear and stabs {victim} in the chest",
+            "{killer} seizes a spear and uses it to pin {victim} against the Cornucopia",
+            "{killer} grabs a spear and strikes {victim} with a powerful thrust",
+            "{killer} snatches a spear and drives it through {victim}'s heart",
+            "{killer} grabs a spear and impales {victim} with a deadly thrust",
+            "{killer} seizes a spear and stabs {victim} in the throat",
+            "{killer} grabs a spear and runs {victim} through",
+            "{killer} snatches a spear and strikes {victim} down with a devastating attack"
         ],
         axe_kills: [
-            "{killer} swings their axe with brutal force, cleaving {victim} in half",
-            "{killer} buries their axe in {victim}'s skull",
-            "{killer} chops {victim} down with a devastating axe blow",
-            "{killer} splits {victim}'s head open with their axe",
-            "{killer} hacks at {victim} with their axe until they fall"
+            "{killer} grabs an axe from the Cornucopia and swings it with brutal force, cleaving {victim} in half",
+            "{killer} snatches an axe and buries it in {victim}'s skull",
+            "{killer} grabs an axe and chops {victim} down with a devastating blow",
+            "{killer} seizes an axe and splits {victim}'s head open",
+            "{killer} grabs an axe and hacks at {victim} until they fall",
+            "{killer} snatches an axe and swings it, cutting {victim} down with one blow",
+            "{killer} grabs an axe and buries it deep in {victim}'s chest",
+            "{killer} seizes an axe and chops {victim} in half with a mighty swing",
+            "{killer} grabs an axe and strikes {victim} down",
+            "{killer} snatches an axe and cleaves {victim} with a brutal attack"
         ],
         bare_hands_kills: [
-            "{killer} strangles {victim} with their bare hands, squeezing the life from them",
-            "{killer} snaps {victim}'s neck with a quick, brutal twist",
-            "{killer} beats {victim} to death with their fists",
-            "{killer} crushes {victim}'s windpipe with their hands",
-            "{killer} wrestles {victim} to the ground and chokes them out"
+            "{killer} and {victim} fight for supplies, {killer} strangles {victim} with their bare hands",
+            "{killer} wrestles {victim} to the ground and snaps their neck in the chaos",
+            "{killer} beats {victim} to death with their fists as they fight over the Cornucopia",
+            "{killer} crushes {victim}'s windpipe with their hands in the bloodbath",
+            "{killer} wrestles {victim} to the ground and chokes them out",
+            "{killer} chokes {victim} to death with their bare hands in the frenzy",
+            "{killer} breaks {victim}'s neck with a powerful grip",
+            "{killer} beats {victim} unconscious then finishes them off",
+            "{killer} strangles {victim} until they stop breathing",
+            "{killer} crushes {victim}'s throat with their hands"
         ],
         improvised_kills: [
-            "{killer} bludgeons {victim} to death with a rock",
-            "{killer} strangles {victim} with a piece of rope",
-            "{killer} beats {victim} with a heavy branch",
-            "{killer} crushes {victim}'s skull with a large stone",
-            "{killer} drowns {victim} in a nearby puddle"
+            "{killer} grabs a rock from the ground and bludgeons {victim} to death",
+            "{killer} snatches a piece of rope from the Cornucopia and strangles {victim}",
+            "{killer} grabs a heavy branch and beats {victim} with it",
+            "{killer} seizes a large stone and crushes {victim}'s skull",
+            "{killer} grabs {victim} and drowns them in a nearby puddle",
+            "{killer} snatches a heavy stick and beats {victim} to death",
+            "{killer} grabs {victim} and strangles them with their own clothing",
+            "{killer} finds a fallen log and crushes {victim} with it",
+            "{killer} snatches a chunk of concrete and bludgeons {victim} with it"
         ],
         // Generic kills for fallback
         kills: [
-            "{killer} and {victim} fight. {killer} wins by kicking {victim} in the head, killing them instantly",
-            "{killer} pushes {victim} into another tribute's weapon",
-            "{killer} breaks {victim}'s skull against the Cornucopia",
-            "{killer} runs to {victim} tackles them and strangles to death"
+            "{killer} and {victim} fight for supplies. {killer} wins by kicking {victim} in the head, killing them instantly",
+            "{killer} pushes {victim} into another tribute's weapon in the chaos",
+            "{killer} grabs {victim} and breaks their skull against the Cornucopia",
+            "{killer} runs to {victim}, tackles them and strangles them to death",
+            "{killer} and {victim} fight over a weapon, {killer} emerges victorious",
+            "{killer} takes advantage of the chaos and eliminates {victim}",
+            "{killer} and {victim} struggle for supplies, {killer} gets the upper hand"
         ],
         escapes: [
             "{player} runs away from the Cornucopia empty-handed",
@@ -151,6 +188,18 @@ export const eventTemplates = {
             "{killer} loots {victim}'s backpack for valuable gear",
             "{killer} strips {victim} of their equipment",
             "{killer} searches {victim}'s belongings for anything useful"
+        ],
+        weapon_grab_kills: [
+            "{killer} grabs a {weapon} from the Cornucopia and immediately strikes down {victim}",
+            "{killer} snatches a {weapon} and uses it to kill {victim} in one swift motion",
+            "{killer} grabs a {weapon} and cuts down {victim} before they can react",
+            "{killer} seizes a {weapon} and eliminates {victim} with deadly precision",
+            "{killer} grabs a {weapon} and strikes {victim} down in the chaos",
+            "{killer} snatches a {weapon} and kills {victim} with a single blow",
+            "{killer} grabs a {weapon} and eliminates {victim} before they can escape",
+            "{killer} seizes a {weapon} and cuts down {victim} in the bloodbath",
+            "{killer} grabs a {weapon} and strikes {victim} down with brutal efficiency",
+            "{killer} snatches a {weapon} and kills {victim} in the opening moments"
         ]
     },
 
@@ -161,28 +210,48 @@ export const eventTemplates = {
             "{killer} ambushes {victim} and runs them through with their blade",
             "{killer} engages {victim} in combat and strikes them down with their sword",
             "{killer} corners {victim} and delivers a fatal sword strike",
-            "{killer} hunts {victim} through the forest and cuts them down"
+            "{killer} hunts {victim} through the forest and cuts them down",
+            "{killer} confronts {victim} and cuts them down with their sword",
+            "{killer} strikes {victim} down with a powerful sword blow",
+            "{killer} runs {victim} through with their blade in combat",
+            "{killer} defeats {victim} with their superior sword skills",
+            "{killer} cuts {victim} down with a devastating sword attack"
         ],
         knife_combat_kills: [
             "{killer} stalks {victim} and stabs them in the back with their knife",
             "{killer} ambushes {victim} and slits their throat with their blade",
             "{killer} catches {victim} off-guard and plunges their knife into their chest",
             "{killer} sneaks up on {victim} and stabs them repeatedly",
-            "{killer} wrestles {victim} to the ground and finishes them with their knife"
+            "{killer} wrestles {victim} to the ground and finishes them with their knife",
+            "{killer} stabs {victim} in the heart with their knife",
+            "{killer} cuts {victim}'s throat with their blade",
+            "{killer} plunges their knife into {victim}'s stomach",
+            "{killer} stabs {victim} repeatedly until they fall",
+            "{killer} finishes {victim} with a fatal knife strike"
         ],
         bow_combat_kills: [
             "{killer} takes aim and shoots {victim} through the heart with an arrow",
             "{killer} fires an arrow that pierces {victim}'s skull from a distance",
             "{killer} shoots {victim} in the back as they flee through the trees",
             "{killer} aims carefully and sends an arrow through {victim}'s throat",
-            "{killer} fires multiple arrows until one finds {victim}'s vital organs"
+            "{killer} fires multiple arrows until one finds {victim}'s vital organs",
+            "{killer} shoots {victim} through the eye with a perfect shot",
+            "{killer} fires an arrow that embeds itself in {victim}'s chest",
+            "{killer} takes careful aim and kills {victim} with a single arrow",
+            "{killer} shoots {victim} in the leg, then finishes them with another shot",
+            "{killer} sends an arrow through {victim}'s heart from afar"
         ],
         spear_combat_kills: [
             "{killer} charges at {victim} and impales them on their spear",
             "{killer} throws their spear with deadly accuracy, killing {victim}",
             "{killer} thrusts their spear through {victim}'s chest in combat",
             "{killer} pins {victim} against a tree with their spear",
-            "{killer} strikes {victim} down with a powerful spear thrust"
+            "{killer} strikes {victim} down with a powerful spear thrust",
+            "{killer} runs {victim} through with their spear",
+            "{killer} impales {victim} on their spear with deadly force",
+            "{killer} stabs {victim} in the heart with their spear",
+            "{killer} strikes {victim} down with a devastating spear attack",
+            "{killer} thrusts their spear through {victim}'s abdomen"
         ],
         axe_combat_kills: [
             "{killer} chops {victim} down with a devastating axe blow",
@@ -226,7 +295,7 @@ export const eventTemplates = {
             "{player} steps on a landmine",
             "{player} gets caught in their own trap",
             "{player} dies of dehydration",
-            "{player} is killed by tracker jackers",
+            "{player} tried to escape the arena and is killed by tracker jackers",
             "{player} falls into a pit of spikes",
             "{player} drowns trying to cross a rapid river",
             "{player} dies from eating contaminated food"
@@ -353,14 +422,24 @@ export const eventTemplates = {
             "{killer} creeps up on {victim} and stabs them in the heart with their knife",
             "{killer} quietly plunges their knife into {victim}'s chest as they sleep",
             "{killer} sneaks up on {victim} and cuts their throat with their blade",
-            "{killer} silently stabs {victim} repeatedly in their sleep"
+            "{killer} silently stabs {victim} repeatedly in their sleep",
+            "{killer} quietly stabs {victim} in the back with their knife",
+            "{killer} silently cuts {victim}'s throat with their blade",
+            "{killer} creeps up on {victim} and plunges their knife into their neck",
+            "{killer} silently stabs {victim} in the heart while they sleep",
+            "{killer} quietly finishes {victim} with their knife"
         ],
         sword_stealth_kills: [
             "{killer} silently decapitates {victim} while they sleep",
             "{killer} creeps up on {victim} and runs them through with their sword",
             "{killer} quietly cuts {victim}'s throat with their blade",
             "{killer} sneaks up on {victim} and strikes them down with their sword",
-            "{killer} silently thrusts their sword through {victim}'s chest"
+            "{killer} silently thrusts their sword through {victim}'s chest",
+            "{killer} quietly beheads {victim} with their sword",
+            "{killer} silently runs {victim} through with their blade",
+            "{killer} creeps up on {victim} and cuts them down with their sword",
+            "{killer} quietly strikes {victim} down with their blade",
+            "{killer} silently finishes {victim} with their sword"
         ],
         bow_stealth_kills: [
             "{killer} takes careful aim and shoots {victim} through the heart as they sleep",

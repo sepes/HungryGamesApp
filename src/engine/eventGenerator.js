@@ -273,25 +273,26 @@ export class EventGenerator {
         this.alivePlayers = this.allPlayers.filter(p => p.isAlive);
     }
 
-    // Generate bell curve death rate between 5% and 80%
-    generateBellCurveDeathRate() {
+    // Generate bell curve death count for cornucopia: 8-12 deaths out of 24 tributes
+    generateCornucopiaDeathCount(totalTributes) {
         // Box-Muller transform for normal distribution
         const u1 = Math.random();
         const u2 = Math.random();
         const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 
-        // Scale to our desired range (5% to 80%)
-        // Mean at 42.5% (middle of range)
-        // Standard deviation to give good spread
-        const mean = 0.425; // 42.5%
-        const stdDev = 0.15; // 15% standard deviation
+        // Scale to 8-12 deaths range
+        // Mean at 10 deaths (middle of 8-12 range)
+        // Standard deviation to give good spread within the range
+        const mean = 10;
+        const stdDev = 1.2; // Smaller std dev for tighter distribution
 
-        let deathRate = mean + (z0 * stdDev);
+        let deathCount = mean + (z0 * stdDev);
 
-        // Clamp to 5% - 80% range
-        deathRate = Math.max(0.05, Math.min(0.80, deathRate));
+        // Clamp to 8-12 range
+        deathCount = Math.max(8, Math.min(12, Math.round(deathCount)));
 
-        return deathRate;
+        // Ensure we don't exceed the number of alive tributes
+        return Math.min(deathCount, totalTributes);
     }
 
     // Helper method to wrap player names in highlight spans
@@ -304,42 +305,108 @@ export class EventGenerator {
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
 
-        // 5-80% death rate with bell curve distribution
-        const deathRate = this.generateBellCurveDeathRate();
-        const targetDeaths = Math.floor(participants.length * deathRate);
+        // Generate bell curve death count between 8-12 out of 24 tributes
+        const targetDeaths = this.generateCornucopiaDeathCount(participants.length);
         let deaths = 0;
 
         events.push("The tributes stand in a circle around the Cornucopia...");
         events.push("The gong sounds. The bloodbath begins!");
         events.push("");
 
-        // Process each player
+        // First pass: Handle supply grabs and escapes (non-combat actions)
+        const combatParticipants = [];
         for (let player of participants) {
             if (!player.isAlive || this.usedThisSegment.has(player.id)) continue;
 
             const roll = Math.random();
 
-            if (roll < 0.25 && deaths < targetDeaths) {
-                // Player gets killed
-                const killer = this.selectKiller(player);
-                if (killer) {
-                    events.push(this.generateKill(killer, player, 'cornucopia'));
-                    deaths++;
-                }
-            } else if (roll < 0.45) {
+            if (roll < 0.20) {
                 // Player grabs supplies
                 events.push(this.generateSupplyGrab(player));
                 this.usedThisSegment.add(player.id);
-            } else if (roll < 0.55 && this.canFormTeam(player)) {
+            } else if (roll < 0.35) {
+                // Player grabs weapon and immediately kills someone
+                const victim = this.selectVictim(player);
+                if (victim) {
+                    events.push(this.generateWeaponGrabKill(player, victim));
+                    deaths++;
+                } else {
+                    // No victim available, just grab supplies
+                    events.push(this.generateSupplyGrab(player));
+                }
+                this.usedThisSegment.add(player.id);
+            } else if (roll < 0.45 && this.canFormTeam(player)) {
                 // Players team up
                 const partner = this.selectPartner(player);
                 if (partner) {
                     events.push(this.generateTeamwork(player, partner));
                 }
-            } else {
+            } else if (roll < 0.55) {
                 // Player escapes
                 events.push(this.generateEscape(player));
                 this.usedThisSegment.add(player.id);
+            } else {
+                // Player stays for combat
+                combatParticipants.push(player);
+            }
+        }
+
+        // Second pass: Handle combat with updated inventories
+        for (let player of combatParticipants) {
+            if (!player.isAlive || this.usedThisSegment.has(player.id)) continue;
+
+            if (deaths < targetDeaths) {
+                // Player gets killed in combat - prioritize weapon grab kills
+                const killer = this.selectKiller(player);
+                if (killer) {
+                    // Use weapon grab kill instead of regular kill for more dynamic events
+                    events.push(this.generateWeaponGrabKill(killer, player));
+                    deaths++;
+                } else {
+                    // If no killer available, find any available player to be the killer
+                    const availableKillers = this.alivePlayers.filter(p =>
+                        p.id !== player.id && p.isAlive && !this.usedThisSegment.has(p.id)
+                    );
+                    if (availableKillers.length > 0) {
+                        const forcedKiller = availableKillers[Math.floor(Math.random() * availableKillers.length)];
+                        events.push(this.generateWeaponGrabKill(forcedKiller, player));
+                        deaths++;
+                    }
+                }
+            } else {
+                // No more deaths needed, player escapes
+                events.push(this.generateEscape(player));
+                this.usedThisSegment.add(player.id);
+            }
+        }
+
+        // Fallback: If we haven't reached target deaths, force more weapon grab kills
+        if (deaths < targetDeaths) {
+            const remainingParticipants = this.alivePlayers.filter(p =>
+                p.isAlive && !this.usedThisSegment.has(p.id)
+            );
+
+            const neededDeaths = targetDeaths - deaths;
+            const deathsToForce = Math.min(neededDeaths, remainingParticipants.length);
+
+            for (let i = 0; i < deathsToForce; i++) {
+                const victim = remainingParticipants[i];
+                const killer = this.selectKiller(victim);
+                if (killer) {
+                    // Force weapon grab kill - prioritize weapon kills over improvised
+                    events.push(this.generateWeaponGrabKill(killer, victim));
+                    deaths++;
+                } else {
+                    // If no killer available, find any available player to be the killer
+                    const availableKillers = this.alivePlayers.filter(p =>
+                        p.id !== victim.id && p.isAlive
+                    );
+                    if (availableKillers.length > 0) {
+                        const forcedKiller = availableKillers[Math.floor(Math.random() * availableKillers.length)];
+                        events.push(this.generateWeaponGrabKill(forcedKiller, victim));
+                        deaths++;
+                    }
+                }
             }
         }
 
@@ -750,6 +817,63 @@ export class EventGenerator {
         return template
             .replace(/\{player\}/g, this.highlightPlayerName(player.name))
             .replace(/\{weapon\}/g, weapon);
+    }
+
+    generateWeaponGrabKill(killer, victim) {
+        // Get a random weapon for the killer
+        const weapon = weapons[Math.floor(Math.random() * weapons.length)];
+
+        // Add weapon to killer's inventory
+        this.addItemToInventory(killer, weapon);
+
+        // Kill the victim
+        victim.isAlive = false;
+        victim.diedInPhase = 'cornucopia';
+        victim.diedOnDay = this.gameEngine.day;
+        killer.kills = (killer.kills || 0) + 1;
+
+        // Loot victim's items
+        const lootedItems = this.lootPlayer(killer, victim);
+
+        // Update stats
+        this.updateCourage(killer, 10, 'successful kill');
+        this.updateMentalHealth(killer, -15, 'killing');
+        this.updateMentalHealth(victim, -20, 'death');
+
+        // Check if this was a betrayal
+        if (this.isAlliedWith(killer, victim)) {
+            this.breakAlliance(killer, victim);
+        }
+
+        // Add to deadThisRound if not already there
+        if (!this.deadThisRound.includes(victim)) {
+            this.deadThisRound.push(victim);
+        }
+
+        this.usedThisSegment.add(victim.id);
+        this.usedThisSegment.add(killer.id);
+
+        // Generate weapon grab kill event
+        const templates = eventTemplates.cornucopia.weapon_grab_kills || eventTemplates.cornucopia.kills;
+        const template = templates[Math.floor(Math.random() * templates.length)];
+
+        let result = template
+            .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
+            .replace(/\{victim\}/g, this.highlightPlayerName(victim.name))
+            .replace(/\{weapon\}/g, weapon);
+
+        // Add looting event if items were looted
+        if (lootedItems && lootedItems.length > 0) {
+            const lootingTemplates = eventTemplates.cornucopia.looting || eventTemplates.day.looting || eventTemplates.night.looting;
+            if (lootingTemplates) {
+                const lootingTemplate = lootingTemplates[Math.floor(Math.random() * lootingTemplates.length)];
+                result += '\n' + lootingTemplate
+                    .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
+                    .replace(/\{victim\}/g, this.highlightPlayerName(victim.name));
+            }
+        }
+
+        return result;
     }
 
     generateTeamwork(player1, player2) {
