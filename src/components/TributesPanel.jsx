@@ -64,7 +64,22 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
                       </div>
                       <div className="tribute-status">
                         {player.isAlive ? (
-                          <span className="tribute-status-alive">Alive</span>
+                          <div className="tribute-alive-details">
+                            <span className="tribute-status-alive">Alive</span>
+                            {player.inventory && player.inventory.length > 0 && (
+                              <div className="tribute-inventory">
+                                <strong>Items:</strong> {player.inventory.map(item => `${item.name} (${item.uses})`).join(', ')}
+                              </div>
+                            )}
+                            {player.alliances && player.alliances.length > 0 && (
+                              <div className="tribute-alliances">
+                                <strong>Allies:</strong> {player.alliances.map(allyId => {
+                                  const ally = gameEngine.players.find(p => p.id === allyId);
+                                  return ally ? ally.name : 'Unknown';
+                                }).join(', ')}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <span className="tribute-status-fallen">
                             {formatDeathInfo(player)}
