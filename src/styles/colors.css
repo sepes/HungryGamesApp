@@ -20,6 +20,7 @@
     --color-off-white: #e0e0e0;
     --color-sage-green: #81b29a;
     --color-terracotta: #e07a5f;
+    --color-light-blue: #87ceeb;
     --color-error: #dc3545;
     --color-success: #28a745;
     --color-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
@@ -37,6 +38,7 @@
     --text-highlight-secondary: var(--color-terracotta);
     --accent-primary: var(--color-light-gray);
     --accent-secondary: var(--color-very-light-gray);
+    --button-misc: var(--color-terracotta);
     --error-color: var(--color-error);
     --success-color: var(--color-success);
     --shadow-color: var(--color-shadow);
@@ -44,6 +46,10 @@
     --shadow-medium: var(--color-shadow-medium);
     --shadow-heavy: var(--color-shadow-heavy);
     --shadow-drop: var(--color-shadow-drop);
+    --scrollbar-handle: var(--color-light-blue);
+    --scrollbar-handle-hover: var(--color-sage-green);
+    --scrollbar-arrow: var(--color-terracotta);
+    --scrollbar-arrow-hover: var(--color-sage-green);
 }
 
 

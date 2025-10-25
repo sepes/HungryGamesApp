@@ -7,6 +7,7 @@ export class GameEngine {
         this.phase = 'cornucopia';
         this.eventGenerator = new EventGenerator(players, this);
         this.totalDays = 0;
+        this.fallenTributeData = [];
     }
 
     nextSegment() {
@@ -31,6 +32,8 @@ export class GameEngine {
 
             case 'fallen':
                 events = this.eventGenerator.formatFallenTributes();
+                // Get tribute data before clearing deadThisRound
+                this.fallenTributeData = this.eventGenerator.getFallenTributeData();
                 this.eventGenerator.deadThisRound = [];
 
                 // Move to next day if not first fallen
@@ -87,13 +90,22 @@ export class GameEngine {
 
         // Add phase header using the CURRENT phase (before it changed)
         const header = this.getPhaseHeader(currentPhase);
-        return {
+
+        // For fallen phase, include tribute data for animation
+        const result = {
             phase: currentPhase, // Return current phase, not next phase
             events: header ? [header, '', ...events] : events,
             winner: null,
             alive: alive.length,
             total: this.players.length
         };
+
+        // Add tribute data for fallen phase animation
+        if (currentPhase === 'fallen') {
+            result.tributeData = this.fallenTributeData || [];
+        }
+
+        return result;
     }
 
     getPhaseHeader(phase = this.phase) {
