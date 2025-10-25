@@ -44,14 +44,18 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
     addOutput('info', 'Starting autoplay... Game will advance automatically until a winner is found.');
     
     const autoplayInterval = setInterval(() => {
-      if (showVictoryButton) {
-        clearInterval(autoplayInterval);
-        setIsAutoplaying(false);
-        addOutput('info', 'Autoplay complete! Winner found.');
-        return;
+      // Check if game has a winner by counting alive players
+      if (gameEngine) {
+        const alivePlayers = gameEngine.players.filter(p => p.isAlive);
+        if (alivePlayers.length === 1) {
+          clearInterval(autoplayInterval);
+          setIsAutoplaying(false);
+          addOutput('info', 'Autoplay complete! Winner found.');
+          return;
+        }
       }
       
-      if (gamePhase === 'winner' && onNext) {
+      if (gamePhase === 'simulation' && onNext) {
         onNext();
       }
     }, 100); // Advance every 100ms
