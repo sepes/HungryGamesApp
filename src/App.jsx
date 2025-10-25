@@ -16,6 +16,7 @@ function App() {
   const [eventHistory, setEventHistory] = useState([]);
   const [showVictoryButton, setShowVictoryButton] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [tributeData, setTributeData] = useState(null);
 
   const startGame = (players) => {
     const engine = new GameEngine(players);
@@ -30,6 +31,7 @@ function App() {
     setCurrentEvents(result.events);
     setCurrentPhase(result.phase);
     setEventHistory(prev => [...prev, result.events]);
+    setTributeData(result.tributeData || null);
     
     if (result.winner) {
       setWinner(result.winner);
@@ -50,6 +52,7 @@ function App() {
     setWinner(null);
     setEventHistory([]);
     setShowVictoryButton(false);
+    setTributeData(null);
   };
 
 
@@ -76,6 +79,7 @@ function App() {
             showVictoryButton={showVictoryButton}
             onShowVictory={showVictory}
             onResetGame={resetGame}
+            tributeData={tributeData}
           />
         )}
         {gamePhase === 'winner' && (

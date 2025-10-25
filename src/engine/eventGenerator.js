@@ -241,7 +241,12 @@ export class EventGenerator {
         victim.diedInPhase = phase;
         victim.diedOnDay = this.gameEngine.day;
         killer.kills = (killer.kills || 0) + 1;
-        this.deadThisRound.push(victim);
+
+        // Only add to deadThisRound if not already there
+        if (!this.deadThisRound.includes(victim)) {
+            this.deadThisRound.push(victim);
+        }
+
         this.usedThisSegment.add(victim.id);
         this.usedThisSegment.add(killer.id);
 
@@ -298,7 +303,11 @@ export class EventGenerator {
         player.isAlive = false;
         player.diedInPhase = 'day';
         player.diedOnDay = this.gameEngine.day;
-        this.deadThisRound.push(player);
+
+        // Only add to deadThisRound if not already there
+        if (!this.deadThisRound.includes(player)) {
+            this.deadThisRound.push(player);
+        }
 
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
@@ -328,7 +337,11 @@ export class EventGenerator {
         player.isAlive = false;
         player.diedInPhase = 'night';
         player.diedOnDay = this.gameEngine.day;
-        this.deadThisRound.push(player);
+
+        // Only add to deadThisRound if not already there
+        if (!this.deadThisRound.includes(player)) {
+            this.deadThisRound.push(player);
+        }
 
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
@@ -355,7 +368,12 @@ export class EventGenerator {
         victim.diedInPhase = 'night';
         victim.diedOnDay = this.gameEngine.day;
         killer.kills = (killer.kills || 0) + 1;
-        this.deadThisRound.push(victim);
+
+        // Only add to deadThisRound if not already there
+        if (!this.deadThisRound.includes(victim)) {
+            this.deadThisRound.push(victim);
+        }
+
         this.usedThisSegment.add(victim.id);
 
         return template
@@ -381,5 +399,26 @@ export class EventGenerator {
         });
 
         return lines;
+    }
+
+    getFallenTributeData() {
+        if (this.deadThisRound.length === 0) {
+            return [{ name: "No fallen", district: "", kills: 0, diedInPhase: "none", isNoFallen: true }];
+        }
+
+        const tributeData = this.deadThisRound.map(p => ({
+            name: p.name,
+            district: p.district,
+            kills: p.kills || 0,
+            diedInPhase: p.diedInPhase || 'unknown',
+            isNoFallen: false,
+            isEmpty: false
+        }));
+
+        // Add empty first item
+        return [
+            { name: "", district: "", kills: 0, diedInPhase: "none", isNoFallen: false, isEmpty: true },
+            ...tributeData
+        ];
     }
 }
