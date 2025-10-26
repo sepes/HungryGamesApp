@@ -61,6 +61,78 @@ export const eventTemplates = {
             "{killer} grabs an axe and strikes {victim} down",
             "{killer} snatches an axe and cleaves {victim} with a brutal attack"
         ],
+        mace_kills: [
+            "{killer} grabs a mace from the Cornucopia and crushes {victim}'s skull with devastating force",
+            "{killer} snatches a mace and brings it down on {victim}'s head with crushing impact",
+            "{killer} grabs a mace and strikes {victim} down with bone-shattering force",
+            "{killer} seizes a mace and crushes {victim}'s chest with a brutal blow",
+            "{killer} grabs a mace and swings it, shattering {victim}'s ribs",
+            "{killer} snatches a mace and delivers a fatal strike to {victim}",
+            "{killer} grabs a mace and crushes {victim} with its heavy weight",
+            "{killer} seizes a mace and strikes {victim} down with devastating force",
+            "{killer} grabs a mace and brings it down on {victim} with crushing power",
+            "{killer} snatches a mace and ends {victim} with a brutal strike"
+        ],
+        trident_kills: [
+            "{killer} grabs a trident from the Cornucopia and impales {victim} with all three prongs",
+            "{killer} snatches a trident and thrusts it through {victim}'s chest",
+            "{killer} grabs a trident and runs {victim} through with deadly precision",
+            "{killer} seizes a trident and impales {victim} with devastating force",
+            "{killer} grabs a trident and strikes {victim} down with a powerful thrust",
+            "{killer} snatches a trident and thrusts it into {victim}'s heart",
+            "{killer} grabs a trident and pins {victim} to the ground",
+            "{killer} seizes a trident and delivers a fatal strike to {victim}",
+            "{killer} grabs a trident and thrusts it through {victim}'s abdomen",
+            "{killer} snatches a trident and ends {victim} with a brutal attack"
+        ],
+        dagger_kills: [
+            "{killer} grabs a dagger from the Cornucopia and plunges it into {victim}'s heart",
+            "{killer} snatches a dagger and thrusts it deep into {victim}'s chest",
+            "{killer} grabs a dagger and stabs {victim} repeatedly in a frenzied attack",
+            "{killer} seizes a dagger and cuts {victim}'s throat with deadly precision",
+            "{killer} grabs a dagger and strikes {victim} down with a swift thrust",
+            "{killer} snatches a dagger and plunges it into {victim}'s stomach",
+            "{killer} grabs a dagger and finishes {victim} with a fatal strike",
+            "{killer} seizes a dagger and thrusts it through {victim}'s ribs",
+            "{killer} grabs a dagger and strikes {victim} down with deadly force",
+            "{killer} snatches a dagger and ends {victim} with a brutal attack"
+        ],
+        sickle_kills: [
+            "{killer} grabs a sickle from the Cornucopia and cuts {victim} down with its curved blade",
+            "{killer} snatches a sickle and slashes {victim} across the throat",
+            "{killer} grabs a sickle and strikes {victim} down with its sharp edge",
+            "{killer} seizes a sickle and cuts {victim} with its razor-sharp blade",
+            "{killer} grabs a sickle and slashes {victim} across the chest",
+            "{killer} snatches a sickle and cuts {victim}'s throat with deadly precision",
+            "{killer} grabs a sickle and strikes {victim} down with a brutal swing",
+            "{killer} seizes a sickle and cuts {victim} with its curved edge",
+            "{killer} grabs a sickle and finishes {victim} with a fatal strike",
+            "{killer} snatches a sickle and ends {victim} with a brutal attack"
+        ],
+        machete_kills: [
+            "{killer} grabs a machete from the Cornucopia and cuts {victim} down with its heavy blade",
+            "{killer} snatches a machete and slashes {victim} across the chest",
+            "{killer} grabs a machete and strikes {victim} down with its sharp edge",
+            "{killer} seizes a machete and cuts {victim} with its brutal blade",
+            "{killer} grabs a machete and slashes {victim} across the throat",
+            "{killer} snatches a machete and cuts {victim} down with deadly force",
+            "{killer} grabs a machete and strikes {victim} down with a brutal slash",
+            "{killer} seizes a machete and cuts {victim} with its heavy weight",
+            "{killer} grabs a machete and finishes {victim} with a fatal strike",
+            "{killer} snatches a machete and ends {victim} with a brutal attack"
+        ],
+        club_kills: [
+            "{killer} grabs a club from the Cornucopia and crushes {victim}'s skull with devastating force",
+            "{killer} snatches a club and brings it down on {victim}'s head with crushing impact",
+            "{killer} grabs a club and strikes {victim} down with bone-shattering force",
+            "{killer} seizes a club and crushes {victim}'s chest with a brutal blow",
+            "{killer} grabs a club and swings it, breaking {victim}'s bones",
+            "{killer} snatches a club and delivers a fatal strike to {victim}",
+            "{killer} grabs a club and crushes {victim} with its heavy weight",
+            "{killer} seizes a club and strikes {victim} down with devastating force",
+            "{killer} grabs a club and brings it down on {victim} with crushing power",
+            "{killer} snatches a club and ends {victim} with a brutal strike"
+        ],
         bare_hands_kills: [
             "{killer} and {victim} fight for supplies, {killer} strangles {victim} with their bare hands",
             "{killer} wrestles {victim} to the ground and snaps their neck in the chaos",
@@ -90,9 +162,6 @@ export const eventTemplates = {
             "{killer} pushes {victim} into another tribute's weapon in the chaos",
             "{killer} grabs {victim} and breaks their skull against the Cornucopia",
             "{killer} runs to {victim}, tackles them and strangles them to death",
-            "{killer} and {victim} fight over a weapon, {killer} emerges victorious",
-            "{killer} takes advantage of the chaos and eliminates {victim}",
-            "{killer} and {victim} struggle for supplies, {killer} gets the upper hand"
         ],
         escapes: [
             "{player} runs away from the Cornucopia empty-handed",
@@ -217,6 +286,30 @@ export const eventTemplates = {
             "{killer} defeats {victim} with their superior sword skills",
             "{killer} cuts {victim} down with a devastating sword attack"
         ],
+        machete_combat_kills: [
+            "{killer} swings their machete and cuts {victim} down with a brutal slash",
+            "{killer} strikes {victim} with their machete, the heavy blade finding its mark",
+            "{killer} cuts {victim} down with a devastating machete blow",
+            "{killer} slashes {victim} across the chest with their machete",
+            "{killer} strikes {victim} down with their machete's sharp edge",
+            "{killer} cuts {victim}'s throat with their machete blade",
+            "{killer} delivers a fatal machete strike to {victim}",
+            "{killer} swings their machete and cuts {victim} in half",
+            "{killer} strikes {victim} with their machete until they fall",
+            "{killer} finishes {victim} with a brutal machete attack"
+        ],
+        club_combat_kills: [
+            "{killer} swings their club and strikes {victim} down with crushing force",
+            "{killer} brings their club down on {victim}'s head with devastating impact",
+            "{killer} strikes {victim} with their club, breaking bones with each blow",
+            "{killer} swings their club and crushes {victim}'s skull",
+            "{killer} delivers a brutal club strike that ends {victim}",
+            "{killer} strikes {victim} repeatedly with their club until they fall",
+            "{killer} brings their club down with bone-shattering force on {victim}",
+            "{killer} swings their club in a wide arc, striking {victim} down",
+            "{killer} crushes {victim} with their club's heavy weight",
+            "{killer} finishes {victim} with a devastating club blow"
+        ],
         knife_combat_kills: [
             "{killer} stalks {victim} and stabs them in the back with their knife",
             "{killer} ambushes {victim} and slits their throat with their blade",
@@ -228,6 +321,30 @@ export const eventTemplates = {
             "{killer} plunges their knife into {victim}'s stomach",
             "{killer} stabs {victim} repeatedly until they fall",
             "{killer} finishes {victim} with a fatal knife strike"
+        ],
+        dagger_combat_kills: [
+            "{killer} lunges at {victim} and drives their dagger deep into their chest",
+            "{killer} strikes {victim} with their dagger, finding a vital artery",
+            "{killer} thrusts their dagger into {victim}'s heart with deadly precision",
+            "{killer} slashes {victim} across the throat with their dagger",
+            "{killer} stabs {victim} repeatedly with their dagger until they fall",
+            "{killer} plunges their dagger into {victim}'s stomach",
+            "{killer} strikes {victim} down with a swift dagger thrust",
+            "{killer} cuts {victim}'s throat with their dagger blade",
+            "{killer} finishes {victim} with a fatal dagger strike",
+            "{killer} thrusts their dagger through {victim}'s ribs"
+        ],
+        sickle_combat_kills: [
+            "{killer} swings their sickle and cuts {victim} down with a curved blade",
+            "{killer} strikes {victim} with their sickle, the curved edge finding flesh",
+            "{killer} slashes {victim} across the chest with their sickle",
+            "{killer} cuts {victim}'s throat with their sickle's sharp edge",
+            "{killer} strikes {victim} down with a brutal sickle swing",
+            "{killer} hooks {victim} with their sickle and pulls them down",
+            "{killer} cuts {victim} with their sickle until they fall",
+            "{killer} strikes {victim} with their sickle, the curved blade deadly",
+            "{killer} finishes {victim} with a fatal sickle strike",
+            "{killer} slashes {victim} with their sickle's razor-sharp edge"
         ],
         bow_combat_kills: [
             "{killer} takes aim and shoots {victim} through the heart with an arrow",
@@ -253,12 +370,34 @@ export const eventTemplates = {
             "{killer} strikes {victim} down with a devastating spear attack",
             "{killer} thrusts their spear through {victim}'s abdomen"
         ],
+        trident_combat_kills: [
+            "{killer} thrusts their trident into {victim}'s chest with deadly precision",
+            "{killer} throws their trident and impales {victim} with all three prongs",
+            "{killer} strikes {victim} down with a powerful trident thrust",
+            "{killer} runs {victim} through with their trident's center prong",
+            "{killer} impales {victim} on their trident with devastating force",
+            "{killer} thrusts their trident through {victim}'s abdomen",
+            "{killer} strikes {victim} down with a brutal trident attack",
+            "{killer} pins {victim} to the ground with their trident",
+            "{killer} delivers a fatal trident strike to {victim}'s heart",
+            "{killer} thrusts their trident into {victim}'s throat"
+        ],
         axe_combat_kills: [
             "{killer} chops {victim} down with a devastating axe blow",
             "{killer} swings their axe and cleaves {victim} in half",
             "{killer} buries their axe in {victim}'s skull",
             "{killer} hacks at {victim} with their axe until they fall",
             "{killer} splits {victim}'s head open with their axe"
+        ],
+        mace_combat_kills: [
+            "{killer} crushes {victim}'s skull with a devastating mace blow",
+            "{killer} swings their mace and shatters {victim}'s ribs",
+            "{killer} brings their mace down on {victim}'s head with crushing force",
+            "{killer} strikes {victim} with their mace, breaking bones with each impact",
+            "{killer} delivers a brutal mace strike that ends {victim}",
+            "{killer} swings their mace in a wide arc, crushing {victim}'s chest",
+            "{killer} brings their mace down with bone-shattering force on {victim}",
+            "{killer} strikes {victim} repeatedly with their mace until they fall"
         ],
         bare_hands_combat_kills: [
             "{killer} wrestles {victim} to the ground and strangles them",
@@ -277,7 +416,7 @@ export const eventTemplates = {
         // Environmental/trap kills
         environmental_kills: [
             "{killer} pushes {victim} off a cliff to their death",
-            "{killer} sets a trap that kills {victim}",
+            "{killer} sets a trap that manages to kill {victim}",
             "{killer} poisons {victim}'s water supply",
             "{killer} crushes {victim} with a falling log",
             "{killer} drowns {victim} in a river"
@@ -461,6 +600,66 @@ export const eventTemplates = {
             "{killer} quietly hacks at {victim} with their axe until they die",
             "{killer} sneaks up on {victim} and splits their head open with their axe",
             "{killer} silently strikes {victim} down with their axe"
+        ],
+        mace_stealth_kills: [
+            "{killer} silently crushes {victim}'s skull with their mace while they sleep",
+            "{killer} creeps up on {victim} and brings their mace down with crushing force",
+            "{killer} quietly strikes {victim} with their mace until they die",
+            "{killer} sneaks up on {victim} and crushes their head with their mace",
+            "{killer} silently delivers a fatal mace blow to {victim}",
+            "{killer} quietly brings their mace down on {victim}'s chest",
+            "{killer} silently strikes {victim} with their mace in the darkness",
+            "{killer} creeps up on {victim} and crushes them with their mace"
+        ],
+        trident_stealth_kills: [
+            "{killer} silently impales {victim} on their trident while they sleep",
+            "{killer} creeps up on {victim} and thrusts their trident through their chest",
+            "{killer} quietly strikes {victim} down with their trident",
+            "{killer} sneaks up on {victim} and runs them through with their trident",
+            "{killer} silently thrusts their trident into {victim}'s heart",
+            "{killer} quietly impales {victim} on their trident's prongs",
+            "{killer} silently strikes {victim} with their trident in the darkness",
+            "{killer} creeps up on {victim} and delivers a fatal trident thrust"
+        ],
+        dagger_stealth_kills: [
+            "{killer} silently stabs {victim} in the heart with their dagger while they sleep",
+            "{killer} creeps up on {victim} and plunges their dagger into their chest",
+            "{killer} quietly slits {victim}'s throat with their dagger",
+            "{killer} sneaks up on {victim} and stabs them with their dagger",
+            "{killer} silently thrusts their dagger into {victim}'s ribs",
+            "{killer} quietly finishes {victim} with their dagger",
+            "{killer} silently strikes {victim} with their dagger in the darkness",
+            "{killer} creeps up on {victim} and cuts their throat with their dagger"
+        ],
+        sickle_stealth_kills: [
+            "{killer} silently cuts {victim}'s throat with their sickle while they sleep",
+            "{killer} creeps up on {victim} and slashes them with their sickle",
+            "{killer} quietly strikes {victim} down with their curved blade",
+            "{killer} sneaks up on {victim} and cuts them with their sickle",
+            "{killer} silently slashes {victim} with their sickle's sharp edge",
+            "{killer} quietly finishes {victim} with their sickle",
+            "{killer} silently strikes {victim} with their sickle in the darkness",
+            "{killer} creeps up on {victim} and cuts them down with their sickle"
+        ],
+        machete_stealth_kills: [
+            "{killer} silently cuts {victim}'s throat with their machete while they sleep",
+            "{killer} creeps up on {victim} and slashes them with their machete",
+            "{killer} quietly strikes {victim} down with their heavy blade",
+            "{killer} sneaks up on {victim} and cuts them with their machete",
+            "{killer} silently slashes {victim} with their machete's sharp edge",
+            "{killer} quietly finishes {victim} with their machete",
+            "{killer} silently strikes {victim} with their machete in the darkness",
+            "{killer} creeps up on {victim} and cuts them down with their machete"
+        ],
+        club_stealth_kills: [
+            "{killer} silently crushes {victim}'s skull with their club while they sleep",
+            "{killer} creeps up on {victim} and brings their club down with crushing force",
+            "{killer} quietly strikes {victim} with their club until they die",
+            "{killer} sneaks up on {victim} and crushes their head with their club",
+            "{killer} silently delivers a fatal club blow to {victim}",
+            "{killer} quietly brings their club down on {victim}'s chest",
+            "{killer} silently strikes {victim} with their club in the darkness",
+            "{killer} creeps up on {victim} and crushes them with their club"
         ],
         bare_hands_stealth_kills: [
             "{killer} quietly strangles {victim} in the darkness",

@@ -715,11 +715,27 @@ export class EventGenerator {
 
             // Fallback to generic weapon templates if specific ones don't exist
             if (!templates) {
-                templates = eventTemplates[phase][`${weapon}_kills`] ||
-                    eventTemplates[phase][`${weapon}_${phase}_kills`] ||
-                    eventTemplates[phase].kills ||
-                    eventTemplates[phase].combat_kills ||
-                    eventTemplates[phase].stealth_kills;
+                // Try multiple weapon-specific variations before falling back to generic
+                const weaponVariations = [
+                    `${weapon}_${phase}_kills`,
+                    `${weapon}_kills`,
+                    `${weapon}_combat_kills`,
+                    `${weapon}_stealth_kills`
+                ];
+
+                for (const variation of weaponVariations) {
+                    if (eventTemplates[phase][variation]) {
+                        templates = eventTemplates[phase][variation];
+                        break;
+                    }
+                }
+
+                // Only use generic fallback as absolute last resort
+                if (!templates) {
+                    templates = eventTemplates[phase].kills ||
+                        eventTemplates[phase].combat_kills ||
+                        eventTemplates[phase].stealth_kills;
+                }
             }
 
             this.consumeItem(killer, weapon);
