@@ -1,0 +1,83 @@
+@import '../../styles/global';
+.settingsButton {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    border: 3px outset var(--accent-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: var(--shadow-color);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.settingsButton:hover {
+    filter: brightness(0.8);
+    border: 3px inset var(--accent-secondary);
+}
+
+.settingsPanel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100vh;
+    background: var(--bg-secondary);
+    border-left: 4px solid var(--accent-primary);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.settingsPanel.open {
+    transform: translateX(0);
+}
+
+.settingsPanelContent {
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.settingsPanelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid var(--accent-primary);
+}
+
+.settingsPanelHeader h2 {
+    margin: 0;
+    color: var(--accent-secondary);
+    font-size: 24px;
+    text-shadow: var(--shadow-color);
+}
+
+.settingsPanelBody {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.settingsSection {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: var(--bg-tertiary);
+    border: 3px solid var(--accent-secondary);
+    border-radius: 8px;
+}
+
+.settingsSection h3 {
+    margin: 0 0 15px 0;
+    color: var(--accent-secondary);
+    font-size: 18px;
+    text-shadow: var(--shadow-color);
+}

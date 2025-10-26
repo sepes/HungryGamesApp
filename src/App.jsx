@@ -5,7 +5,7 @@ import WinnerScreen from './components/WinnerScreen';
 import SettingsPanel from './components/SettingsPanel';
 import { GameEngine } from './engine/gameEngine';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css';
+import './styles/global.scss';
 
 function App() {
   const [gamePhase, setGamePhase] = useState('setup'); // 'setup' | 'simulation' | 'winner'

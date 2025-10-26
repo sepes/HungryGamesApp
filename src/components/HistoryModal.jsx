@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
+import styles from './HistoryModal/HistoryModal.module.scss';
 
 const HistoryModal = ({ isOpen, onClose, eventHistory }) => {
   const containerRef = useFocusTrap(isOpen);
@@ -24,17 +25,17 @@ const HistoryModal = ({ isOpen, onClose, eventHistory }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="history-modal-backdrop" onClick={onClose}>
+    <div className={styles.historyModalBackdrop} onClick={onClose}>
       <div 
-        className="history-modal"
+        className={styles.historyModal}
         ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="history-modal-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="history-modal-content">
-          <div className="history-modal-header">
+        <div className={styles.historyModalContent}>
+          <div className={styles.historyModalHeader}>
             <h2 id="history-modal-title">Full Game History</h2>
             <button 
               onClick={onClose} 
@@ -45,14 +46,14 @@ const HistoryModal = ({ isOpen, onClose, eventHistory }) => {
             </button>
           </div>
           
-          <div className="history-modal-body" aria-live="polite">
-            <div className="history-log">
+          <div className={styles.historyModalBody} aria-live="polite">
+            <div className={styles.historyLog}>
               {eventHistory.map((segment, idx) => (
                 <div key={idx} className="history-segment">
                   {segment.map((event, i) => (
-                    <div key={i} className="history-event" dangerouslySetInnerHTML={{ __html: event }} />
+                    <div key={i} className={styles.historyEvent} dangerouslySetInnerHTML={{ __html: event }} />
                   ))}
-                  <hr className="segment-divider" />
+                  <hr className={styles.segmentDivider} />
                 </div>
               ))}
             </div>

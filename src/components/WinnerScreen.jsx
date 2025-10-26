@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import HistoryModal from './HistoryModal';
+import styles from './WinnerScreen/WinnerScreen.module.scss';
 
 const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
   const [showHistory, setShowHistory] = useState(false);
@@ -15,28 +16,28 @@ const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
     .sort((a, b) => b.kills - a.kills) || [];
 
   return (
-    <div className="winner-container">
-      <div className="victory-celebration" role="status" aria-live="polite">
-        <h1 className="winner-title">VICTOR</h1>
+    <div className={styles.winnerContainer}>
+      <div className={styles.victoryCelebration} role="status" aria-live="polite">
+        <h1 className={styles.winnerTitle}>VICTOR</h1>
       </div>
       
       <div className="left-panel">
         <section className="alive-tributes" aria-labelledby="winner-stats-heading">
           <h3 id="winner-stats-heading">Victor Stats</h3>
-          <div className="winner-stats">
-            <div className="stat-item">
+          <div className={styles.winnerStats}>
+            <div className={styles.statItem}>
               <span className="stat-label">Name:</span>
               <span className="stat-value">{winner.name}</span>
             </div>
-            <div className="stat-item">
+            <div className={styles.statItem}>
               <span className="stat-label">District:</span>
               <span className="stat-value">{winner.district}</span>
             </div>
-            <div className="stat-item">
+            <div className={styles.statItem}>
               <span className="stat-label">Kills:</span>
               <span className="stat-value">{winner.kills}</span>
             </div>
-            <div className="stat-item">
+            <div className={styles.statItem}>
               <span className="stat-label">Days Survived:</span>
               <span className="stat-value">{daysSimulated}</span>
             </div>
@@ -45,13 +46,13 @@ const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
       </div>
       
       <div className="center-panel">
-        <section className="winner-info" aria-labelledby="winner-details-heading">
-          <article className="winner-card">
-            <h2 className="winner-name" id="winner-details-heading">{winner.name} from District {winner.district}</h2>
+        <section className={styles.winnerInfo} aria-labelledby="winner-details-heading">
+          <article className={styles.winnerCard}>
+            <h2 className={styles.winnerName} id="winner-details-heading">{winner.name} from District {winner.district}</h2>
           </article>
         </section>
 
-        <section className="final-message" aria-labelledby="victory-declaration-heading">
+        <section className={styles.finalMessage} aria-labelledby="victory-declaration-heading">
           <h3 id="victory-declaration-heading">Victory Declaration</h3>
           <p>
             {winner.name} has emerged victorious from the this year's Hunger Games, 
@@ -61,7 +62,7 @@ const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
           </p>
         </section>
 
-        <div className="action-buttons">
+        <div className={styles.actionButtons}>
           <button onClick={onReset} className="transition-button large" aria-label="Start a new Hunger Games simulation">
             New Game
           </button>

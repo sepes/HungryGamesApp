@@ -1,0 +1,117 @@
+@import '../../styles/global';
+.terminalContainer {
+    margin-top: 15px;
+    border: 2px solid var(--accent-primary);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.debugTerminal {
+    background: var(--color-black);
+    color: var(--color-white);
+    font-family: 'SUSE Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+}
+
+.terminalOutput {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: var(--color-black);
+    border-bottom: 1px solid var(--accent-primary);
+}
+
+.terminalOutputLine {
+    margin: 0;
+    padding: 2px 0;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.terminalCommand {
+    color: var(--color-white);
+    font-weight: bold;
+}
+
+.terminalSystem {
+    color: var(--color-very-light-gray);
+}
+
+.terminalError {
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.terminalWarning {
+    color: #ffaa00;
+    font-weight: bold;
+}
+
+.terminalInfo {
+    color: #4488ff;
+    font-weight: bold;
+}
+
+.terminalInputForm {
+    display: flex;
+    background: var(--color-black);
+    border-top: 1px solid var(--accent-primary);
+}
+
+.terminalInputLine {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 10px;
+}
+
+.terminalPrompt {
+    color: var(--color-white);
+    margin-right: 8px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.terminalInput {
+    background: transparent;
+    border: none;
+    color: var(--color-white);
+    font-family: 'SUSE Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+    flex: 1;
+    padding: 0;
+}
+
+.terminalInput::placeholder {
+    color: var(--color-light-gray);
+}
+
+.terminalInput:focus {
+    outline: none;
+}
+
+
+/* Terminal scrollbar styling */
+
+.terminalOutput::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminalOutput::-webkit-scrollbar-track {
+    background: var(--color-dark-gray);
+}
+
+.terminalOutput::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 4px;
+}
+
+.terminalOutput::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
+}

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import styles from './DebugTerminal/DebugTerminal.module.scss';
 
 const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton }) => {
   const [output, setOutput] = useState([
@@ -200,19 +201,19 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
 
   const getOutputClass = (type) => {
     switch (type) {
-      case 'command': return 'terminal-command';
-      case 'system': return 'terminal-system';
-      case 'error': return 'terminal-error';
-      case 'warning': return 'terminal-warning';
-      case 'info': return 'terminal-info';
-      default: return 'terminal-output-line';
+      case 'command': return styles.terminalCommand;
+      case 'system': return styles.terminalSystem;
+      case 'error': return styles.terminalError;
+      case 'warning': return styles.terminalWarning;
+      case 'info': return styles.terminalInfo;
+      default: return styles.terminalOutputLine;
     }
   };
 
   return (
-    <div className="debug-terminal" role="log" aria-label="Debug terminal">
+    <div className={styles.debugTerminal} role="log" aria-label="Debug terminal">
       <div 
-        className="terminal-output" 
+        className={styles.terminalOutput} 
         ref={outputRef}
         aria-live="polite"
       >
@@ -223,16 +224,16 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
         ))}
       </div>
       
-      <form onSubmit={handleSubmit} className="terminal-input-form">
-        <div className="terminal-input-line">
-          <span className="terminal-prompt">&gt;</span>
+      <form onSubmit={handleSubmit} className={styles.terminalInputForm}>
+        <div className={styles.terminalInputLine}>
+          <span className={styles.terminalPrompt}>&gt;</span>
           <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="terminal-input"
+            className={styles.terminalInput}
             placeholder="Enter command..."
             aria-label="Terminal command input"
             autoComplete="off"

@@ -1,0 +1,125 @@
+@import '../../styles/global';
+.winnerContainer {
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border: 3px solid var(--accent-primary);
+    border-radius: 8px;
+    display: grid;
+    grid-template-areas: "header header header" "left content right";
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 20px;
+    min-height: calc(100vh - 40px);
+}
+
+.victoryCelebration {
+    grid-area: header;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.winnerTitle {
+    font-size: 48px;
+    margin: 20px 0;
+    color: var(--accent-secondary);
+    text-shadow: var(--shadow-color);
+}
+
+.winnerInfo {
+    grid-area: content;
+    margin: 30px 0;
+}
+
+.winnerCard {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    padding: 30px;
+    border: 3px solid var(--accent-secondary);
+    border-radius: 15px;
+    box-shadow: var(--shadow-heavy);
+    margin-bottom: 20px;
+}
+
+.winnerName {
+    font-size: 36px;
+    margin: 0 0 20px 0;
+    color: var(--text-highlight);
+    text-shadow: var(--shadow-color);
+}
+
+.winnerDetails {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.detailItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.detailLabel {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.detailValue {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.finalMessage {
+    margin: 30px 0;
+    padding: 25px;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    font-size: 16px;
+    line-height: 1.6;
+    border: 3px solid var(--accent-secondary);
+    color: var(--text-secondary);
+}
+
+.finalMessage h3 {
+    margin: 0 0 15px 0;
+    color: var(--accent-secondary);
+    font-size: 20px;
+    text-shadow: var(--shadow-color);
+}
+
+.actionButtons {
+    margin: 30px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.winnerStats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.statItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--color-beige);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.statItem .statLabel {
+    color: var(--color-sage-green);
+    font-weight: bold;
+}
+
+.statItem .statValue {
+    color: var(--text-primary);
+    font-weight: bold;
+}
