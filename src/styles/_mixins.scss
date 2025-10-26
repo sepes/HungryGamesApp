@@ -1,0 +1,146 @@
+// SCSS Mixins for Hungry Games App
+// Button Mixins
+@mixin transition-button-base {
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    border: $border-width-thick outset var(--accent-secondary);
+    border-radius: $border-radius-medium;
+    cursor: pointer;
+    font-weight: bold;
+    text-shadow: var(--shadow-color);
+    transition: $transition-fast;
+    &:hover {
+        filter: brightness(0.8);
+        border: $border-width-thick inset var(--accent-secondary);
+    }
+}
+
+@mixin transition-button-size($padding, $font-size, $border-width: $border-width-thick) {
+    padding: $padding;
+    font-size: $font-size;
+    border: $border-width outset var(--accent-secondary);
+    &:hover {
+        border: $border-width inset var(--accent-secondary);
+    }
+}
+
+@mixin danger-button-base {
+    background: var(--error-color);
+    color: var(--text-primary);
+    border: $border-width-thick outset var(--error-color);
+    border-radius: $border-radius-medium;
+    cursor: pointer;
+    font-weight: bold;
+    transition: $transition-fast;
+    &:hover {
+        filter: brightness(0.8);
+        border: $border-width-thick inset var(--error-color);
+    }
+}
+
+// Panel Mixins
+@mixin panel-base {
+    background: var(--bg-tertiary);
+    border: $border-width-thick solid var(--accent-secondary);
+    border-radius: $border-radius-large;
+    padding: $spacing-md;
+    color: var(--text-primary);
+}
+
+@mixin left-panel {
+    @include panel-base;
+    grid-area: left;
+    gap: $spacing-sm;
+    display: flex;
+    flex-direction: column;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+@mixin right-panel {
+    @include panel-base;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+@mixin center-panel {
+    grid-area: content;
+    display: flex;
+    flex-direction: column;
+}
+
+// Input Mixins
+@mixin input-base {
+    padding: $spacing-sm;
+    border: $border-width-medium inset var(--accent-primary);
+    border-radius: $border-radius-small;
+    font-size: $font-size-large;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: $transition-border;
+    &:focus {
+        outline: none;
+        border: $border-width-medium inset var(--accent-secondary);
+        box-shadow: var(--shadow-light);
+    }
+}
+
+@mixin name-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+    label {
+        font-size: $font-size-medium;
+        font-weight: bold;
+        color: var(--accent-secondary);
+        text-shadow: var(--shadow-color);
+    }
+    input {
+        @include input-base;
+    }
+}
+
+// Section Mixins
+@mixin section-base {
+    margin-bottom: $spacing-xl;
+    text-align: left;
+    border: $border-width-thick solid var(--accent-secondary);
+    padding: $spacing-lg;
+    border-radius: $border-radius-large;
+    background: var(--bg-tertiary);
+}
+
+@mixin section-heading {
+    font-size: $font-size-xxl;
+    margin-bottom: $spacing-md;
+    color: var(--accent-secondary);
+    text-align: center;
+    text-shadow: var(--shadow-color);
+}
+
+// Grid Mixins
+@mixin grid-container {
+    display: grid;
+    gap: $spacing-lg;
+    min-height: calc(100vh - 40px);
+}
+
+@mixin grid-layout {
+    grid-template-areas: "header header header" "left content right";
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto 1fr;
+}
+
+// Animation Mixins
+@mixin fade-transition {
+    transition: $transition-fade;
+}
+
+@mixin curtain-animation {
+    transition: $transition-curtain;
+}

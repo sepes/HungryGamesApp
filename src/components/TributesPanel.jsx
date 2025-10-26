@@ -1,5 +1,6 @@
 import React from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
+import styles from './TributesPanel/TributesPanel.module.scss';
 
 const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
   const containerRef = useFocusTrap(isOpen);
@@ -29,9 +30,9 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
   };
 
   return (
-    <div className={`tributes-panel ${isOpen ? 'open' : ''}`} ref={containerRef}>
-      <div className="tributes-panel-content">
-        <div className="tributes-panel-header">
+    <div className={`${styles.tributesPanel} ${isOpen ? styles.open : ''}`} ref={containerRef}>
+      <div className={styles.tributesPanelContent}>
+        <div className={styles.tributesPanelHeader}>
           <h2>All Tributes</h2>
           <button 
             onClick={onClose} 
@@ -42,30 +43,30 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
           </button>
         </div>
         
-        <div className="tributes-panel-body">
+        <div className={styles.tributesPanelBody}>
           {Object.keys(playersByDistrict)
             .sort((a, b) => parseInt(a) - parseInt(b))
             .map(district => (
-              <div key={district} className="district-group">
-                <h3 className="district-title">District {district}</h3>
-                <div className="district-tributes">
+              <div key={district} className={styles.districtGroup}>
+                <h3 className={styles.districtTitle}>District {district}</h3>
+                <div className={styles.districtTributes}>
                   {playersByDistrict[district].map(player => (
                     <div 
                       key={player.id} 
-                      className={`tribute-item ${player.isAlive ? 'tribute-alive' : 'tribute-fallen'}`}
+                      className={`${styles.tributeItem} ${player.isAlive ? styles.tributeAlive : styles.tributeFallen}`}
                     >
-                      <div className="tribute-main">
-                        <div className="tribute-name-section">
-                          <span className="tribute-name">{player.name}</span>
+                      <div className={styles.tributeMain}>
+                        <div className={styles.tributeNameSection}>
+                          <span className={styles.tributeName}>{player.name}</span>
                         </div>
-                        <div className="tribute-kills">
+                        <div className={styles.tributeKills}>
                           {player.kills} kills
                         </div>
                       </div>
-                      <div className="tribute-status">
+                      <div className={styles.tributeStatus}>
                         {player.isAlive ? (
                           <div className="tribute-alive-details">
-                            <span className="tribute-status-alive">Alive</span>
+                            <span className={styles.tributeStatusAlive}>Alive</span>
                             {player.inventory && player.inventory.length > 0 && (
                               <div className="tribute-inventory">
                                 <strong>Items:</strong> {player.inventory.map(item => `${item.name} (${item.uses})`).join(', ')}
@@ -81,7 +82,7 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
                             )}
                           </div>
                         ) : (
-                          <span className="tribute-status-fallen">
+                          <span className={styles.tributeStatusFallen}>
                             {formatDeathInfo(player)}
                           </span>
                         )}

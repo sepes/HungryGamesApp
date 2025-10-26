@@ -1,0 +1,730 @@
+// Global SCSS Styles for Hungry Games App
+// Import shared files
+@import 'theme';
+@import 'variables';
+@import 'mixins';
+// Global App Styles
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.app {
+    width: 100%;
+    margin: 0;
+    padding: $spacing-lg;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-family: $font-family-primary;
+    font-size: $font-size-base;
+}
+
+.body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+// Global Scrollbar Styling
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-handle);
+    border-radius: $border-radius-medium;
+    border: $border-width-medium solid transparent;
+    background-clip: content-box;
+    &:hover {
+        background: var(--scrollbar-handle-hover);
+        background-clip: content-box;
+    }
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+// Scrollbar arrows (buttons)
+::-webkit-scrollbar-button {
+    background: var(--scrollbar-arrow);
+    border-radius: 3px;
+    height: 12px;
+    width: 12px;
+    &:hover {
+        background: var(--scrollbar-arrow-hover);
+    }
+    &:vertical:start:decrement {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='white' d='M4 0L0 4h8L4 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    &:vertical:end:increment {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='white' d='M4 8L8 4H0l4 4z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    &:horizontal:start:decrement {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='white' d='M0 4L4 0v8L0 4z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    &:horizontal:end:increment {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='white' d='M8 4L4 8V0l4 4z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+}
+
+
+/* Base Transition Button Class */
+
+.transition-button {
+    @include transition-button-base;
+}
+
+
+/* Size Modifier Classes */
+
+.transition-button.small {
+    @include transition-button-size(10px 20px,
+    $font-size-base);
+}
+
+.transition-button.medium {
+    @include transition-button-size(12px 24px,
+    $font-size-base);
+}
+
+.transition-button.large {
+    @include transition-button-size(15px 30px,
+    $font-size-large,
+    $border-width-heavy);
+}
+
+
+/* Active state for count buttons */
+
+.transition-button.active {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border: 3px inset var(--accent-primary);
+    text-shadow: var(--shadow-color);
+}
+
+.transition-button.orange {
+    background: var(--button-misc);
+    color: var(--bg-primary);
+    border: 3px outset var(--button-misc);
+}
+
+.transition-button.orange:hover {
+    filter: brightness(0.7);
+    border: 3px inset var(--button-misc);
+}
+
+
+/* Danger Button Class */
+
+.danger-button {
+    @include danger-button-base;
+}
+
+
+/* Danger button size variants */
+
+.danger-button.small {
+    padding: 12px 24px;
+    font-size: 16px;
+    text-shadow: var(--shadow-color);
+}
+
+.danger-button.close {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Panel Layout Styles */
+
+.left-panel {
+    @include left-panel;
+}
+
+.center-panel {
+    @include center-panel;
+}
+
+.right-panel {
+    @include right-panel;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+
+/* Section Heading Styles */
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    flex: 1;
+}
+
+.section-heading .randomize-button.small {
+    padding: 6px 12px;
+    font-size: 14px;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+
+/* Global tribute item styles */
+
+.tribute-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    align-items: center;
+    padding: 12px 15px;
+    background: var(--color-beige);
+    border: 3px solid var(--color-dark-blue);
+    border-radius: 6px;
+    font-size: 16px;
+    box-shadow: var(--shadow-drop);
+}
+
+.tribute-name {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.player-highlight {
+    color: var(--text-highlight);
+    font-weight: bold;
+}
+
+.tribute-district {
+    color: var(--color-sage-green);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.tribute-kills {
+    color: var(--text-secondary);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+
+/* Global alive/fallen tribute styles */
+
+.alive-tributes {
+    background: var(--color-cream);
+    border-radius: 8px;
+    padding: 15px;
+    color: var(--text-primary);
+}
+
+.alive-tributes h3 {
+    margin: 0 0 15px 0;
+    color: var(--color-sage-green);
+    font-size: 18px;
+    text-shadow: var(--shadow-color);
+}
+
+.fallen-tributes {
+    height: 100%;
+    background: var(--color-cream);
+    border-radius: 8px;
+    padding: 15px;
+    color: var(--text-primary);
+}
+
+.fallen-tributes h3 {
+    margin: 0 0 15px 0;
+    color: var(--color-terracotta);
+    font-size: 18px;
+    text-shadow: var(--shadow-color);
+}
+
+.fallen-tributes-list {
+    max-height: 98%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.fallen-tribute-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    padding: 15px;
+    background: var(--color-beige);
+    border: 3px solid var(--color-dark-blue);
+    border-radius: 6px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    box-shadow: var(--shadow-drop);
+}
+
+.fallen-tribute-main {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 15px;
+    align-items: center;
+}
+
+.fallen-tribute-stats {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 15px;
+    align-items: center;
+}
+
+.fallen-tribute-name {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.fallen-tribute-district {
+    color: var(--color-sage-green);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.fallen-tribute-kills {
+    color: var(--color-terracotta);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.fallen-tribute-phase {
+    color: var(--color-sage-green);
+    font-size: 13px;
+    font-style: italic;
+}
+
+
+/* Global tribute controls */
+
+.tribute-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.tribute-sort-select {
+    padding: 6px 10px;
+    border: 2px inset var(--color-dark-blue);
+    border-radius: 4px;
+    background: var(--color-beige);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.tribute-sort-select:focus {
+    outline: none;
+    border: 2px inset var(--color-sage-green);
+    box-shadow: var(--shadow-light);
+}
+
+.tribute-reverse-button {
+    padding: 6px 12px;
+    background: var(--color-dark-blue);
+    color: var(--color-beige);
+    border: 2px outset var(--color-dark-blue);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s;
+    text-shadow: var(--shadow-color);
+}
+
+.tribute-reverse-button:hover {
+    filter: brightness(0.8);
+    border: 2px inset var(--color-dark-blue);
+}
+
+
+/* Global tribute list */
+
+.tribute-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+}
+
+
+/* Global tribute status styles */
+
+.tribute-alive {
+    border-color: var(--success-color);
+}
+
+.tribute-fallen {
+    border-color: var(--error-color);
+    opacity: 0.8;
+}
+
+.tribute-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.tribute-name-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tribute-status {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tribute-status-alive {
+    color: var(--success-color);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.tribute-status-fallen {
+    color: var(--error-color);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+
+/* Global district styles */
+
+.district-group {
+    border: 3px solid var(--accent-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.district-group:hover {
+    border-color: var(--accent-secondary);
+    box-shadow: var(--shadow-medium);
+}
+
+.district-title {
+    margin: 0 0 15px 0;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--accent-secondary);
+    text-align: left;
+    padding: 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid var(--accent-secondary);
+    border-radius: 0;
+    text-shadow: var(--shadow-color);
+}
+
+.district-tributes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+/* Global names grid */
+
+.names-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 15px;
+    border: 1px solid var(--accent-secondary);
+    border-radius: 6px;
+    background: var(--bg-primary);
+}
+
+
+/* Global name input group */
+
+.name-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.name-input-group label {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--accent-secondary);
+    text-shadow: var(--shadow-color);
+}
+
+.name-input-group input {
+    padding: 10px;
+    border: 2px inset var(--accent-primary);
+    border-radius: 4px;
+    font-size: 18px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: border-color 0.2s;
+}
+
+.name-input-group input:focus {
+    outline: none;
+    border: 2px inset var(--accent-secondary);
+    box-shadow: var(--shadow-light);
+}
+
+.name-input-group.has-duplicate input {
+    border: 2px solid var(--error-color);
+    background: var(--bg-tertiary);
+}
+
+.duplicate-error {
+    color: var(--error-color);
+    font-size: 12px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+
+/* Global button group */
+
+.button-group {
+    display: flex;
+    justify-content: start;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+
+/* Global name instructions */
+
+.name-instructions {
+    color: var(--text-primary);
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+
+/* Global action controls */
+
+.action-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Global tribute button */
+
+.tributes-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    border: 3px outset var(--accent-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: var(--shadow-color);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.tributes-button:hover {
+    filter: brightness(0.8);
+    border: 3px inset var(--accent-secondary);
+}
+
+
+/* Global settings button */
+
+.settings-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    border: 3px outset var(--accent-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: var(--shadow-color);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.settings-button:hover {
+    filter: brightness(0.8);
+    border: 3px inset var(--accent-secondary);
+}
+
+
+/* Global game header */
+
+.game-header {
+    grid-area: header;
+    background: var(--accent-primary);
+    color: var(--text-primary);
+    padding: 20px;
+    border: 3px solid var(--accent-secondary);
+    border-radius: 10px;
+    text-align: center;
+    text-shadow: var(--shadow-color);
+}
+
+.game-header h2 {
+    margin: 0 0 15px 0;
+    font-size: 28px;
+}
+
+
+/* Global terminal container */
+
+.terminal-container {
+    margin-top: 15px;
+    border: 2px solid var(--accent-primary);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+
+/* Global validation message */
+
+.validation-message {
+    color: var(--error-color);
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 0;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--error-color);
+    border-radius: 4px;
+}
+
+
+/* Responsive Design */
+
+@media (max-width: 1200px) {
+    .setup-screen,
+    .simulation-container,
+    .winner-container {
+        grid-template-areas: "header header header" "left left left" "content content content" "right right right";
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr auto;
+    }
+    .left-panel,
+    .right-panel {
+        max-height: 40vh;
+    }
+}
+
+@media (max-width: 768px) {
+    .app {
+        padding: $spacing-sm;
+    }
+    .setup-screen,
+    .simulation-container,
+    .winner-container {
+        padding: $spacing-sm;
+        gap: $spacing-md;
+    }
+    .setup-screen h1 {
+        font-size: 2rem;
+    }
+    .districts-container {
+        grid-template-columns: 1fr;
+    }
+    .names-grid {
+        grid-template-columns: 1fr;
+    }
+    .button-group {
+        flex-direction: column;
+        align-items: center;
+    }
+    .count-button {
+        width: 200px;
+    }
+    .game-header h2 {
+        font-size: $font-size-xxl;
+    }
+    .game-stats {
+        gap: $spacing-md;
+    }
+    .event-display {
+        font-size: $font-size-base;
+        padding: $spacing-md;
+    }
+    .winner-title {
+        font-size: $font-size-massive;
+    }
+    .winner-name {
+        font-size: $font-size-huge;
+    }
+    .winner-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .detail-value {
+        font-size: $font-size-large;
+    }
+    .left-panel,
+    .right-panel {
+        max-height: 30vh;
+    }
+}

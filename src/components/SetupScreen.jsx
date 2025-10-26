@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { generateRandomName } from '../utils/nameGenerator';
+import styles from './SetupScreen/SetupScreen.module.scss';
 
 const SetupScreen = ({ onStart }) => {
   const [playerCount, setPlayerCount] = useState(12);
@@ -103,14 +104,14 @@ const SetupScreen = ({ onStart }) => {
   };
 
   return (
-    <div className="setup-screen">
+    <div className={styles.setupScreen}>
       <header className="game-header">
         <h1>Hunger Games Simulator</h1>
       </header>
       
       <div className="left-panel">
 
-      <section className="setup-info">
+      <section className={styles.setupInfo}>
         <h3>Game Rules</h3>
         <p>
           The Hunger Games will begin with the Cornucopia bloodbath, followed by day and night phases
@@ -118,14 +119,14 @@ const SetupScreen = ({ onStart }) => {
         </p>
       </section>
 
-      <section className="setup-info">
+      <section className={styles.setupInfo}>
         <h3>Game Setup</h3>
         <p>
           Configure your Hunger Games simulation by selecting the number of tributes and entering their names.
         </p>
       </section>
 
-      <section className="setup-info">
+      <section className={styles.setupInfo}>
         <h3>Naming Requirements</h3>
         <ul>
           <li>Every tribute must have a name</li>
@@ -145,7 +146,7 @@ const SetupScreen = ({ onStart }) => {
         <section aria-labelledby="tribute-count-heading">
           <h2 id="tribute-count-heading">Select Number of Tributes</h2>
           <fieldset>
-            <div className="button-group" aria-labelledby="tribute-count-heading">
+            <div className={styles.buttonGroup} aria-labelledby="tribute-count-heading">
               {[12, 24, 48].map(count => (
                 <button
                   key={count}
@@ -171,26 +172,26 @@ const SetupScreen = ({ onStart }) => {
         
           
           <fieldset>
-            <div className="districts-container">
+            <div className={styles.districtsContainer}>
               {Array.from({ length: 12 }, (_, districtIndex) => {
                 const tributesPerDistrict = playerCount / 12;
                 const startIndex = districtIndex * tributesPerDistrict;
                 const districtTributes = names.slice(startIndex, startIndex + tributesPerDistrict);
                 
                 return (
-                  <div key={districtIndex} className="district-group">
-                    <h3 className="district-title" id={`district-${districtIndex + 1}-heading`}>District {districtIndex + 1}</h3>
-                    <div className="district-tributes" role="group" aria-labelledby={`district-${districtIndex + 1}-heading`}>
+                  <div key={districtIndex} className={styles.districtGroup}>
+                    <h3 className={styles.districtTitle} id={`district-${districtIndex + 1}-heading`}>District {districtIndex + 1}</h3>
+                    <div className={styles.districtTributes} role="group" aria-labelledby={`district-${districtIndex + 1}-heading`}>
                       {districtTributes.map((name, tributeIndex) => {
                         const globalIndex = startIndex + tributeIndex;
                         const duplicates = findDuplicateNames();
                         const isDuplicate = name.trim() && duplicates.has(name.trim().toLowerCase());
                         
                         return (
-                          <div key={globalIndex} className={`name-input-group ${isDuplicate ? 'has-duplicate' : ''}`}>
+                          <div key={globalIndex} className={`${styles.nameInputGroup} ${isDuplicate ? styles.hasDuplicate : ''}`}>
                             <label htmlFor={`tribute-${globalIndex}`}>Tribute {tributeIndex + 1}</label>
                             {isDuplicate && (
-                              <div className="duplicate-error">Duplicate name!</div>
+                              <div className={styles.duplicateError}>Duplicate name!</div>
                             )}
                             <input
                               id={`tribute-${globalIndex}`}
@@ -224,9 +225,11 @@ const SetupScreen = ({ onStart }) => {
       </div>
       
       <div className="right-panel">
-        <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
-          Start the Games
-        </button>
+        <div className={styles.actionControls}>
+          <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
+            Start the Games
+          </button>
+        </div>
       </div>
     </div>
   );

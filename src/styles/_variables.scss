@@ -1,0 +1,60 @@
+// SCSS Variables for Hungry Games App
+// Border Radius Variables
+$border-radius-small: 4px;
+$border-radius-medium: 6px;
+$border-radius-large: 8px;
+$border-radius-xl: 10px;
+$border-radius-xxl: 12px;
+$border-radius-round: 15px;
+// Transition Variables
+$transition-fast: all 0.2s;
+$transition-medium: all 0.3s;
+$transition-slow: all 0.5s;
+$transition-border: border-color 0.2s,
+box-shadow 0.2s;
+$transition-transform: transform 0.3s ease-in-out;
+$transition-fade: transform 0.3s ease-in-out,
+opacity 0.3s ease-in-out;
+$transition-curtain: transform 1s ease-in-out;
+// Font Family Variables
+$font-family-primary: Arial,
+Verdana,
+sans-serif;
+$font-family-mono: 'SUSE Mono',
+'SF Mono',
+Monaco,
+'Cascadia Code',
+'Roboto Mono',
+Consolas,
+'Courier New',
+monospace;
+$font-family-courier: 'Courier New',
+monospace;
+// Font Size Variables
+$font-size-small: 12px;
+$font-size-medium: 14px;
+$font-size-base: 16px;
+$font-size-large: 18px;
+$font-size-xl: 20px;
+$font-size-xxl: 24px;
+$font-size-huge: 28px;
+$font-size-giant: 32px;
+$font-size-massive: 36px;
+$font-size-enormous: 48px;
+// Spacing Variables
+$spacing-xs: 5px;
+$spacing-sm: 10px;
+$spacing-md: 15px;
+$spacing-lg: 20px;
+$spacing-xl: 30px;
+$spacing-xxl: 40px;
+// Border Width Variables
+$border-width-thin: 1px;
+$border-width-medium: 2px;
+$border-width-thick: 3px;
+$border-width-heavy: 4px;
+// Z-Index Variables
+$z-index-base: 1;
+$z-index-dropdown: 10;
+$z-index-modal: 1000;
+$z-index-overlay: 2000;

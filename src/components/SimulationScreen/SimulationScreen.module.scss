@@ -1,0 +1,191 @@
+@import '../../styles/global';
+.simulationContainer {
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border: 4px solid var(--accent-primary);
+    border-radius: 8px;
+    display: grid;
+    grid-template-areas: "header header header" "left content right";
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 20px;
+    min-height: calc(100vh - 40px);
+    color: var(--text-primary);
+}
+
+.gameHeader {
+    grid-area: header;
+    background: var(--accent-primary);
+    color: var(--text-primary);
+    padding: 20px;
+    border: 3px solid var(--accent-secondary);
+    border-radius: 10px;
+    text-align: center;
+    text-shadow: var(--shadow-color);
+}
+
+.gameHeader h2 {
+    margin: 0 0 15px 0;
+    font-size: 28px;
+}
+
+.gameStats {
+    display: flex;
+    justify-content: start;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.statLabel {
+    font-size: 16px;
+    opacity: 0.9;
+    color: var(--text-primary);
+}
+
+.statValue {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.eventDisplay {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 3px solid var(--accent-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 400px;
+    font-family: 'SUSE Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 18px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-medium);
+    flex: 1;
+}
+
+.eventLine {
+    margin: 8px 0;
+}
+
+.fallenCannonOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-tertiary);
+    border: 3px solid var(--accent-secondary);
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 400px;
+    box-shadow: var(--shadow-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.fallenCannonDisplay {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fallenTributeAnnouncement {
+    position: relative;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.fallenTributeContent {
+    position: relative;
+    z-index: 1;
+}
+
+.fallenTributeCurtain {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    transform: translateX(0);
+    transition: transform 1s ease-in-out;
+}
+
+.fallenTributeCurtain.hurried {
+    transition: transform 0.5s ease-in-out;
+}
+
+.fallenTributeCurtain.left {
+    left: 0;
+    background: linear-gradient(to right, var(--bg-tertiary), var(--bg-tertiary), transparent 100%);
+}
+
+.fallenTributeCurtain.right {
+    right: 0;
+    background: linear-gradient(to left, var(--bg-tertiary), var(--bg-tertiary), transparent 100%);
+}
+
+.fallenTributeCurtain.left.fadeOut {
+    transform: translateX(-100%);
+}
+
+.fallenTributeCurtain.right.fadeOut {
+    transform: translateX(100%);
+}
+
+.fallenTributeName {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.fallenTributeDistrict {
+    font-size: 20px;
+    color: var(--color-sage-green);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.fallenNoDeaths {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--color-sage-green);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.fallenCannonControls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 1001;
+}
+
+.fallenSkipButton {
+    // This class is used for the skip button in the fallen cannon animation
+    // The actual button styling is handled by the global transition-button classes
+}

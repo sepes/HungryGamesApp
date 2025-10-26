@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TributesPanel from './TributesPanel';
+import styles from './SimulationScreen/SimulationScreen.module.scss';
 
 const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame, tributeData }) => {
   const [showTributesPanel, setShowTributesPanel] = useState(false);
@@ -77,7 +78,7 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
     }, fallenAnimation.isHurried ? 500 : 1000); // Fade in duration
 
     return () => clearTimeout(fadeInTimeout);
-  }, [fallenAnimation.currentIndex, fallenAnimation.isPlaying, tributeData]);
+  }, [fallenAnimation.currentIndex, fallenAnimation.isPlaying, fallenAnimation.isHurried, tributeData]);
   
   if (!gameEngine) return null;
   
@@ -109,7 +110,7 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
   };
 
   return (
-    <div className="simulation-container">
+    <div className={styles.simulationContainer}>
       <button 
         onClick={() => setShowTributesPanel(true)} 
         className="tributes-button"
@@ -118,71 +119,71 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
         Tributes
       </button>
       
-      <header className="game-header">
+      <header className={styles.gameHeader}>
         <h2>Hunger Games Simulation</h2>
       </header>
 
       <section className="left-panel">
-        <div className="game-stats" role="status" aria-label="Game statistics">
-          <div className="stat">
-            <span className="stat-label">Day:</span>
-            <span className="stat-value" aria-label={`Day ${gameEngine.day}`}>{gameEngine.day}</span>
+        <div className={styles.gameStats} role="status" aria-label="Game statistics">
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Day:</span>
+            <span className={styles.statValue} aria-label={`Day ${gameEngine.day}`}>{gameEngine.day}</span>
           </div>
-          <div className="stat">
-            <span className="stat-label">Phase:</span>
-            <span className="stat-value" aria-label={`Current phase: ${getPhaseDisplayName(currentPhase)}`}>{getPhaseDisplayName(currentPhase)}</span>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Phase:</span>
+            <span className={styles.statValue} aria-label={`Current phase: ${getPhaseDisplayName(currentPhase)}`}>{getPhaseDisplayName(currentPhase)}</span>
           </div>
-          <div className="stat">
-            <span className="stat-label">Alive:</span>
-            <span className="stat-value" aria-label={`${alivePlayers.length} out of ${totalPlayers} tributes alive`}>{alivePlayers.length}/{totalPlayers}</span>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Alive:</span>
+            <span className={styles.statValue} aria-label={`${alivePlayers.length} out of ${totalPlayers} tributes alive`}>{alivePlayers.length}/{totalPlayers}</span>
           </div>
         </div>
       </section>
 
       <div className="center-panel" style={{ position: 'relative' }}>
-        <section className="event-display" aria-label="Game events" aria-live="polite">
+        <section className={styles.eventDisplay} aria-label="Game events" aria-live="polite">
           {events.map((event, index) => (
-            <div key={index} className="event-line" dangerouslySetInnerHTML={{ __html: event }}>
+            <div key={index} className={styles.eventLine} dangerouslySetInnerHTML={{ __html: event }}>
             </div>
           ))}
         </section>
         
         {/* Fallen Cannon Animation Overlay */}
         {fallenAnimation.isPlaying && (
-          <div className="fallen-cannon-overlay">
-            <div className="fallen-cannon-display">
+          <div className={styles.fallenCannonOverlay}>
+            <div className={styles.fallenCannonDisplay}>
               {tributeData && tributeData[fallenAnimation.currentIndex] && (
-                <div className="fallen-tribute-announcement">
-                  <div className="fallen-tribute-content">
+                <div className={styles.fallenTributeAnnouncement}>
+                  <div className={styles.fallenTributeContent}>
                     {tributeData[fallenAnimation.currentIndex].isNoFallen ? (
-                      <div className="fallen-no-deaths">
+                      <div className={styles.fallenNoDeaths}>
                         No fallen on day {gameEngine.day}
                       </div>
                     ) : (
                       <>
-                        <div className="fallen-tribute-name">
+                        <div className={styles.fallenTributeName}>
                             {tributeData[fallenAnimation.currentIndex].name}
                         </div>
-                        <div className="fallen-tribute-district" hidden={tributeData[fallenAnimation.currentIndex].isEmpty}>
+                        <div className={styles.fallenTributeDistrict} hidden={tributeData[fallenAnimation.currentIndex].isEmpty}>
                           District {tributeData[fallenAnimation.currentIndex].district}
                         </div>
                       </>
                     )}
                     <div 
-                      className={`fallen-tribute-curtain left ${
-                        fallenAnimation.isVisible ? 'fade-out' : ''
-                      } ${fallenAnimation.isHurried ? 'hurried' : ''}`}
+                      className={`${styles.fallenTributeCurtain} ${styles.left} ${
+                        fallenAnimation.isVisible ? styles.fadeOut : ''
+                      } ${fallenAnimation.isHurried ? styles.hurried : ''}`}
                     />
                     <div 
-                      className={`fallen-tribute-curtain right ${
-                        fallenAnimation.isVisible ? 'fade-out' : ''
-                      } ${fallenAnimation.isHurried ? 'hurried' : ''}`}
+                      className={`${styles.fallenTributeCurtain} ${styles.right} ${
+                        fallenAnimation.isVisible ? styles.fadeOut : ''
+                      } ${fallenAnimation.isHurried ? styles.hurried : ''}`}
                     />
                   </div>
                 </div>
               )}
             </div>
-            <div className="fallen-cannon-controls">
+            <div className={styles.fallenCannonControls}>
               {!fallenAnimation.isHurried ? (
                 <button 
                   onClick={hurryUpAnimation}

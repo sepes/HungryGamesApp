@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import styles from './TributeList/TributeList.module.scss';
 
 const TributeList = ({ players, type, title }) => {
   const [sortBy, setSortBy] = useState(type === 'fallen' ? 'order' : 'district');
@@ -66,14 +67,14 @@ const TributeList = ({ players, type, title }) => {
   const sortedPlayers = sortPlayers(players);
 
   return (
-    <section className={type === 'alive' ? 'alive-tributes' : 'fallen-tributes'} aria-labelledby={`${type}-tributes-heading`}>
+    <section className={type === 'alive' ? styles.aliveTributes : styles.fallenTributes} aria-labelledby={`${type}-tributes-heading`}>
       <h3 id={`${type}-tributes-heading`}>{title} ({players.length})</h3>
       
-      <div className="tribute-controls">
+      <div className={styles.tributeControls}>
         <select 
           value={sortBy} 
           onChange={(e) => setSortBy(e.target.value)}
-          className="tribute-sort-select"
+          className={styles.tributeSortSelect}
           aria-label={`Sort ${type} tributes by`}
         >
           {getSortOptions().map(option => (
@@ -85,16 +86,16 @@ const TributeList = ({ players, type, title }) => {
         
         <button 
           onClick={() => setReverseOrder(!reverseOrder)}
-          className="tribute-reverse-button"
+          className={styles.tributeReverseButton}
           aria-label={`${reverseOrder ? 'Ascending' : 'Descending'} order`}
         >
           {reverseOrder ? '↑' : '↓'}
         </button>
       </div>
 
-      <ul className="tribute-list">
+      <ul className={styles.tributeList}>
         {sortedPlayers.map(player => (
-          <li key={player.id} className={type === 'alive' ? 'tribute-item' : 'fallen-tribute-item'}>
+          <li key={player.id} className={type === 'alive' ? 'tribute-item' : styles.fallenTributeItem}>
             {type === 'alive' ? (
               <>
                 <span className="tribute-name">{player.name}</span>
@@ -103,13 +104,13 @@ const TributeList = ({ players, type, title }) => {
               </>
             ) : (
               <>
-                <div className="fallen-tribute-main">
-                  <span className="fallen-tribute-name">{player.name}</span>
-                  <span className="fallen-tribute-district" aria-label={`District ${player.district}`}>D{player.district}</span>
+                <div className={styles.fallenTributeMain}>
+                  <span className={styles.fallenTributeName}>{player.name}</span>
+                  <span className={styles.fallenTributeDistrict} aria-label={`District ${player.district}`}>D{player.district}</span>
                 </div>
-                <div className="fallen-tribute-stats">
-                  <span className="fallen-tribute-kills" aria-label={`${player.kills} kills`}>{player.kills} kills</span>
-                  <span className="fallen-tribute-phase" aria-label={`${formatDeathInfo(player)}`}>{formatDeathInfo(player)}</span>
+                <div className={styles.fallenTributeStats}>
+                  <span className={styles.fallenTributeKills} aria-label={`${player.kills} kills`}>{player.kills} kills</span>
+                  <span className={styles.fallenTributePhase} aria-label={`${formatDeathInfo(player)}`}>{formatDeathInfo(player)}</span>
                 </div>
               </>
             )}
