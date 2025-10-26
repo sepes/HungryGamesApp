@@ -7,7 +7,8 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
     isPlaying: false,
     currentIndex: 0,
     isVisible: false,
-    isAnimating: false
+    isAnimating: false,
+    isHurried: false
   });
 
   // Handle fallen cannon animation
@@ -17,14 +18,16 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
         isPlaying: true,
         currentIndex: 0,
         isVisible: false,
-        isAnimating: false
+        isAnimating: false,
+        isHurried: false
       });
     } else {
       setFallenAnimation({
         isPlaying: false,
         currentIndex: 0,
         isVisible: false,
-        isAnimating: false
+        isAnimating: false,
+        isHurried: false
       });
     }
   }, [currentPhase, tributeData]);
@@ -61,16 +64,17 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
               isPlaying: false,
               currentIndex: 0,
               isVisible: false,
-              isAnimating: false
+              isAnimating: false,
+              isHurried: false
             });
           }
-        }, 1000); // Fade out duration
+        }, fallenAnimation.isHurried ? 500 : 1000); // Fade out duration
 
         return () => clearTimeout(fadeOutTimeout);
-      }, 2000); // Display time
+      }, fallenAnimation.isHurried ? 1000 : 2000); // Display time
 
       return () => clearTimeout(displayTimeout);
-    }, 1000); // Fade in duration
+    }, fallenAnimation.isHurried ? 500 : 1000); // Fade in duration
 
     return () => clearTimeout(fadeInTimeout);
   }, [fallenAnimation.currentIndex, fallenAnimation.isPlaying, tributeData]);
@@ -80,12 +84,17 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
   const alivePlayers = gameEngine.players.filter(p => p.isAlive);
   const totalPlayers = gameEngine.players.length;
 
+  const hurryUpAnimation = () => {
+    setFallenAnimation(prev => ({ ...prev, isHurried: true }));
+  };
+
   const skipFallenAnimation = () => {
     setFallenAnimation({
       isPlaying: false,
       currentIndex: 0,
       isVisible: false,
-      isAnimating: false
+      isAnimating: false,
+      isHurried: false
     });
   };
 
@@ -162,25 +171,35 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
                     <div 
                       className={`fallen-tribute-curtain left ${
                         fallenAnimation.isVisible ? 'fade-out' : ''
-                      }`}
+                      } ${fallenAnimation.isHurried ? 'hurried' : ''}`}
                     />
                     <div 
                       className={`fallen-tribute-curtain right ${
                         fallenAnimation.isVisible ? 'fade-out' : ''
-                      }`}
+                      } ${fallenAnimation.isHurried ? 'hurried' : ''}`}
                     />
                   </div>
                 </div>
               )}
             </div>
             <div className="fallen-cannon-controls">
-              <button 
-                onClick={skipFallenAnimation}
-                className="transition-button small orange"
-                aria-label="Skip fallen cannon animation"
-              >
-                Skip
-              </button>
+              {!fallenAnimation.isHurried ? (
+                <button 
+                  onClick={hurryUpAnimation}
+                  className="transition-button small orange"
+                  aria-label="Speed up fallen cannon animation"
+                >
+                  Hurry up
+                </button>
+              ) : (
+                <button 
+                  onClick={skipFallenAnimation}
+                  className="transition-button small orange"
+                  aria-label="Skip fallen cannon animation"
+                >
+                  Skip
+                </button>
+              )}
             </div>
           </div>
         )}
