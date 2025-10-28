@@ -221,4 +221,14 @@ export class GameEngine {
             averageKills: this.players.reduce((sum, p) => sum + p.kills, 0) / this.players.length
         };
     }
+
+    // Get major event configuration for console access
+    getMajorEventConfig() {
+        return EventGenerator.majorEventConfig;
+    }
+
+    // Update major event configuration
+    updateMajorEventConfig(config) {
+        Object.assign(EventGenerator.majorEventConfig, config);
+    }
 }

@@ -10,6 +10,12 @@ function shuffle(array) {
 }
 
 export class EventGenerator {
+    static majorEventConfig = {
+        enabled: true,
+        dayChance: 0.08, // 8% chance per day phase
+        nightChance: 0.05 // 5% chance per night phase
+    };
+
     constructor(players, gameEngine) {
         this.allPlayers = players;
         this.deadThisRound = [];
@@ -24,6 +30,9 @@ export class EventGenerator {
 
         // Weapon bonus
         if (this.hasWeapon(player)) baseChance += 0.5;
+
+        // Night vision glasses bonus (improves kill rate)
+        if (this.hasGear(player, 'night_vision')) baseChance += 0.3;
 
         // Courage bonus
         baseChance += (player.courage / 100) * 0.3;
@@ -44,6 +53,9 @@ export class EventGenerator {
         if (this.hasGear(player, 'shelter')) baseChance += 0.3;
         if (this.hasGear(player, 'medicine')) baseChance += 0.2;
 
+        // Night vision glasses bonus (reduces chance to die at night)
+        if (this.hasGear(player, 'night_vision')) baseChance += 0.25;
+
         // Mental health affects survival
         baseChance += (player.mentalHealth / 100) * 0.2;
 
@@ -62,11 +74,24 @@ export class EventGenerator {
             'shelter': ['backpack', 'sleeping bag'],
             'medicine': ['medicine', 'bandages', 'iodine'],
             'fire': ['matches'],
-            'survival': ['food', 'water', 'rope']
+            'survival': ['food', 'water', 'rope'],
+            'night_vision': ['night-vision glasses']
         };
 
         const items = gearTypes[type] || [];
         return player.inventory.some(item => items.includes(item.name));
+    }
+
+    hasAnyTools(player) {
+        const allTools = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club', 'rope', 'matches', 'medicine', 'bandages', 'iodine', 'backpack', 'sleeping bag', 'night-vision glasses'];
+        return player.inventory.some(item => allTools.includes(item.name));
+    }
+
+    getPlayerTools(player) {
+        const allTools = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club', 'rope', 'matches', 'medicine', 'bandages', 'iodine', 'backpack', 'sleeping bag', 'night-vision glasses'];
+        return player.inventory
+            .filter(item => allTools.includes(item.name))
+            .map(item => item.name);
     }
 
     consumeItem(player, itemName) {
@@ -420,11 +445,11 @@ export class EventGenerator {
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
 
-        // Occasional special event (15% chance)
-        if (Math.random() < 0.15) {
-            events.push(this.generateSpecialEvent());
-            events.push("");
+        // Check for major day event (8% chance)
+        if (EventGenerator.majorEventConfig.enabled && Math.random() < EventGenerator.majorEventConfig.dayChance) {
+            return this.generateMajorDayEvent();
         }
+
 
         // Alliance group events (20% chance if alliances exist)
         const activeAlliances = this.getActiveAlliances();
@@ -472,6 +497,12 @@ export class EventGenerator {
                     events.push(this.generateStatEvent(player, 'courage_events'));
                 } else if (player.cowardice > 70 && Math.random() < 0.2) {
                     events.push(this.generateStatEvent(player, 'cowardice_events'));
+                } else if (this.hasAnyTools(player) && Math.random() < 0.3) {
+                    // Tool usage events for players with tools
+                    events.push(this.generateToolUsageEvent(player));
+                } else if (!this.hasAnyTools(player) && Math.random() < 0.4) {
+                    // Desperation events for players without tools
+                    events.push(this.generateDesperationNoTools(player));
                 } else {
                     events.push(this.generateSurvival(player, 'positive'));
                 }
@@ -503,11 +534,11 @@ export class EventGenerator {
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
 
-        // Occasional special event (10% chance, less than day)
-        if (Math.random() < 0.10) {
-            events.push(this.generateSpecialEvent());
-            events.push("");
+        // Check for major night event (5% chance)
+        if (EventGenerator.majorEventConfig.enabled && Math.random() < EventGenerator.majorEventConfig.nightChance) {
+            return this.generateMajorNightEvent();
         }
+
 
         // Every player does something
         for (let player of participants) {
@@ -533,6 +564,12 @@ export class EventGenerator {
                     events.push(this.generateStatEvent(player, 'gear_survival'));
                 } else if (!this.hasGear(player, 'shelter') && Math.random() < 0.3) {
                     events.push(this.generateStatEvent(player, 'gear_failure'));
+                } else if (this.hasAnyTools(player) && Math.random() < 0.25) {
+                    // Tool usage events for players with tools
+                    events.push(this.generateToolUsageEvent(player));
+                } else if (!this.hasAnyTools(player) && Math.random() < 0.35) {
+                    // Desperation events for players without tools
+                    events.push(this.generateDesperationNoTools(player));
                 } else {
                     events.push(this.generateNightSurvival(player));
                 }
@@ -921,9 +958,40 @@ export class EventGenerator {
     }
 
     generateSurvival(player, type) {
-        const key = type === 'positive' ? 'survival_positive' : 'survival_neutral';
-        const templates = eventTemplates.day[key];
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        const hasTools = this.hasAnyTools(player);
+        let key, templates, template;
+
+        if (type === 'positive') {
+            key = hasTools ? 'survival_positive_with_tools' : 'survival_positive_without_tools';
+            templates = eventTemplates.day[key];
+            template = templates[Math.floor(Math.random() * templates.length)];
+
+            // For tool-based events, replace {item} with a random tool from inventory
+            if (hasTools && template.includes('{item}')) {
+                const playerTools = this.getPlayerTools(player);
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                template = template.replace(/\{item\}/g, randomTool);
+            }
+        } else {
+            // Neutral events - now split by tool availability
+            key = hasTools ? 'survival_with_tools' : 'survival_without_tools';
+            templates = eventTemplates.day[key];
+            template = templates[Math.floor(Math.random() * templates.length)];
+
+            // For tool-based events, replace {item} with a random tool from inventory
+            if (hasTools && template.includes('{item}')) {
+                const playerTools = this.getPlayerTools(player);
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                template = template.replace(/\{item\}/g, randomTool);
+            }
+        }
+
+        // Apply mental health effects based on tool availability
+        if (!hasTools) {
+            this.updateMentalHealth(player, -2, 'helpless action');
+        } else if (type === 'positive') {
+            this.updateMentalHealth(player, 1, 'successful tool usage');
+        }
 
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
@@ -1028,6 +1096,12 @@ export class EventGenerator {
     }
 
     generateNightDeath(player, type) {
+        // Night vision glasses reduce chance of night deaths
+        if (this.hasGear(player, 'night_vision') && Math.random() < 0.4) {
+            // 40% chance to avoid night death with night vision glasses
+            return this.generateNightSurvival(player);
+        }
+
         const key = type === 'exposure' ? 'exposure_deaths' : 'mental_deaths';
         const templates = eventTemplates.night[key];
         const template = templates[Math.floor(Math.random() * templates.length)];
@@ -1045,8 +1119,17 @@ export class EventGenerator {
     }
 
     generateNightSurvival(player) {
-        const templates = eventTemplates.night.survival_night;
+        const hasTools = this.hasAnyTools(player);
+        const key = hasTools ? 'survival_night_with_tools' : 'survival_night_without_tools';
+        const templates = eventTemplates.night[key];
         const template = templates[Math.floor(Math.random() * templates.length)];
+
+        // For tool-based events, replace {item} with a random tool from inventory
+        if (hasTools && template.includes('{item}')) {
+            const playerTools = this.getPlayerTools(player);
+            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+            template = template.replace(/\{item\}/g, randomTool);
+        }
 
         // Check if player has proper gear for night survival
         if (this.hasGear(player, 'shelter')) {
@@ -1055,18 +1138,43 @@ export class EventGenerator {
             this.updateMentalHealth(player, -3, 'exposure');
         }
 
+        // Night vision glasses provide additional benefits at night
+        if (this.hasGear(player, 'night_vision')) {
+            this.updateMentalHealth(player, 3, 'night vision advantage');
+            this.updateCourage(player, 2, 'night vision confidence');
+        }
+
+        // Additional mental health penalty for no tools
+        if (!hasTools) {
+            this.updateMentalHealth(player, -2, 'helpless night survival');
+        }
+
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
     generateEmotional(player) {
-        const templates = eventTemplates.night.emotional;
+        const hasTools = this.hasAnyTools(player);
+        const key = hasTools ? 'emotional_with_agency' : 'emotional_without_agency';
+        const templates = eventTemplates.night[key];
         const template = templates[Math.floor(Math.random() * templates.length)];
+
+        // For tool-based events, replace {item} with a random tool from inventory
+        if (hasTools && template.includes('{item}')) {
+            const playerTools = this.getPlayerTools(player);
+            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+            template = template.replace(/\{item\}/g, randomTool);
+        }
 
         // Emotional moments affect mental health
         if (player.mentalHealth < 30) {
             this.updateMentalHealth(player, -2, 'emotional breakdown');
         } else {
             this.updateMentalHealth(player, 1, 'emotional release');
+        }
+
+        // Additional penalty for no tools
+        if (!hasTools) {
+            this.updateMentalHealth(player, -1, 'helpless emotional state');
         }
 
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
@@ -1099,8 +1207,46 @@ export class EventGenerator {
     }
 
     generateStatEvent(player, eventType) {
-        const templates = eventTemplates.day[eventType] || eventTemplates.night[eventType];
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        const hasTools = this.hasAnyTools(player);
+        let templates, template;
+
+        // Handle tool-dependent events
+        if (eventType === 'mental_breakdown') {
+            const key = hasTools ? 'mental_breakdown_with_tools' : 'mental_breakdown_without_tools';
+            templates = eventTemplates.day[key];
+            template = templates[Math.floor(Math.random() * templates.length)];
+
+            // For tool-based events, replace {item} with a random tool from inventory
+            if (hasTools && template.includes('{item}')) {
+                const playerTools = this.getPlayerTools(player);
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                template = template.replace(/\{item\}/g, randomTool);
+            }
+        } else if (eventType === 'desperation_events') {
+            const key = hasTools ? 'desperation_events' : 'desperation_no_tools';
+            templates = eventTemplates.day[key];
+            template = templates[Math.floor(Math.random() * templates.length)];
+
+            // For tool-based events, replace {item} with a random tool from inventory
+            if (hasTools && template.includes('{item}')) {
+                const playerTools = this.getPlayerTools(player);
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                template = template.replace(/\{item\}/g, randomTool);
+            }
+        } else if (eventType === 'courage_events' || eventType === 'cowardice_events') {
+            templates = eventTemplates.day[eventType];
+            template = templates[Math.floor(Math.random() * templates.length)];
+
+            // For tool-based events, replace {item} with a random tool from inventory
+            if (template.includes('{item}')) {
+                const playerTools = this.getPlayerTools(player);
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                template = template.replace(/\{item\}/g, randomTool);
+            }
+        } else {
+            templates = eventTemplates.day[eventType] || eventTemplates.night[eventType];
+            template = templates[Math.floor(Math.random() * templates.length)];
+        }
 
         // Update stats based on event type
         if (eventType === 'mental_breakdown') {
@@ -1148,10 +1294,244 @@ export class EventGenerator {
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
-    generateSpecialEvent() {
-        const type = Math.random() < 0.5 ? 'environmental' : 'gamemaker';
-        const templates = eventTemplates.special_events[type];
-        return templates[Math.floor(Math.random() * templates.length)];
+    // Generate tool usage events
+    generateToolUsageEvent(player) {
+        let templates, template;
+
+        // Check if player has night vision glasses for special events
+        if (this.hasGear(player, 'night_vision') && Math.random() < 0.3) {
+            templates = eventTemplates.night.night_vision_events;
+            template = templates[Math.floor(Math.random() * templates.length)];
+
+            // Night vision events don't consume the glasses
+            this.updateMentalHealth(player, 3, 'night vision advantage');
+            this.updateCourage(player, 2, 'night vision confidence');
+
+            return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
+        } else {
+            templates = eventTemplates.day.tool_usage_events;
+            template = templates[Math.floor(Math.random() * templates.length)];
+
+            // Get a random tool from player's inventory
+            const playerTools = this.getPlayerTools(player);
+            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+
+            // Consume the tool (if it's not a weapon)
+            const weapons = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
+            if (!weapons.includes(randomTool)) {
+                this.consumeItem(player, randomTool);
+            }
+
+            // Mental health bonus for using tools effectively
+            this.updateMentalHealth(player, 2, 'effective tool usage');
+
+            return template
+                .replace(/\{player\}/g, this.highlightPlayerName(player.name))
+                .replace(/\{item\}/g, randomTool);
+        }
+    }
+
+    // Generate desperation events for players without tools
+    generateDesperationNoTools(player) {
+        const templates = eventTemplates.day.desperation_no_tools;
+        const template = templates[Math.floor(Math.random() * templates.length)];
+
+        // Mental health penalty for desperate actions
+        this.updateMentalHealth(player, -3, 'desperate no-tool action');
+
+        return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
+    }
+
+
+    // Major event generation methods
+    generateMajorDayEvent() {
+        this.usedThisSegment.clear();
+        const events = [];
+        const participants = shuffle([...this.alivePlayers]);
+
+        // Get available day events from templates
+        const availableEvents = eventTemplates.major_day_events;
+
+        if (availableEvents.length === 0) {
+            // Fallback to regular day events if no major events configured
+            return this.generateDayEvents();
+        }
+
+        const event = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+
+        // Add announcement
+        if (event.announcement && Array.isArray(event.announcement)) {
+            events.push(...event.announcement);
+        } else if (event.announcement) {
+            events.push(event.announcement);
+        }
+        events.push("");
+
+        // Use existing target death system (same as cornucopia)
+        const targetDeaths = this.generateCornucopiaDeathCount(this.alivePlayers.length);
+
+        // Select victims and generate death events
+        const victims = this.selectEventVictims(targetDeaths);
+        for (const victim of victims) {
+            events.push(this.generateEventDeath(victim, event));
+        }
+
+        // Generate survivor actions
+        const survivors = this.alivePlayers.filter(p => p.isAlive && !this.usedThisSegment.has(p.id));
+        for (const survivor of survivors) {
+            events.push(this.generateEventSurvivalAction(survivor, event));
+        }
+
+        this.updateAlivePlayers();
+        this.checkAllianceEndgame();
+        return events;
+    }
+
+    generateMajorNightEvent() {
+        this.usedThisSegment.clear();
+        const events = [];
+        const participants = shuffle([...this.alivePlayers]);
+
+        // Get available night events from templates
+        const availableEvents = eventTemplates.major_night_events;
+
+        if (availableEvents.length === 0) {
+            // Fallback to regular night events if no major events configured
+            return this.generateNightEvents();
+        }
+
+        const event = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+
+        // Add announcement
+        if (event.announcement && Array.isArray(event.announcement)) {
+            events.push(...event.announcement);
+        } else if (event.announcement) {
+            events.push(event.announcement);
+        }
+        events.push("");
+
+        // Use existing target death system (same as cornucopia)
+        const targetDeaths = this.generateCornucopiaDeathCount(this.alivePlayers.length);
+
+        // Select victims and generate death events
+        const victims = this.selectEventVictims(targetDeaths);
+        for (const victim of victims) {
+            events.push(this.generateEventDeath(victim, event));
+        }
+
+        // Generate survivor actions
+        const survivors = this.alivePlayers.filter(p => p.isAlive && !this.usedThisSegment.has(p.id));
+        for (const survivor of survivors) {
+            events.push(this.generateEventSurvivalAction(survivor, event));
+        }
+
+        this.updateAlivePlayers();
+        this.checkAllianceEndgame();
+        return events;
+    }
+
+    selectEventVictims(count) {
+        const available = this.alivePlayers.filter(p => !this.usedThisSegment.has(p.id));
+        if (available.length === 0 || count <= 0) return [];
+
+        // Use weighted selection based on survival probability (inverse)
+        const weights = available.map(player => 1.0 / this.getPlayerSurvivalProbability(player));
+        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+
+        const victims = [];
+        for (let i = 0; i < count && available.length > 0; i++) {
+            let random = Math.random() * totalWeight;
+            let selectedIndex = 0;
+
+            for (let j = 0; j < available.length; j++) {
+                random -= weights[j];
+                if (random <= 0) {
+                    selectedIndex = j;
+                    break;
+                }
+            }
+
+            const victim = available[selectedIndex];
+            victims.push(victim);
+            this.usedThisSegment.add(victim.id);
+
+            // Remove from available and recalculate weights
+            available.splice(selectedIndex, 1);
+            weights.splice(selectedIndex, 1);
+            totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+        }
+
+        return victims;
+    }
+
+    generateEventDeath(victim, event) {
+        victim.isAlive = false;
+        victim.diedInPhase = event.name || 'major_event';
+        victim.diedOnDay = this.gameEngine.day;
+
+        // Add to deadThisRound if not already there
+        if (!this.deadThisRound.includes(victim)) {
+            this.deadThisRound.push(victim);
+        }
+
+        // Generate death text based on event type
+        const deathTemplates = event.deathTemplates || [
+            "{player} falls victim to the {event_name}",
+            "{player} is overwhelmed by the {event_name}",
+            "{player} cannot survive the {event_name}"
+        ];
+
+        const template = deathTemplates[Math.floor(Math.random() * deathTemplates.length)];
+        return template
+            .replace(/\{player\}/g, this.highlightPlayerName(victim.name))
+            .replace(/\{event_name\}/g, event.name || 'major event');
+    }
+
+    generateEventSurvivalAction(survivor, event) {
+        this.usedThisSegment.add(survivor.id);
+
+        // Apply event effects to survivor
+        this.applyEventEffects(survivor, event);
+
+        // Generate survival action text
+        const actionTemplates = event.survivorActions || [
+            "{player} manages to survive the {event_name}",
+            "{player} finds a way to endure the {event_name}",
+            "{player} escapes the worst of the {event_name}"
+        ];
+
+        const template = actionTemplates[Math.floor(Math.random() * actionTemplates.length)];
+        return template
+            .replace(/\{player\}/g, this.highlightPlayerName(survivor.name))
+            .replace(/\{event_name\}/g, event.name || 'major event');
+    }
+
+    applyEventEffects(player, event) {
+        if (!event.effects) return;
+
+        for (const effect of event.effects) {
+            switch (effect.type) {
+                case 'mental_health':
+                    this.updateMentalHealth(player, effect.value || 0, effect.reason || 'major event');
+                    break;
+                case 'courage':
+                    this.updateCourage(player, effect.value || 0, effect.reason || 'major event');
+                    break;
+                case 'strength':
+                    player.strength = Math.max(0, Math.min(100, (player.strength || 0) + (effect.value || 0)));
+                    break;
+                case 'item_gain':
+                    if (effect.item) {
+                        this.addItemToInventory(player, effect.item, effect.uses || 1);
+                    }
+                    break;
+                case 'item_loss':
+                    if (effect.item) {
+                        this.consumeItem(player, effect.item);
+                    }
+                    break;
+            }
+        }
     }
 
     formatFallenTributes() {

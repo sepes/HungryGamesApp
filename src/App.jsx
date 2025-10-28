@@ -22,6 +22,15 @@ function App() {
     const engine = new GameEngine(players);
     setGameEngine(engine);
     setGamePhase('simulation');
+    
+    // Expose major event configuration to console
+    if (typeof window !== 'undefined') {
+      window.HungryGames = {
+        majorEventConfig: engine.getMajorEventConfig(),
+        updateMajorEventConfig: (config) => engine.updateMajorEventConfig(config)
+      };
+    }
+    
     // Generate first segment (Cornucopia)
     handleNext(engine);
   };
