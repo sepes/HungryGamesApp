@@ -1,0 +1,8 @@
+# Ignore index.js to prevent auto-formatter from breaking JSX syntax
+src/index.js
+
+# Build directories
+build/
+node_modules/
+
+

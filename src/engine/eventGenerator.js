@@ -1122,7 +1122,7 @@ export class EventGenerator {
         const hasTools = this.hasAnyTools(player);
         const key = hasTools ? 'survival_night_with_tools' : 'survival_night_without_tools';
         const templates = eventTemplates.night[key];
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        let template = templates[Math.floor(Math.random() * templates.length)];
 
         // For tool-based events, replace {item} with a random tool from inventory
         if (hasTools && template.includes('{item}')) {
@@ -1156,7 +1156,7 @@ export class EventGenerator {
         const hasTools = this.hasAnyTools(player);
         const key = hasTools ? 'emotional_with_agency' : 'emotional_without_agency';
         const templates = eventTemplates.night[key];
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        let template = templates[Math.floor(Math.random() * templates.length)];
 
         // For tool-based events, replace {item} with a random tool from inventory
         if (hasTools && template.includes('{item}')) {
@@ -1347,7 +1347,6 @@ export class EventGenerator {
     generateMajorDayEvent() {
         this.usedThisSegment.clear();
         const events = [];
-        const participants = shuffle([...this.alivePlayers]);
 
         // Get available day events from templates
         const availableEvents = eventTemplates.major_day_events;
@@ -1390,7 +1389,6 @@ export class EventGenerator {
     generateMajorNightEvent() {
         this.usedThisSegment.clear();
         const events = [];
-        const participants = shuffle([...this.alivePlayers]);
 
         // Get available night events from templates
         const availableEvents = eventTemplates.major_night_events;
@@ -1436,7 +1434,7 @@ export class EventGenerator {
 
         // Use weighted selection based on survival probability (inverse)
         const weights = available.map(player => 1.0 / this.getPlayerSurvivalProbability(player));
-        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+        let totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
         const victims = [];
         for (let i = 0; i < count && available.length > 0; i++) {
@@ -1529,6 +1527,9 @@ export class EventGenerator {
                     if (effect.item) {
                         this.consumeItem(player, effect.item);
                     }
+                    break;
+                default:
+                    // Unknown effect type, ignore
                     break;
             }
         }

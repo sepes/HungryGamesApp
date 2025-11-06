@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { generateRandomName } from '../utils/nameGenerator';
 import styles from './SetupScreen/SetupScreen.module.scss';
 
-const SetupScreen = ({ onStart }) => {
+const SetupScreen = ({ onStart, onOpenVolunteers, seConnected, seChannelName }) => {
   const [playerCount, setPlayerCount] = useState(12);
   const [names, setNames] = useState(Array(12).fill(''));
 
@@ -70,6 +70,10 @@ const SetupScreen = ({ onStart }) => {
   };
 
   const [validationMessage, setValidationMessage] = useState('');
+
+  const handleUseVolunteers = () => {
+    onOpenVolunteers(playerCount);
+  };
 
   const startGame = () => {
     // Validate names
@@ -226,6 +230,27 @@ const SetupScreen = ({ onStart }) => {
       
       <div className="right-panel">
         <div className={styles.actionControls}>
+          {seConnected && (
+            <>
+            <div className={styles.volunteerOption}>
+              <p className={styles.volunteerInfo}>
+                Connected to: <strong>{seChannelName}</strong>
+              </p>
+              <button 
+                onClick={handleUseVolunteers}
+                className="transition-button large"
+                aria-label="Use chat volunteers to fill tribute slots"
+              >
+                Use Chat Volunteers
+              </button>
+              <p className={styles.volunteerHelp}>
+                Let your viewers volunteer as tributes!
+              </p>
+            </div>
+            <div className={styles.divider}>or</div>
+            </>
+          )}
+          
           <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
             Start the Games
           </button>

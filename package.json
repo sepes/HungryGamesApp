@@ -3,7 +3,11 @@
     "version": "1.0.0",
     "private": true,
     "dependencies": {
+        "body-parser": "^2.2.0",
         "bootstrap": "^5.3.8",
+        "dotenv": "^17.2.3",
+        "express": "^5.1.0",
+        "mongodb": "^6.20.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-scripts": "5.0.1",
@@ -26,7 +30,10 @@
     },
     "sass": {
         "quietDeps": true,
-        "silenceDeprecations": ["import", "legacy-js-api"]
+        "silenceDeprecations": [
+            "import",
+            "legacy-js-api"
+        ]
     },
     "browserslist": {
         "production": [
@@ -39,5 +46,8 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1"
     }
 }

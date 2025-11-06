@@ -3,9 +3,21 @@ import { useFocusTrap } from '../utils/useFocusTrap';
 import DebugTerminal from './DebugTerminal';
 import styles from './SettingsPanel/SettingsPanel.module.scss';
 
-const SettingsPanel = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton }) => {
+const SettingsPanel = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton, seConnected, seChannelName, seUserId, onRevokeStreamElements, onReconfigureStreamElements }) => {
   const containerRef = useFocusTrap(isOpen);
   const [showTerminal, setShowTerminal] = useState(false);
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+
+  const handleRevoke = async () => {
+    await onRevokeStreamElements();
+    setShowRevokeConfirm(false);
+    onClose();
+  };
+
+  const handleReconfigure = () => {
+    onReconfigureStreamElements();
+    onClose();
+  };
 
   return (
     <div className={`${styles.settingsPanel} ${isOpen ? styles.open : ''}`} ref={containerRef}>
@@ -22,6 +34,72 @@ const SettingsPanel = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, on
         </div>
         
         <div className={styles.settingsPanelBody}>
+          {/* StreamElements Section */}
+          <div className={styles.settingsSection}>
+            <h3>StreamElements</h3>
+            {seConnected ? (
+              <>
+                <div className={styles.statusInfo}>
+                  <p className={styles.statusLabel}>Status:</p>
+                  <p className={styles.statusConnected}>Connected</p>
+                </div>
+                <div className={styles.statusInfo}>
+                  <p className={styles.statusLabel}>Channel:</p>
+                  <p className={styles.statusValue}>{seChannelName || seUserId}</p>
+                </div>
+                <div className={styles.buttonGroup}>
+                  <button 
+                    onClick={handleReconfigure} 
+                    className="transition-button small"
+                    aria-label="Reconfigure StreamElements connection"
+                  >
+                    Reconfigure
+                  </button>
+                  {!showRevokeConfirm ? (
+                    <button 
+                      onClick={() => setShowRevokeConfirm(true)} 
+                      className="danger-button small"
+                      aria-label="Revoke StreamElements access"
+                    >
+                      Revoke Access
+                    </button>
+                  ) : (
+                    <div className={styles.confirmRevoke}>
+                      <p>Are you sure? This will disconnect and delete your credentials.</p>
+                      <div className={styles.confirmButtons}>
+                        <button 
+                          onClick={handleRevoke} 
+                          className="danger-button small"
+                          aria-label="Confirm revoke access"
+                        >
+                          Yes, Revoke
+                        </button>
+                        <button 
+                          onClick={() => setShowRevokeConfirm(false)} 
+                          className="transition-button small"
+                          aria-label="Cancel revoke"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className={styles.statusDisconnected}>Not Connected</p>
+                <button 
+                  onClick={handleReconfigure} 
+                  className="transition-button small"
+                  aria-label="Configure StreamElements"
+                >
+                  Configure StreamElements
+                </button>
+              </>
+            )}
+          </div>
+          
           {/* Game Controls Section */}
           <div className={styles.settingsSection}>
             <h3>Game Controls</h3>

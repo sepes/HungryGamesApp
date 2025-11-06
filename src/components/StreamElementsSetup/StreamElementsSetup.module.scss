@@ -1,0 +1,206 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+@import '../../styles/theme';
+.setupContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.setupModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.setupCard {
+    background: white;
+    border-radius: 12px;
+    padding: 2.5rem;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    h2 {
+        margin: 0 0 0.5rem;
+        color: #333;
+        font-size: 1.75rem;
+    }
+}
+
+.setupCardModal {
+    @extend .setupCard;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: #666;
+    cursor: pointer;
+    padding: 0.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+    &:hover {
+        background: #f0f0f0;
+        color: #333;
+    }
+    &:focus {
+        outline: 2px solid #667eea;
+        outline-offset: 2px;
+    }
+}
+
+.description {
+    color: #666;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+    }
+    input {
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+        &:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        &:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+    }
+    small {
+        color: #888;
+        font-size: 0.85rem;
+    }
+}
+
+.error {
+    padding: 1rem;
+    background: #fee;
+    border: 1px solid #fcc;
+    border-radius: 8px;
+    color: #c33;
+    font-size: 0.9rem;
+    strong {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+}
+
+.errorMessage {
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.errorHint {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fff8e1;
+    border: 1px solid #ffd54f;
+    border-radius: 6px;
+    color: #333;
+    strong {
+        color: #f57c00;
+        margin-bottom: 0.5rem;
+    }
+    ol {
+        margin: 0.5rem 0 0 0;
+        padding-left: 1.5rem;
+        li {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+    }
+    code {
+        background: rgba(0, 0, 0, 0.05);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+        color: #d32f2f;
+    }
+}
+
+.submitButton {
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    &:focus {
+        outline: 2px solid #667eea;
+        outline-offset: 2px;
+    }
+}
+
+.security {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+        color: #333;
+    }
+    p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #666;
+        line-height: 1.5;
+    }
+}

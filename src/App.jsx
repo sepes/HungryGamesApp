@@ -3,12 +3,13 @@ import SetupScreen from './components/SetupScreen';
 import SimulationScreen from './components/SimulationScreen';
 import WinnerScreen from './components/WinnerScreen';
 import SettingsPanel from './components/SettingsPanel';
+import VolunteerScreen from './components/VolunteerScreen';
 import { GameEngine } from './engine/gameEngine';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.scss';
 
 function App() {
-  const [gamePhase, setGamePhase] = useState('setup'); // 'setup' | 'simulation' | 'winner'
+  const [gamePhase, setGamePhase] = useState('setup'); // 'setup' | 'volunteer-collection' | 'simulation' | 'winner'
   const [gameEngine, setGameEngine] = useState(null);
   const [currentEvents, setCurrentEvents] = useState([]);
   const [currentPhase, setCurrentPhase] = useState('cornucopia');
@@ -17,6 +18,76 @@ function App() {
   const [showVictoryButton, setShowVictoryButton] = useState(false);
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [tributeData, setTributeData] = useState(null);
+  
+  // Chat integration state (to be implemented: IRC/EventSub)
+  const [volunteers, setVolunteers] = useState([]);
+  const [maxVolunteerSlots, setMaxVolunteerSlots] = useState(24);
+
+  // Chat integration handlers (to be implemented with IRC/EventSub)
+  const addVolunteerFromChat = (username) => {
+    if (gamePhase === 'volunteer-collection') {
+      addVolunteer(username);
+    }
+  };
+
+  const addVolunteer = (username) => {
+    console.log('addVolunteer called with:', username);
+    setVolunteers(prev => {
+      console.log('Current volunteers:', prev);
+      
+      // Check if already volunteered
+      if (prev.includes(username)) {
+        console.log('User already volunteered:', username);
+        return prev;
+      }
+      
+      // Check if slots full
+      if (prev.length >= maxVolunteerSlots) {
+        console.log('Slots full, cannot add more');
+        return prev;
+      }
+      
+      const newVolunteers = [...prev, username];
+      console.log('New volunteers list:', newVolunteers);
+      
+      // Auto-start when full
+      if (newVolunteers.length === maxVolunteerSlots) {
+        // TODO: Send message to chat when IRC/EventSub is implemented
+        setTimeout(() => {
+          startGameWithVolunteers(newVolunteers);
+        }, 2000);
+      }
+      
+      return newVolunteers;
+    });
+  };
+
+  const openVolunteerCollection = (tributeCount) => {
+    setMaxVolunteerSlots(tributeCount);
+    setVolunteers([]);
+    setGamePhase('volunteer-collection');
+    
+    // TODO: Send message to chat when IRC/EventSub is implemented
+  };
+
+  const startGameWithVolunteers = (volunteerList) => {
+    // Create players from volunteers
+    const players = volunteerList.map((name, i) => ({
+      id: `player-${i}`,
+      name: name,
+      district: Math.floor(i / (volunteerList.length / 12)) + 1,
+      isAlive: true,
+      kills: 0,
+      items: [],
+      diedInPhase: null,
+      diedOnDay: null
+    }));
+
+    startGame(players);
+    
+    // Clear volunteers after game starts (privacy)
+    setVolunteers([]);
+  };
 
   const startGame = (players) => {
     const engine = new GameEngine(players);
@@ -62,6 +133,12 @@ function App() {
     setEventHistory([]);
     setShowVictoryButton(false);
     setTributeData(null);
+    setVolunteers([]);
+  };
+
+  const cancelVolunteerCollection = () => {
+    setVolunteers([]);
+    setGamePhase('setup');
   };
 
 
@@ -77,8 +154,22 @@ function App() {
       
       <main aria-live="polite" aria-label={`Current phase: ${gamePhase}`}>
         {gamePhase === 'setup' && (
-          <SetupScreen onStart={startGame} />
+          <SetupScreen 
+            onStart={startGame}
+            onOpenVolunteers={openVolunteerCollection}
+          />
         )}
+        
+        {gamePhase === 'volunteer-collection' && (
+          <VolunteerScreen 
+            volunteers={volunteers}
+            maxSlots={maxVolunteerSlots}
+            onStartGame={() => startGameWithVolunteers(volunteers)}
+            onCancel={cancelVolunteerCollection}
+            channelName="Chat Integration Pending"
+          />
+        )}
+        
         {gamePhase === 'simulation' && (
           <SimulationScreen 
             events={currentEvents}
@@ -91,6 +182,7 @@ function App() {
             tributeData={tributeData}
           />
         )}
+        
         {gamePhase === 'winner' && (
           <WinnerScreen 
             winner={winner}
