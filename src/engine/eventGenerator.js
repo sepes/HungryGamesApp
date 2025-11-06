@@ -16,6 +16,11 @@ export class EventGenerator {
         nightChance: 0.05 // 5% chance per night phase
     };
 
+    // Item type constants
+    static WEAPONS = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
+    static TOOLS = ['rope', 'matches', 'medicine', 'bandages', 'iodine', 'backpack', 'sleeping bag', 'night-vision glasses'];
+    static ALL_TOOLS = [...EventGenerator.WEAPONS, ...EventGenerator.TOOLS];
+
     constructor(players, gameEngine) {
         this.allPlayers = players;
         this.deadThisRound = [];
@@ -66,10 +71,12 @@ export class EventGenerator {
     }
 
     hasWeapon(player) {
-        return player.inventory.some(item => ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name));
+        if (!player.inventory) return false;
+        return player.inventory.some(item => EventGenerator.WEAPONS.includes(item.name));
     }
 
     hasGear(player, type) {
+        if (!player.inventory) return false;
         const gearTypes = {
             'shelter': ['backpack', 'sleeping bag'],
             'medicine': ['medicine', 'bandages', 'iodine'],
@@ -83,14 +90,14 @@ export class EventGenerator {
     }
 
     hasAnyTools(player) {
-        const allTools = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club', 'rope', 'matches', 'medicine', 'bandages', 'iodine', 'backpack', 'sleeping bag', 'night-vision glasses'];
-        return player.inventory.some(item => allTools.includes(item.name));
+        if (!player.inventory || player.inventory.length === 0) return false;
+        return player.inventory.some(item => EventGenerator.ALL_TOOLS.includes(item.name));
     }
 
     getPlayerTools(player) {
-        const allTools = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club', 'rope', 'matches', 'medicine', 'bandages', 'iodine', 'backpack', 'sleeping bag', 'night-vision glasses'];
+        if (!player.inventory) return [];
         return player.inventory
-            .filter(item => allTools.includes(item.name))
+            .filter(item => EventGenerator.ALL_TOOLS.includes(item.name))
             .map(item => item.name);
     }
 
@@ -101,8 +108,7 @@ export class EventGenerator {
         const item = player.inventory[itemIndex];
 
         // Weapons have infinite uses (100), so don't consume them
-        const weapons = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
-        if (weapons.includes(itemName)) {
+        if (EventGenerator.WEAPONS.includes(itemName)) {
             return true; // Weapon used but not consumed
         }
 
@@ -131,8 +137,7 @@ export class EventGenerator {
 
         // Determine max uses based on item type
         let maxUses = 1;
-        const weapons = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
-        if (weapons.includes(itemName)) maxUses = 100; // Infinite for all weapons
+        if (EventGenerator.WEAPONS.includes(itemName)) maxUses = 100; // Infinite for all weapons
         else if (['rope', 'matches'].includes(itemName)) maxUses = 5;
         else if (['medicine', 'bandages'].includes(itemName)) maxUses = 3;
         else if (['backpack', 'sleeping bag'].includes(itemName)) maxUses = 100;
@@ -208,13 +213,12 @@ export class EventGenerator {
 
     // Inventory management with limits
     canAddItem(player, item) {
-        const weapons = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
-        const tools = ['rope', 'matches', 'medicine', 'bandages', 'iodine', 'night-vision glasses'];
+        const tools = EventGenerator.TOOLS;
         const hasBackpack = player.inventory.some(invItem => invItem.name === 'backpack');
 
-        if (weapons.includes(item.name)) {
+        if (EventGenerator.WEAPONS.includes(item.name)) {
             // Max 2 weapons
-            const currentWeapons = player.inventory.filter(invItem => weapons.includes(invItem.name));
+            const currentWeapons = player.inventory.filter(invItem => EventGenerator.WEAPONS.includes(invItem.name));
             return currentWeapons.length < 2;
         } else if (tools.includes(item.name)) {
             if (hasBackpack) {
@@ -723,7 +727,7 @@ export class EventGenerator {
     // Event generation methods
     generateKill(killer, victim, phase) {
         // Get killer's weapons
-        const killerWeapons = killer.inventory.filter(item => ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name));
+        const killerWeapons = killer.inventory.filter(item => EventGenerator.WEAPONS.includes(item.name));
 
         let templates, weapon = 'bare hands';
 
@@ -1314,11 +1318,16 @@ export class EventGenerator {
 
             // Get a random tool from player's inventory
             const playerTools = this.getPlayerTools(player);
+
+            // Edge case safety: if somehow no tools, fall back to generic survival
+            if (!playerTools || playerTools.length === 0) {
+                return this.generateSurvival(player, 'neutral');
+            }
+
             const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
 
             // Consume the tool (if it's not a weapon)
-            const weapons = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
-            if (!weapons.includes(randomTool)) {
+            if (!EventGenerator.WEAPONS.includes(randomTool)) {
                 this.consumeItem(player, randomTool);
             }
 
