@@ -30,7 +30,7 @@ Game flow controller:
 ### Balanced Gameplay
 - **Mortality rates**: 30-50% die in cornucopia, gradual attrition afterward
 - **Event variety**: 10+ templates per event type to avoid repetition
-- **Special events**: 10% chance of arena-wide events each day
+- **Special events**: 8% chance during day, 5% chance during night
 
 ### Rich Narrative
 - **Detailed events**: Specific weapons, items, and actions
@@ -79,5 +79,5 @@ const result = engine.nextSegment();
 ### Special Events
 - Arena-wide events that affect all tributes
 - Natural disasters, supply drops, mutt releases
-- 10% chance of occurring each day
+- 8% chance during day phase, 5% chance during night phase
 
