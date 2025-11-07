@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import styles from './HistoryModal/HistoryModal.module.scss';
+import type { HistoryModalProps } from '../types/component.types';
 
-const HistoryModal = ({ isOpen, onClose, eventHistory }) => {
+const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, eventHistory, gameEngine: _gameEngine }) => {
   const containerRef = useFocusTrap(isOpen);
 
   // Handle Escape key to close modal
   useEffect(() => {
-    const handleEscape = (event) => {
+    const handleEscape = (event: KeyboardEvent): void => {
       if (event.key === 'Escape' && isOpen) {
         onClose();
       }

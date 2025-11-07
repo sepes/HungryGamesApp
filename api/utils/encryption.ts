@@ -1,4 +1,5 @@
-const crypto = require('crypto');
+import * as crypto from 'crypto';
+import { EncryptedData } from '../../src/types/api.types';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
@@ -6,11 +7,11 @@ const AUTH_TAG_LENGTH = 16;
 
 /**
  * Encrypts a JWT token using AES-256-GCM
- * @param {string} token - The plaintext JWT token to encrypt
- * @param {string} encryptionKey - Hex string encryption key (64 chars)
- * @returns {object} - { encrypted, iv, authTag }
+ * @param token - The plaintext JWT token to encrypt
+ * @param encryptionKey - Hex string encryption key (64 chars)
+ * @returns { encrypted, iv, authTag }
  */
-function encryptToken(token, encryptionKey) {
+export function encryptToken(token: string, encryptionKey: string): EncryptedData {
     try {
         // Generate random IV
         const iv = crypto.randomBytes(IV_LENGTH);
@@ -34,20 +35,20 @@ function encryptToken(token, encryptionKey) {
             authTag: authTag.toString('hex')
         };
     } catch (error) {
-        console.error('Encryption error:', error.message);
+        console.error('Encryption error:', (error as Error).message);
         throw new Error('Failed to encrypt token');
     }
 }
 
 /**
  * Decrypts an encrypted JWT token using AES-256-GCM
- * @param {string} encrypted - The encrypted token (hex string)
- * @param {string} ivHex - The initialization vector (hex string)
- * @param {string} authTagHex - The authentication tag (hex string)
- * @param {string} encryptionKey - Hex string encryption key (64 chars)
- * @returns {string} - The decrypted plaintext token
+ * @param encrypted - The encrypted token (hex string)
+ * @param ivHex - The initialization vector (hex string)
+ * @param authTagHex - The authentication tag (hex string)
+ * @param encryptionKey - Hex string encryption key (64 chars)
+ * @returns The decrypted plaintext token
  */
-function decryptToken(encrypted, ivHex, authTagHex, encryptionKey) {
+export function decryptToken(encrypted: string, ivHex: string, authTagHex: string, encryptionKey: string): string {
     try {
         // Convert hex strings to buffers
         const key = Buffer.from(encryptionKey, 'hex');
@@ -64,7 +65,7 @@ function decryptToken(encrypted, ivHex, authTagHex, encryptionKey) {
 
         return decrypted;
     } catch (error) {
-        console.error('Decryption error:', error.message);
+        console.error('Decryption error:', (error as Error).message);
         throw new Error('Failed to decrypt token');
     }
 }
@@ -73,3 +74,4 @@ module.exports = {
     encryptToken,
     decryptToken
 };
+

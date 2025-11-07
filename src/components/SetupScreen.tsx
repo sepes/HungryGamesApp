@@ -1,32 +1,33 @@
 import React, { useState } from 'react';
 import { generateRandomName } from '../utils/nameGenerator';
 import styles from './SetupScreen/SetupScreen.module.scss';
+import type { SetupScreenProps } from '../types/component.types';
 
-const SetupScreen = ({ onStart, onOpenVolunteers, seConnected, seChannelName }) => {
-  const [playerCount, setPlayerCount] = useState(12);
-  const [names, setNames] = useState(Array(12).fill(''));
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName }) => {
+  const [playerCount, setPlayerCount] = useState<number>(12);
+  const [names, setNames] = useState<string[]>(Array(12).fill(''));
 
-  const handleCountChange = (count) => {
+  const handleCountChange = (count: number): void => {
     setPlayerCount(count);
     setNames(Array(count).fill(''));
   };
 
-  const handleNameChange = (index, value) => {
+  const handleNameChange = (index: number, value: string): void => {
     const newNames = [...names];
     newNames[index] = value;
     setNames(newNames);
   };
 
   // Helper function to find duplicate names
-  const findDuplicateNames = () => {
-    const nameCounts = {};
-    const duplicates = new Set();
+  const findDuplicateNames = (): Set<string> => {
+    const nameCounts: Record<string, number> = {};
+    const duplicates = new Set<string>();
     
     names.forEach(name => {
       const trimmedName = name.trim().toLowerCase();
       if (trimmedName) {
         nameCounts[trimmedName] = (nameCounts[trimmedName] || 0) + 1;
-        if (nameCounts[trimmedName] > 1) {
+        if (nameCounts[trimmedName]! > 1) {
           duplicates.add(trimmedName);
         }
       }
@@ -48,7 +49,7 @@ const SetupScreen = ({ onStart, onOpenVolunteers, seConnected, seChannelName }) 
     
     // Only randomize empty fields
     for (let i = 0; i < playerCount; i++) {
-      if (!newNames[i].trim()) {
+      if (!newNames[i]?.trim()) {
         let name;
         do {
           name = generateRandomName();
@@ -62,7 +63,7 @@ const SetupScreen = ({ onStart, onOpenVolunteers, seConnected, seChannelName }) 
     
     // Focus the start button after randomizing
     setTimeout(() => {
-      const startButton = document.querySelector('.start-button');
+      const startButton = document.querySelector<HTMLButtonElement>('.start-button');
       if (startButton) {
         startButton.focus();
       }

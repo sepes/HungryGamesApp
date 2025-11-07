@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import styles from './StreamElementsSetup/StreamElementsSetup.module.scss';
+import type { StreamElementsSetupProps } from '../types/component.types';
 
-export default function StreamElementsSetup({ onComplete, isModal = false, onClose }) {
-  const [userId, setUserId] = useState('');
-  const [jwtToken, setJwtToken] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+// TODO: Component will be used for StreamElements integration
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function StreamElementsSetup({ onComplete, isModal = false, onClose }: StreamElementsSetupProps) {
+  const [userId, setUserId] = useState<string>('');
+  const [jwtToken, setJwtToken] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -33,13 +36,15 @@ export default function StreamElementsSetup({ onComplete, isModal = false, onClo
       // Store userId in localStorage for future sessions
       localStorage.setItem('seUserId', userId);
       
-      onComplete(userId, data.channelName);
+      if (onComplete) {
+        onComplete(userId, data.channelName);
+      }
       
       if (isModal && onClose) {
         onClose();
       }
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }

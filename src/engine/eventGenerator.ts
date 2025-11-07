@@ -1,36 +1,47 @@
 import { eventTemplates, weapons, items } from './eventTemplates';
+import type { Player, Item, MajorEventConfig, FallenTributeData } from '../types/game.types';
+import { GameEngine } from './gameEngine';
 
-function shuffle(array) {
+function shuffle<T>(array: T[]): T[] {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+        const temp = arr[i];
+        arr[i] = arr[j]!;
+        arr[j] = temp!;
     }
     return arr;
 }
 
 export class EventGenerator {
-    static majorEventConfig = {
+    static majorEventConfig: MajorEventConfig = {
         enabled: true,
         dayChance: 0.08, // 8% chance per day phase
         nightChance: 0.05 // 5% chance per night phase
     };
 
     // Item type constants
-    static WEAPONS = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
-    static TOOLS = ['rope', 'matches', 'medicine', 'bandages', 'iodine', 'backpack', 'sleeping bag', 'night-vision glasses'];
-    static ALL_TOOLS = [...EventGenerator.WEAPONS, ...EventGenerator.TOOLS];
+    static WEAPONS: string[] = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
+    static TOOLS: string[] = ['rope', 'matches', 'medicine', 'bandages', 'iodine', 'backpack', 'sleeping bag', 'night-vision glasses'];
+    static ALL_TOOLS: string[] = [...EventGenerator.WEAPONS, ...EventGenerator.TOOLS];
 
-    constructor(players, gameEngine) {
+    allPlayers: Player[];
+    deadThisRound: Player[];
+    usedThisSegment: Set<string>;
+    gameEngine: GameEngine;
+    alivePlayers: Player[];
+
+    constructor(players: Player[], gameEngine: GameEngine) {
         this.allPlayers = players;
         this.deadThisRound = [];
         this.usedThisSegment = new Set();
         this.gameEngine = gameEngine;
+        this.alivePlayers = [];
         this.updateAlivePlayers();
     }
 
     // Helper functions for stat management
-    getPlayerKillProbability(player) {
+    getPlayerKillProbability(player: Player): number {
         let baseChance = 1.0;
 
         // Weapon bonus
@@ -40,18 +51,18 @@ export class EventGenerator {
         if (this.hasGear(player, 'night_vision')) baseChance += 0.3;
 
         // Courage bonus
-        baseChance += (player.courage / 100) * 0.3;
+        baseChance += ((player.courage ?? 0) / 100) * 0.3;
 
         // Kill experience bonus
         baseChance += (player.kills || 0) * 0.1;
 
         // Cowardice penalty
-        baseChance -= (player.cowardice / 100) * 0.2;
+        baseChance -= ((player.cowardice ?? 0) / 100) * 0.2;
 
         return Math.max(0.1, baseChance);
     }
 
-    getPlayerSurvivalProbability(player) {
+    getPlayerSurvivalProbability(player: Player): number {
         let baseChance = 1.0;
 
         // Gear bonus
@@ -62,22 +73,22 @@ export class EventGenerator {
         if (this.hasGear(player, 'night_vision')) baseChance += 0.25;
 
         // Mental health affects survival
-        baseChance += (player.mentalHealth / 100) * 0.2;
+        baseChance += ((player.mentalHealth ?? 0) / 100) * 0.2;
 
         // Courage helps in dangerous situations
-        baseChance += (player.courage / 100) * 0.1;
+        baseChance += ((player.courage ?? 0) / 100) * 0.1;
 
         return Math.max(0.1, baseChance);
     }
 
-    hasWeapon(player) {
+    hasWeapon(player: Player): boolean {
         if (!player.inventory) return false;
         return player.inventory.some(item => EventGenerator.WEAPONS.includes(item.name));
     }
 
-    hasGear(player, type) {
+    hasGear(player: Player, type: string): boolean {
         if (!player.inventory) return false;
-        const gearTypes = {
+        const gearTypes: { [key: string]: string[] } = {
             'shelter': ['backpack', 'sleeping bag'],
             'medicine': ['medicine', 'bandages', 'iodine'],
             'fire': ['matches'],
@@ -89,39 +100,40 @@ export class EventGenerator {
         return player.inventory.some(item => items.includes(item.name));
     }
 
-    hasAnyTools(player) {
+    hasAnyTools(player: Player): boolean {
         if (!player.inventory || player.inventory.length === 0) return false;
         return player.inventory.some(item => EventGenerator.ALL_TOOLS.includes(item.name));
     }
 
-    getPlayerTools(player) {
+    getPlayerTools(player: Player): string[] {
         if (!player.inventory) return [];
         return player.inventory
             .filter(item => EventGenerator.ALL_TOOLS.includes(item.name))
             .map(item => item.name);
     }
 
-    consumeItem(player, itemName) {
-        const itemIndex = player.inventory.findIndex(item => item.name === itemName);
-        if (itemIndex === -1) return false;
+    consumeItem(player: Player, itemName: string): boolean {
+        const itemIndex = player.inventory?.findIndex(item => item.name === itemName) ?? -1;
+        if (itemIndex === -1 || !player.inventory) return false;
 
         const item = player.inventory[itemIndex];
+        if (!item) return false;
 
         // Weapons have infinite uses (100), so don't consume them
         if (EventGenerator.WEAPONS.includes(itemName)) {
             return true; // Weapon used but not consumed
         }
 
-        item.uses--;
+        if (item.uses && item.uses > 0) item.uses--;
 
-        if (item.uses <= 0) {
+        if ((item.uses ?? 0) <= 0) {
             player.inventory.splice(itemIndex, 1);
         }
 
         return true;
     }
 
-    addItemToInventory(player, itemName, uses = 1) {
+    addItemToInventory(player: Player, itemName: string, uses: number = 1): boolean {
         // Check inventory limits first
         const tempItem = { name: itemName, uses: uses };
         if (!this.canAddItem(player, tempItem)) {
@@ -129,9 +141,9 @@ export class EventGenerator {
         }
 
         // Check if item already exists
-        const existingItem = player.inventory.find(item => item.name === itemName);
+        const existingItem = player.inventory?.find(item => item.name === itemName);
         if (existingItem) {
-            existingItem.uses = Math.min(existingItem.uses + uses, existingItem.maxUses);
+            existingItem.uses = Math.min((existingItem.uses || 0) + uses, existingItem.maxUses || uses);
             return true;
         }
 
@@ -143,7 +155,7 @@ export class EventGenerator {
         else if (['backpack', 'sleeping bag'].includes(itemName)) maxUses = 100;
         else if (['food', 'water'].includes(itemName)) maxUses = 1;
 
-        player.inventory.push({
+        player.inventory?.push({
             name: itemName,
             uses: Math.min(uses, maxUses),
             maxUses: maxUses
@@ -151,22 +163,22 @@ export class EventGenerator {
         return true;
     }
 
-    isAlliedWith(player1, player2) {
-        return player1.alliances.includes(player2.id) && player2.alliances.includes(player1.id);
+    isAlliedWith(player1: Player, player2: Player): boolean {
+        return (player1.alliances?.includes(player2.id) ?? false) && (player2.alliances?.includes(player1.id) ?? false);
     }
 
-    breakAlliance(player1, player2) {
-        player1.alliances = player1.alliances.filter(id => id !== player2.id);
-        player2.alliances = player2.alliances.filter(id => id !== player1.id);
+    breakAlliance(player1: Player, player2: Player): void {
+        player1.alliances = (player1.alliances || []).filter(id => id !== player2.id);
+        player2.alliances = (player2.alliances || []).filter(id => id !== player1.id);
 
         // Betrayal mental health penalty
         this.updateMentalHealth(player1, -25, 'betrayal');
         this.updateMentalHealth(player2, -15, 'betrayed');
     }
 
-    updateMentalHealth(player, delta, reason) {
-        const oldHealth = player.mentalHealth;
-        player.mentalHealth = Math.max(0, Math.min(100, player.mentalHealth + delta));
+    updateMentalHealth(player: Player, delta: number, reason: string): void {
+        const oldHealth = player.mentalHealth ?? 50;
+        player.mentalHealth = Math.max(0, Math.min(100, (player.mentalHealth ?? 50) + delta));
 
         // Log significant changes for debugging
         if (Math.abs(delta) >= 10) {
@@ -174,15 +186,15 @@ export class EventGenerator {
         }
     }
 
-    updateCourage(player, delta, reason) {
-        const oldCourage = player.courage;
-        player.courage = Math.max(0, Math.min(100, player.courage + delta));
+    updateCourage(player: Player, delta: number, reason: string): void {
+        const oldCourage = player.courage ?? 50;
+        player.courage = Math.max(0, Math.min(100, (player.courage ?? 50) + delta));
 
         // Courage and cowardice are inversely related
         if (delta > 0) {
-            player.cowardice = Math.max(0, player.cowardice - delta * 0.5);
+            player.cowardice = Math.max(0, (player.cowardice ?? 50) - delta * 0.5);
         } else {
-            player.cowardice = Math.min(100, player.cowardice - delta * 0.5);
+            player.cowardice = Math.min(100, (player.cowardice ?? 50) - delta * 0.5);
         }
 
         if (Math.abs(delta) >= 10) {
@@ -191,7 +203,7 @@ export class EventGenerator {
     }
 
     // Looting system
-    lootPlayer(killer, victim) {
+    lootPlayer(killer: Player, victim: Player): string[] {
         if (!victim.inventory || victim.inventory.length === 0) return [];
 
         const victimItems = [...victim.inventory];
@@ -212,13 +224,14 @@ export class EventGenerator {
     }
 
     // Inventory management with limits
-    canAddItem(player, item) {
+    canAddItem(player: Player, item: Item): boolean {
         const tools = EventGenerator.TOOLS;
-        const hasBackpack = player.inventory.some(invItem => invItem.name === 'backpack');
+        const inventory = player.inventory || [];
+        const hasBackpack = inventory.some(invItem => invItem.name === 'backpack');
 
         if (EventGenerator.WEAPONS.includes(item.name)) {
             // Max 2 weapons
-            const currentWeapons = player.inventory.filter(invItem => EventGenerator.WEAPONS.includes(invItem.name));
+            const currentWeapons = inventory.filter(invItem => EventGenerator.WEAPONS.includes(invItem.name));
             return currentWeapons.length < 2;
         } else if (tools.includes(item.name)) {
             if (hasBackpack) {
@@ -226,7 +239,7 @@ export class EventGenerator {
                 return true;
             } else {
                 // Max 1 tool without backpack
-                const currentTools = player.inventory.filter(invItem => tools.includes(invItem.name));
+                const currentTools = inventory.filter(invItem => tools.includes(invItem.name));
                 return currentTools.length < 1;
             }
         } else {
@@ -236,7 +249,7 @@ export class EventGenerator {
     }
 
     // Enhanced alliance mechanics
-    checkAllianceEndgame() {
+    checkAllianceEndgame(): void {
         const alivePlayers = this.alivePlayers;
 
         // Check each player's alliances
@@ -256,7 +269,7 @@ export class EventGenerator {
     }
 
     // Prevent multiple alliances
-    formAlliance(player1, player2) {
+    formAlliance(player1: Player, player2: Player): void {
         // Clear existing alliances first
         player1.alliances = [];
         player2.alliances = [];
@@ -271,8 +284,8 @@ export class EventGenerator {
     }
 
     // Find all active alliances
-    getActiveAlliances() {
-        const alliances = [];
+    getActiveAlliances(): Player[][] {
+        const alliances: Player[][] = [];
         const processed = new Set();
 
         this.alivePlayers.forEach(player => {
@@ -303,7 +316,7 @@ export class EventGenerator {
     }
 
     // Generate bell curve death count for cornucopia: 8-12 deaths out of 24 tributes
-    generateCornucopiaDeathCount(totalTributes) {
+    generateCornucopiaDeathCount(totalTributes: number): number {
         // Box-Muller transform for normal distribution
         const u1 = Math.random();
         const u2 = Math.random();
@@ -325,11 +338,11 @@ export class EventGenerator {
     }
 
     // Helper method to wrap player names in highlight spans
-    highlightPlayerName(name) {
+    highlightPlayerName(name: string): string {
         return `<span class="player-highlight">${name}</span>`;
     }
 
-    generateCornucopiaEvents() {
+    generateCornucopiaEvents(): string[] {
         this.usedThisSegment.clear();
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
@@ -398,8 +411,10 @@ export class EventGenerator {
                     );
                     if (availableKillers.length > 0) {
                         const forcedKiller = availableKillers[Math.floor(Math.random() * availableKillers.length)];
-                        events.push(this.generateWeaponGrabKill(forcedKiller, player));
-                        deaths++;
+                        if (forcedKiller) {
+                            events.push(this.generateWeaponGrabKill(forcedKiller, player));
+                            deaths++;
+                        }
                     }
                 }
             } else {
@@ -420,6 +435,7 @@ export class EventGenerator {
 
             for (let i = 0; i < deathsToForce; i++) {
                 const victim = remainingParticipants[i];
+                if (!victim) continue;
                 const killer = this.selectKiller(victim);
                 if (killer) {
                     // Force weapon grab kill - prioritize weapon kills over improvised
@@ -432,8 +448,10 @@ export class EventGenerator {
                     );
                     if (availableKillers.length > 0) {
                         const forcedKiller = availableKillers[Math.floor(Math.random() * availableKillers.length)];
-                        events.push(this.generateWeaponGrabKill(forcedKiller, victim));
-                        deaths++;
+                        if (forcedKiller) {
+                            events.push(this.generateWeaponGrabKill(forcedKiller, victim));
+                            deaths++;
+                        }
                     }
                 }
             }
@@ -444,7 +462,7 @@ export class EventGenerator {
         return events;
     }
 
-    generateDayEvents() {
+    generateDayEvents(): string[] {
         this.usedThisSegment.clear();
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
@@ -459,22 +477,26 @@ export class EventGenerator {
         const activeAlliances = this.getActiveAlliances();
         if (activeAlliances.length > 0 && Math.random() < 0.20) {
             const alliance = activeAlliances[Math.floor(Math.random() * activeAlliances.length)];
-            const eventType = Math.random();
+            if (alliance) {
+                const eventType = Math.random();
 
-            if (eventType < 0.4) {
-                // Alliance hunting
-                events.push(this.generateAllianceHunting(alliance));
-                events.push("");
-            } else if (eventType < 0.7 && activeAlliances.length > 1) {
-                // Alliance vs Alliance combat
-                const otherAlliances = activeAlliances.filter(a => a !== alliance);
-                const targetAlliance = otherAlliances[Math.floor(Math.random() * otherAlliances.length)];
-                events.push(this.generateAllianceCombat(alliance, targetAlliance));
-                events.push("");
-            } else {
-                // Alliance victory/consolidation
-                events.push(this.generateAllianceVictory(alliance));
-                events.push("");
+                if (eventType < 0.4) {
+                    // Alliance hunting
+                    events.push(this.generateAllianceHunting(alliance));
+                    events.push("");
+                } else if (eventType < 0.7 && activeAlliances.length > 1) {
+                    // Alliance vs Alliance combat
+                    const otherAlliances = activeAlliances.filter(a => a !== alliance);
+                    const targetAlliance = otherAlliances[Math.floor(Math.random() * otherAlliances.length)];
+                    if (targetAlliance) {
+                        events.push(this.generateAllianceCombat(alliance, targetAlliance));
+                        events.push("");
+                    }
+                } else {
+                    // Alliance victory/consolidation
+                    events.push(this.generateAllianceVictory(alliance));
+                    events.push("");
+                }
             }
         }
 
@@ -495,11 +517,11 @@ export class EventGenerator {
                 events.push(this.generateAccidentalDeath(player));
             } else if (roll < 0.50) {
                 // Positive survival or stat-based events
-                if (player.mentalHealth < 20 && Math.random() < 0.3) {
+                if ((player.mentalHealth ?? 50) < 20 && Math.random() < 0.3) {
                     events.push(this.generateStatEvent(player, 'mental_breakdown'));
-                } else if (player.courage > 70 && Math.random() < 0.2) {
+                } else if ((player.courage ?? 50) > 70 && Math.random() < 0.2) {
                     events.push(this.generateStatEvent(player, 'courage_events'));
-                } else if (player.cowardice > 70 && Math.random() < 0.2) {
+                } else if ((player.cowardice ?? 50) > 70 && Math.random() < 0.2) {
                     events.push(this.generateStatEvent(player, 'cowardice_events'));
                 } else if (this.hasAnyTools(player) && Math.random() < 0.3) {
                     // Tool usage events for players with tools
@@ -533,7 +555,7 @@ export class EventGenerator {
         return events;
     }
 
-    generateNightEvents() {
+    generateNightEvents(): string[] {
         this.usedThisSegment.clear();
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
@@ -562,7 +584,7 @@ export class EventGenerator {
                 events.push(this.generateNightDeath(player, deathType));
             } else if (roll < 0.40) {
                 // Survival activities or gear-based events
-                if (player.mentalHealth < 20 && Math.random() < 0.4) {
+                if ((player.mentalHealth ?? 50) < 20 && Math.random() < 0.4) {
                     events.push(this.generateStatEvent(player, 'suicide_attempts'));
                 } else if (this.hasGear(player, 'shelter') && Math.random() < 0.3) {
                     events.push(this.generateStatEvent(player, 'gear_survival'));
@@ -601,7 +623,7 @@ export class EventGenerator {
     }
 
     // Helper methods
-    selectKiller(victim) {
+    selectKiller(victim: Player): Player | null {
         const available = this.alivePlayers.filter(p =>
             p.id !== victim.id && !this.usedThisSegment.has(p.id)
         );
@@ -611,18 +633,18 @@ export class EventGenerator {
         const weights = available.map(player => this.getPlayerKillProbability(player));
         const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
-        if (totalWeight === 0) return available[Math.floor(Math.random() * available.length)];
+        if (totalWeight === 0) return available[Math.floor(Math.random() * available.length)] ?? null;
 
         let random = Math.random() * totalWeight;
         for (let i = 0; i < available.length; i++) {
-            random -= weights[i];
-            if (random <= 0) return available[i];
+            random -= (weights[i] ?? 0);
+            if (random <= 0) return available[i] ?? null;
         }
 
-        return available[available.length - 1];
+        return available[available.length - 1] ?? null;
     }
 
-    selectVictim(killer) {
+    selectVictim(killer: Player): Player | null {
         // Filter out allies unless it's a betrayal scenario
         const available = this.alivePlayers.filter(p => {
             if (p.id === killer.id || this.usedThisSegment.has(p.id)) return false;
@@ -630,7 +652,7 @@ export class EventGenerator {
             // Check if they're allies - if so, only allow if it's a betrayal
             if (this.isAlliedWith(killer, p)) {
                 // Betrayal chance increases with low mental health and desperation
-                const betrayalChance = (100 - killer.mentalHealth) / 100 * 0.3;
+                const betrayalChance = (100 - (killer.mentalHealth ?? 50)) / 100 * 0.3;
                 return Math.random() < betrayalChance;
             }
 
@@ -653,26 +675,27 @@ export class EventGenerator {
 
         const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
-        if (totalWeight === 0) return available[Math.floor(Math.random() * available.length)];
+        if (totalWeight === 0) return available[Math.floor(Math.random() * available.length)] ?? null;
 
         let random = Math.random() * totalWeight;
         for (let i = 0; i < available.length; i++) {
-            random -= weights[i];
-            if (random <= 0) return available[i];
+            random -= (weights[i] ?? 0);
+            if (random <= 0) return available[i] ?? null;
         }
 
-        return available[available.length - 1];
+        return available[available.length - 1] ?? null;
     }
 
-    selectRandomPlayer() {
+    selectRandomPlayer(): Player | null {
         const available = this.alivePlayers.filter(p => !this.usedThisSegment.has(p.id));
         if (available.length === 0) return null;
         const player = available[Math.floor(Math.random() * available.length)];
+        if (!player) return null;
         this.usedThisSegment.add(player.id);
         return player;
     }
 
-    selectPartner(player) {
+    selectPartner(player: Player): Player | null {
         const available = this.alivePlayers.filter(p =>
             p.id !== player.id && !this.usedThisSegment.has(p.id)
         );
@@ -691,9 +714,10 @@ export class EventGenerator {
         let random = Math.random() * totalWeight;
 
         for (let i = 0; i < available.length; i++) {
-            random -= weights[i];
+            random -= (weights[i] ?? 0);
             if (random <= 0) {
                 const partner = available[i];
+                if (!partner) return null;
                 this.usedThisSegment.add(partner.id);
                 return partner;
             }
@@ -701,11 +725,12 @@ export class EventGenerator {
 
         // Fallback
         const partner = available[available.length - 1];
+        if (!partner) return null;
         this.usedThisSegment.add(partner.id);
         return partner;
     }
 
-    selectAlly(player) {
+    selectAlly(player: Player): Player | null {
         return this.selectVictim(player);
     }
 
@@ -717,7 +742,7 @@ export class EventGenerator {
         return this.alivePlayers.length > 2;
     }
 
-    canFormTeam(player) {
+    canFormTeam(player: Player): boolean {
         const available = this.alivePlayers.filter(p =>
             p.id !== player.id && !this.usedThisSegment.has(p.id)
         );
@@ -725,82 +750,86 @@ export class EventGenerator {
     }
 
     // Event generation methods
-    generateKill(killer, victim, phase) {
+    generateKill(killer: Player, victim: Player, phase: string): string {
         // Get killer's weapons
-        const killerWeapons = killer.inventory.filter(item => EventGenerator.WEAPONS.includes(item.name));
+        const killerWeapons = (killer.inventory || []).filter(item => EventGenerator.WEAPONS.includes(item.name));
 
         let templates, weapon = 'bare hands';
 
         // Select weapon-specific templates based on killer's inventory
         if (killerWeapons.length > 0) {
             const usedWeapon = killerWeapons[Math.floor(Math.random() * killerWeapons.length)];
-            weapon = usedWeapon.name;
+            if (!usedWeapon) {
+                weapon = 'bare hands';
+            } else {
+                weapon = usedWeapon.name;
 
-            // Map weapon names to template categories
-            const weaponTemplateMap = {
-                'sword': `${phase}_kills` || 'sword_kills',
-                'knife': `${phase}_kills` || 'knife_kills',
-                'bow': `${phase}_kills` || 'bow_kills',
-                'spear': `${phase}_kills` || 'spear_kills',
-                'axe': `${phase}_kills` || 'axe_kills',
-                'mace': `${phase}_kills` || 'axe_kills', // Use axe templates for mace
-                'trident': `${phase}_kills` || 'spear_kills', // Use spear templates for trident
-                'dagger': `${phase}_kills` || 'knife_kills', // Use knife templates for dagger
-                'sickle': `${phase}_kills` || 'knife_kills', // Use knife templates for sickle
-                'machete': `${phase}_kills` || 'sword_kills', // Use sword templates for machete
-                'club': `${phase}_kills` || 'axe_kills' // Use axe templates for club
-            };
+                // Map weapon names to template categories
+                const weaponTemplateMap: Record<string, string> = {
+                    'sword': `${phase}_kills` || 'sword_kills',
+                    'knife': `${phase}_kills` || 'knife_kills',
+                    'bow': `${phase}_kills` || 'bow_kills',
+                    'spear': `${phase}_kills` || 'spear_kills',
+                    'axe': `${phase}_kills` || 'axe_kills',
+                    'mace': `${phase}_kills` || 'axe_kills', // Use axe templates for mace
+                    'trident': `${phase}_kills` || 'spear_kills', // Use spear templates for trident
+                    'dagger': `${phase}_kills` || 'knife_kills', // Use knife templates for dagger
+                    'sickle': `${phase}_kills` || 'knife_kills', // Use knife templates for sickle
+                    'machete': `${phase}_kills` || 'sword_kills', // Use sword templates for machete
+                    'club': `${phase}_kills` || 'axe_kills' // Use axe templates for club
+                };
 
-            const templateKey = weaponTemplateMap[weapon];
-            templates = eventTemplates[phase][templateKey];
+                const templateKey = weaponTemplateMap[weapon] ?? 'kills';
+                templates = templateKey ? (eventTemplates as any)[phase]?.[templateKey] : undefined;
 
-            // Fallback to generic weapon templates if specific ones don't exist
-            if (!templates) {
-                // Try multiple weapon-specific variations before falling back to generic
-                const weaponVariations = [
-                    `${weapon}_${phase}_kills`,
-                    `${weapon}_kills`,
-                    `${weapon}_combat_kills`,
-                    `${weapon}_stealth_kills`
-                ];
+                // Fallback to generic weapon templates if specific ones don't exist
+                if (!templates) {
+                    // Try multiple weapon-specific variations before falling back to generic
+                    const weaponVariations = [
+                        `${weapon}_${phase}_kills`,
+                        `${weapon}_kills`,
+                        `${weapon}_combat_kills`,
+                        `${weapon}_stealth_kills`
+                    ];
 
-                for (const variation of weaponVariations) {
-                    if (eventTemplates[phase][variation]) {
-                        templates = eventTemplates[phase][variation];
-                        break;
+                    for (const variation of weaponVariations) {
+                        if ((eventTemplates as any)[phase]?.[variation]) {
+                            templates = (eventTemplates as any)[phase][variation];
+                            break;
+                        }
+                    }
+
+                    // Only use generic fallback as absolute last resort
+                    if (!templates) {
+                        templates = (eventTemplates as any)[phase]?.kills ||
+                            (eventTemplates as any)[phase]?.combat_kills ||
+                            (eventTemplates as any)[phase]?.stealth_kills;
                     }
                 }
 
-                // Only use generic fallback as absolute last resort
-                if (!templates) {
-                    templates = eventTemplates[phase].kills ||
-                        eventTemplates[phase].combat_kills ||
-                        eventTemplates[phase].stealth_kills;
-                }
+                this.consumeItem(killer, weapon);
             }
-
-            this.consumeItem(killer, weapon);
         } else {
             // No weapons - use bare hands or improvised templates
             if (Math.random() < 0.7) {
-                templates = eventTemplates[phase].bare_hands_kills ||
-                    eventTemplates[phase][`bare_hands_${phase}_kills`] ||
-                    eventTemplates[phase].kills ||
-                    eventTemplates[phase].combat_kills ||
-                    eventTemplates[phase].stealth_kills;
+                templates = (eventTemplates as any)[phase]?.bare_hands_kills ||
+                    (eventTemplates as any)[phase]?.[`bare_hands_${phase}_kills`] ||
+                    (eventTemplates as any)[phase]?.kills ||
+                    (eventTemplates as any)[phase]?.combat_kills ||
+                    (eventTemplates as any)[phase]?.stealth_kills;
             } else {
-                templates = eventTemplates[phase].improvised_kills ||
-                    eventTemplates[phase][`improvised_${phase}_kills`] ||
-                    eventTemplates[phase].kills ||
-                    eventTemplates[phase].combat_kills ||
-                    eventTemplates[phase].stealth_kills;
+                templates = (eventTemplates as any)[phase]?.improvised_kills ||
+                    (eventTemplates as any)[phase]?.[`improvised_${phase}_kills`] ||
+                    (eventTemplates as any)[phase]?.kills ||
+                    (eventTemplates as any)[phase]?.combat_kills ||
+                    (eventTemplates as any)[phase]?.stealth_kills;
             }
         }
 
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        const template = templates?.[Math.floor(Math.random() * templates.length)] ?? '{killer} kills {victim}';
 
         victim.isAlive = false;
-        victim.diedInPhase = phase;
+        victim.diedInPhase = phase as any;
         victim.diedOnDay = this.gameEngine.day;
         killer.kills = (killer.kills || 0) + 1;
 
@@ -833,21 +862,23 @@ export class EventGenerator {
         // Add looting event if items were looted
         if (lootedItems && lootedItems.length > 0) {
             const lootingTemplates = eventTemplates.cornucopia.looting || eventTemplates.day.looting || eventTemplates.night.looting;
-            if (lootingTemplates) {
+            if (lootingTemplates && lootingTemplates.length > 0) {
                 const lootingTemplate = lootingTemplates[Math.floor(Math.random() * lootingTemplates.length)];
-                result += '\n' + lootingTemplate
-                    .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
-                    .replace(/\{victim\}/g, this.highlightPlayerName(victim.name));
+                if (lootingTemplate) {
+                    result += '\n' + lootingTemplate
+                        .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
+                        .replace(/\{victim\}/g, this.highlightPlayerName(victim.name));
+                }
             }
         }
 
         return result;
     }
 
-    generateEscape(player) {
-        const templates = eventTemplates.cornucopia.escapes;
-        const template = templates[Math.floor(Math.random() * templates.length)];
-        const item = items[Math.floor(Math.random() * items.length)];
+    generateEscape(player: Player): string {
+        const templates = eventTemplates.cornucopia.escapes ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} flees the Cornucopia';
+        const item = items[Math.floor(Math.random() * items.length)] ?? 'supplies';
 
         if (Math.random() < 0.4) {
             this.addItemToInventory(player, item);
@@ -861,14 +892,16 @@ export class EventGenerator {
             .replace(/\{item\}/g, item);
     }
 
-    generateSupplyGrab(player) {
-        const templates = eventTemplates.cornucopia.supplies;
-        const template = templates[Math.floor(Math.random() * templates.length)];
-        const weapon = weapons[Math.floor(Math.random() * weapons.length)];
+    generateSupplyGrab(player: Player): string {
+        const templates = eventTemplates.cornucopia.supplies ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} grabs supplies';
+        const weapon = weapons[Math.floor(Math.random() * weapons.length)] ?? 'knife';
 
         if (Math.random() < 0.6) {
-            const item = Math.random() < 0.5 ? weapon : items[Math.floor(Math.random() * items.length)];
-            this.addItemToInventory(player, item);
+            const item = Math.random() < 0.5 ? weapon : (items[Math.floor(Math.random() * items.length)] ?? 'supplies');
+            if (item) {
+                this.addItemToInventory(player, item);
+            }
         }
 
         return template
@@ -876,9 +909,9 @@ export class EventGenerator {
             .replace(/\{weapon\}/g, weapon);
     }
 
-    generateWeaponGrabKill(killer, victim) {
+    generateWeaponGrabKill(killer: Player, victim: Player): string {
         // Get a random weapon for the killer
-        const weapon = weapons[Math.floor(Math.random() * weapons.length)];
+        const weapon = weapons[Math.floor(Math.random() * weapons.length)] ?? 'knife';
 
         // Add weapon to killer's inventory
         this.addItemToInventory(killer, weapon);
@@ -912,7 +945,7 @@ export class EventGenerator {
 
         // Generate weapon grab kill event
         const templates = eventTemplates.cornucopia.weapon_grab_kills || eventTemplates.cornucopia.kills;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        const template = templates?.[Math.floor(Math.random() * templates.length)] ?? '{killer} grabs a {weapon} and kills {victim}';
 
         let result = template
             .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
@@ -922,20 +955,22 @@ export class EventGenerator {
         // Add looting event if items were looted
         if (lootedItems && lootedItems.length > 0) {
             const lootingTemplates = eventTemplates.cornucopia.looting || eventTemplates.day.looting || eventTemplates.night.looting;
-            if (lootingTemplates) {
+            if (lootingTemplates && lootingTemplates.length > 0) {
                 const lootingTemplate = lootingTemplates[Math.floor(Math.random() * lootingTemplates.length)];
-                result += '\n' + lootingTemplate
-                    .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
-                    .replace(/\{victim\}/g, this.highlightPlayerName(victim.name));
+                if (lootingTemplate) {
+                    result += '\n' + lootingTemplate
+                        .replace(/\{killer\}/g, this.highlightPlayerName(killer.name))
+                        .replace(/\{victim\}/g, this.highlightPlayerName(victim.name));
+                }
             }
         }
 
         return result;
     }
 
-    generateTeamwork(player1, player2) {
-        const templates = eventTemplates.cornucopia.teamwork;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    generateTeamwork(player1: Player, player2: Player): string {
+        const templates = eventTemplates.cornucopia.teamwork ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{player1} and {player2} team up';
 
         // Form alliance
         this.formAlliance(player1, player2);
@@ -945,9 +980,9 @@ export class EventGenerator {
             .replace(/\{player2\}/g, this.highlightPlayerName(player2.name));
     }
 
-    generateAccidentalDeath(player) {
-        const templates = eventTemplates.day.accidental_deaths;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    generateAccidentalDeath(player: Player): string {
+        const templates = eventTemplates.day.accidental_deaths ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} dies accidentally';
 
         player.isAlive = false;
         player.diedInPhase = 'day';
@@ -961,31 +996,31 @@ export class EventGenerator {
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
-    generateSurvival(player, type) {
+    generateSurvival(player: Player, type: string): string {
         const hasTools = this.hasAnyTools(player);
         let key, templates, template;
 
         if (type === 'positive') {
             key = hasTools ? 'survival_positive_with_tools' : 'survival_positive_without_tools';
-            templates = eventTemplates.day[key];
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = (eventTemplates.day as any)[key] ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} survives';
 
             // For tool-based events, replace {item} with a random tool from inventory
             if (hasTools && template.includes('{item}')) {
                 const playerTools = this.getPlayerTools(player);
-                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
                 template = template.replace(/\{item\}/g, randomTool);
             }
         } else {
             // Neutral events - now split by tool availability
             key = hasTools ? 'survival_with_tools' : 'survival_without_tools';
-            templates = eventTemplates.day[key];
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = (eventTemplates.day as any)[key] ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} survives';
 
             // For tool-based events, replace {item} with a random tool from inventory
             if (hasTools && template.includes('{item}')) {
                 const playerTools = this.getPlayerTools(player);
-                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
                 template = template.replace(/\{item\}/g, randomTool);
             }
         }
@@ -1000,16 +1035,16 @@ export class EventGenerator {
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
-    generateAlliance(player1, player2) {
+    generateAlliance(player1: Player, player2: Player): string {
         let templates, template;
 
         // Use district-specific templates if same district
         if (player1.district === player2.district) {
-            templates = eventTemplates.day.district_alliances;
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = eventTemplates.day.district_alliances ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player1} and {player2} form an alliance';
         } else {
-            templates = eventTemplates.day.alliances;
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = eventTemplates.day.alliances ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player1} and {player2} form an alliance';
         }
 
         // Form alliance
@@ -1044,16 +1079,16 @@ export class EventGenerator {
 
         // Replace district placeholder if present
         if (template.includes('{district}')) {
-            result = result.replace(/\{district\}/g, player1.district);
+            result = result.replace(/\{district\}/g, String(player1.district));
         }
 
         return result;
     }
 
     // Alliance group events
-    generateAllianceHunting(allianceMembers) {
-        const templates = eventTemplates.day.alliance_hunting;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    generateAllianceHunting(allianceMembers: Player[]): string {
+        const templates = eventTemplates.day.alliance_hunting ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{alliance_members} hunt together';
 
         // Create alliance member names string
         const memberNames = allianceMembers.map(member => this.highlightPlayerName(member.name)).join(', ');
@@ -1067,9 +1102,9 @@ export class EventGenerator {
         return template.replace(/\{alliance_members\}/g, memberNames);
     }
 
-    generateAllianceCombat(allianceMembers, targetAlliance) {
-        const templates = eventTemplates.day.alliance_combat;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    generateAllianceCombat(allianceMembers: Player[], targetAlliance: Player[]): string {
+        const templates = eventTemplates.day.alliance_combat ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{alliance_members} engage in combat';
 
         // Create alliance member names string
         const memberNames = allianceMembers.map(member => this.highlightPlayerName(member.name)).join(', ');
@@ -1083,9 +1118,9 @@ export class EventGenerator {
         return template.replace(/\{alliance_members\}/g, memberNames);
     }
 
-    generateAllianceVictory(allianceMembers) {
-        const templates = eventTemplates.day.alliance_victory;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    generateAllianceVictory(allianceMembers: Player[]): string {
+        const templates = eventTemplates.day.alliance_victory ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{alliance_members} celebrate their victory';
 
         // Create alliance member names string
         const memberNames = allianceMembers.map(member => this.highlightPlayerName(member.name)).join(', ');
@@ -1099,7 +1134,7 @@ export class EventGenerator {
         return template.replace(/\{alliance_members\}/g, memberNames);
     }
 
-    generateNightDeath(player, type) {
+    generateNightDeath(player: Player, type: string): string {
         // Night vision glasses reduce chance of night deaths
         if (this.hasGear(player, 'night_vision') && Math.random() < 0.4) {
             // 40% chance to avoid night death with night vision glasses
@@ -1107,8 +1142,8 @@ export class EventGenerator {
         }
 
         const key = type === 'exposure' ? 'exposure_deaths' : 'mental_deaths';
-        const templates = eventTemplates.night[key];
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        const templates = (eventTemplates.night as any)[key] ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} dies';
 
         player.isAlive = false;
         player.diedInPhase = 'night';
@@ -1122,16 +1157,16 @@ export class EventGenerator {
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
-    generateNightSurvival(player) {
+    generateNightSurvival(player: Player): string {
         const hasTools = this.hasAnyTools(player);
         const key = hasTools ? 'survival_night_with_tools' : 'survival_night_without_tools';
-        const templates = eventTemplates.night[key];
-        let template = templates[Math.floor(Math.random() * templates.length)];
+        const templates = (eventTemplates.night as any)[key] ?? [];
+        let template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} survives the night';
 
         // For tool-based events, replace {item} with a random tool from inventory
         if (hasTools && template.includes('{item}')) {
             const playerTools = this.getPlayerTools(player);
-            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
             template = template.replace(/\{item\}/g, randomTool);
         }
 
@@ -1156,21 +1191,21 @@ export class EventGenerator {
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
-    generateEmotional(player) {
+    generateEmotional(player: Player): string {
         const hasTools = this.hasAnyTools(player);
         const key = hasTools ? 'emotional_with_agency' : 'emotional_without_agency';
-        const templates = eventTemplates.night[key];
-        let template = templates[Math.floor(Math.random() * templates.length)];
+        const templates = (eventTemplates.night as any)[key] ?? [];
+        let template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} reflects on their situation';
 
         // For tool-based events, replace {item} with a random tool from inventory
         if (hasTools && template.includes('{item}')) {
             const playerTools = this.getPlayerTools(player);
-            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
             template = template.replace(/\{item\}/g, randomTool);
         }
 
         // Emotional moments affect mental health
-        if (player.mentalHealth < 30) {
+        if ((player.mentalHealth ?? 50) < 30) {
             this.updateMentalHealth(player, -2, 'emotional breakdown');
         } else {
             this.updateMentalHealth(player, 1, 'emotional release');
@@ -1184,9 +1219,9 @@ export class EventGenerator {
         return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
     }
 
-    generateBetrayal(killer, victim) {
-        const templates = eventTemplates.night.betrayals;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    generateBetrayal(killer: Player, victim: Player): string {
+        const templates = eventTemplates.night.betrayals ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{killer} betrays {victim}';
 
         victim.isAlive = false;
         victim.diedInPhase = 'night';
@@ -1210,46 +1245,46 @@ export class EventGenerator {
             .replace(/\{victim\}/g, this.highlightPlayerName(victim.name));
     }
 
-    generateStatEvent(player, eventType) {
+    generateStatEvent(player: Player, eventType: string): string {
         const hasTools = this.hasAnyTools(player);
         let templates, template;
 
         // Handle tool-dependent events
         if (eventType === 'mental_breakdown') {
             const key = hasTools ? 'mental_breakdown_with_tools' : 'mental_breakdown_without_tools';
-            templates = eventTemplates.day[key];
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = (eventTemplates.day as any)[key] ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} has a breakdown';
 
             // For tool-based events, replace {item} with a random tool from inventory
             if (hasTools && template.includes('{item}')) {
                 const playerTools = this.getPlayerTools(player);
-                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
                 template = template.replace(/\{item\}/g, randomTool);
             }
         } else if (eventType === 'desperation_events') {
             const key = hasTools ? 'desperation_events' : 'desperation_no_tools';
-            templates = eventTemplates.day[key];
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = (eventTemplates.day as any)[key] ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} acts desperately';
 
             // For tool-based events, replace {item} with a random tool from inventory
             if (hasTools && template.includes('{item}')) {
                 const playerTools = this.getPlayerTools(player);
-                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
                 template = template.replace(/\{item\}/g, randomTool);
             }
         } else if (eventType === 'courage_events' || eventType === 'cowardice_events') {
-            templates = eventTemplates.day[eventType];
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = (eventTemplates.day as any)[eventType] ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} shows emotion';
 
             // For tool-based events, replace {item} with a random tool from inventory
             if (template.includes('{item}')) {
                 const playerTools = this.getPlayerTools(player);
-                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+                const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
                 template = template.replace(/\{item\}/g, randomTool);
             }
         } else {
-            templates = eventTemplates.day[eventType] || eventTemplates.night[eventType];
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = (eventTemplates.day as any)[eventType] || (eventTemplates.night as any)[eventType] || [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} experiences something';
         }
 
         // Update stats based on event type
@@ -1273,8 +1308,8 @@ export class EventGenerator {
     }
 
     // Generate item-specific events
-    generateItemEvent(player, itemName) {
-        const itemEventMap = {
+    generateItemEvent(player: Player, itemName: string): string | null {
+        const itemEventMap: Record<string, string> = {
             'rope': 'rope_usage',
             'matches': 'matches_usage',
             'medicine': 'medicine_usage',
@@ -1287,10 +1322,10 @@ export class EventGenerator {
         const eventType = itemEventMap[itemName];
         if (!eventType) return null;
 
-        const templates = eventTemplates.cornucopia[eventType] || eventTemplates.day[eventType] || eventTemplates.night[eventType];
+        const templates = (eventTemplates.cornucopia as any)[eventType] || (eventTemplates.day as any)[eventType] || (eventTemplates.night as any)[eventType];
         if (!templates) return null;
 
-        const template = templates[Math.floor(Math.random() * templates.length)];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} uses an item';
 
         // Consume the item
         this.consumeItem(player, itemName);
@@ -1299,13 +1334,13 @@ export class EventGenerator {
     }
 
     // Generate tool usage events
-    generateToolUsageEvent(player) {
+    generateToolUsageEvent(player: Player): string {
         let templates, template;
 
         // Check if player has night vision glasses for special events
         if (this.hasGear(player, 'night_vision') && Math.random() < 0.3) {
-            templates = eventTemplates.night.night_vision_events;
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = eventTemplates.night.night_vision_events ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} uses night vision';
 
             // Night vision events don't consume the glasses
             this.updateMentalHealth(player, 3, 'night vision advantage');
@@ -1313,8 +1348,8 @@ export class EventGenerator {
 
             return template.replace(/\{player\}/g, this.highlightPlayerName(player.name));
         } else {
-            templates = eventTemplates.day.tool_usage_events;
-            template = templates[Math.floor(Math.random() * templates.length)];
+            templates = eventTemplates.day.tool_usage_events ?? [];
+            template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} uses a tool';
 
             // Get a random tool from player's inventory
             const playerTools = this.getPlayerTools(player);
@@ -1324,7 +1359,7 @@ export class EventGenerator {
                 return this.generateSurvival(player, 'neutral');
             }
 
-            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)];
+            const randomTool = playerTools[Math.floor(Math.random() * playerTools.length)] ?? 'tool';
 
             // Consume the tool (if it's not a weapon)
             if (!EventGenerator.WEAPONS.includes(randomTool)) {
@@ -1341,9 +1376,9 @@ export class EventGenerator {
     }
 
     // Generate desperation events for players without tools
-    generateDesperationNoTools(player) {
-        const templates = eventTemplates.day.desperation_no_tools;
-        const template = templates[Math.floor(Math.random() * templates.length)];
+    generateDesperationNoTools(player: Player): string {
+        const templates = eventTemplates.day.desperation_no_tools ?? [];
+        const template = templates[Math.floor(Math.random() * templates.length)] ?? '{player} acts desperately';
 
         // Mental health penalty for desperate actions
         this.updateMentalHealth(player, -3, 'desperate no-tool action');
@@ -1366,6 +1401,9 @@ export class EventGenerator {
         }
 
         const event = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+        if (!event) {
+            return this.generateDayEvents();
+        }
 
         // Add announcement
         if (event.announcement && Array.isArray(event.announcement)) {
@@ -1408,6 +1446,9 @@ export class EventGenerator {
         }
 
         const event = availableEvents[Math.floor(Math.random() * availableEvents.length)];
+        if (!event) {
+            return this.generateNightEvents();
+        }
 
         // Add announcement
         if (event.announcement && Array.isArray(event.announcement)) {
@@ -1437,7 +1478,7 @@ export class EventGenerator {
         return events;
     }
 
-    selectEventVictims(count) {
+    selectEventVictims(count: number): Player[] {
         const available = this.alivePlayers.filter(p => !this.usedThisSegment.has(p.id));
         if (available.length === 0 || count <= 0) return [];
 
@@ -1451,7 +1492,7 @@ export class EventGenerator {
             let selectedIndex = 0;
 
             for (let j = 0; j < available.length; j++) {
-                random -= weights[j];
+                random -= (weights[j] ?? 0);
                 if (random <= 0) {
                     selectedIndex = j;
                     break;
@@ -1459,6 +1500,7 @@ export class EventGenerator {
             }
 
             const victim = available[selectedIndex];
+            if (!victim) continue;
             victims.push(victim);
             this.usedThisSegment.add(victim.id);
 
@@ -1471,7 +1513,7 @@ export class EventGenerator {
         return victims;
     }
 
-    generateEventDeath(victim, event) {
+    generateEventDeath(victim: Player, event: any): string {
         victim.isAlive = false;
         victim.diedInPhase = event.name || 'major_event';
         victim.diedOnDay = this.gameEngine.day;
@@ -1494,7 +1536,7 @@ export class EventGenerator {
             .replace(/\{event_name\}/g, event.name || 'major event');
     }
 
-    generateEventSurvivalAction(survivor, event) {
+    generateEventSurvivalAction(survivor: Player, event: any): string {
         this.usedThisSegment.add(survivor.id);
 
         // Apply event effects to survivor
@@ -1513,7 +1555,7 @@ export class EventGenerator {
             .replace(/\{event_name\}/g, event.name || 'major event');
     }
 
-    applyEventEffects(player, event) {
+    applyEventEffects(player: Player, event: any): void {
         if (!event.effects) return;
 
         for (const effect of event.effects) {
@@ -1544,7 +1586,7 @@ export class EventGenerator {
         }
     }
 
-    formatFallenTributes() {
+    formatFallenTributes(): string[] {
         if (this.deadThisRound.length === 0) {
             return ["No cannon fires tonight. Everyone survived another day."];
         }
@@ -1558,7 +1600,7 @@ export class EventGenerator {
         return lines;
     }
 
-    getFallenTributeData() {
+    getFallenTributeData(): FallenTributeData[] {
         if (this.deadThisRound.length === 0) {
             return [{ name: "No fallen", district: "", kills: 0, diedInPhase: "none", isNoFallen: true }];
         }

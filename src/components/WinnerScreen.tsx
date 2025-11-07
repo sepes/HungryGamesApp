@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import HistoryModal from './HistoryModal';
 import styles from './WinnerScreen/WinnerScreen.module.scss';
+import type { WinnerScreenProps } from '../types/component.types';
 
-const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
+const WinnerScreen: React.FC<WinnerScreenProps> = ({ winner, eventHistory, gameEngine, onReset }) => {
   const [showHistory, setShowHistory] = useState(false);
   
   if (!winner) return null;
@@ -101,6 +102,7 @@ const WinnerScreen = ({ winner, eventHistory, gameEngine, onReset }) => {
         isOpen={showHistory}
         onClose={() => setShowHistory(false)}
         eventHistory={eventHistory}
+        gameEngine={gameEngine}
       />
     </div>
   );

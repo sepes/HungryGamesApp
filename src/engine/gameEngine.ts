@@ -1,7 +1,17 @@
-import { EventGenerator } from './eventGenerator.js';
+import { EventGenerator } from './eventGenerator';
+import type { Player, GameSegmentResult, GameStats, SurvivalStats, LeaderboardEntry, SimulationPhase, MajorEventConfig, FallenTributeData } from '../types/game.types';
 
 export class GameEngine {
-    constructor(players) {
+    players: Player[];
+    day: number;
+    phase: SimulationPhase;
+    eventGenerator: EventGenerator;
+    totalDays: number;
+    fallenTributeData: FallenTributeData[];
+    gameOver?: boolean;
+    winner?: Player | null;
+
+    constructor(players: Player[]) {
         // Initialize players with extended stats
         this.players = players.map(player => ({
             ...player,
@@ -19,8 +29,8 @@ export class GameEngine {
         this.fallenTributeData = [];
     }
 
-    nextSegment() {
-        let events = [];
+    nextSegment(): GameSegmentResult {
+        let events: string[] = [];
         const currentPhase = this.phase; // Save current phase for header
 
         switch (this.phase) {
@@ -62,11 +72,14 @@ export class GameEngine {
         // Check for winner
         const alive = this.players.filter(p => p.isAlive);
         if (alive.length === 1) {
+            const winner = alive[0]!; // Safe: checked length === 1
+            this.gameOver = true;
+            this.winner = winner;
             this.totalDays = this.day;
             return {
                 phase: 'winner',
-                events: this.formatWinnerAnnouncement(alive[0]),
-                winner: alive[0],
+                events: this.formatWinnerAnnouncement(winner),
+                winner: winner,
                 alive: 1,
                 total: this.players.length
             };
@@ -74,11 +87,14 @@ export class GameEngine {
 
         // Prevent infinite games - if only 2 left and it's been many days, force confrontation
         if (alive.length === 2 && this.day > 10) {
-            const [p1, p2] = alive;
+            const p1 = alive[0]!; // Safe: checked length === 2
+            const p2 = alive[1]!; // Safe: checked length === 2
             const winner = Math.random() < 0.5 ? p1 : p2;
             const loser = winner === p1 ? p2 : p1;
+            this.gameOver = true;
+            this.winner = winner;
             loser.isAlive = false;
-            winner.kills++;
+            winner.kills = (winner.kills || 0) + 1;
 
             return {
                 phase: 'winner',
@@ -101,7 +117,7 @@ export class GameEngine {
         const header = this.getPhaseHeader(currentPhase);
 
         // For fallen phase, include tribute data for animation
-        const result = {
+        const result: GameSegmentResult = {
             phase: currentPhase, // Return current phase, not next phase
             events: header ? [header, '', ...events] : events,
             winner: null,
@@ -117,7 +133,7 @@ export class GameEngine {
         return result;
     }
 
-    getPhaseHeader(phase = this.phase) {
+    getPhaseHeader(phase: SimulationPhase = this.phase): string {
         switch (phase) {
             case 'cornucopia':
                 return `=== THE HUNGER GAMES ===`;
@@ -132,7 +148,7 @@ export class GameEngine {
         }
     }
 
-    formatWinnerAnnouncement(winner) {
+    formatWinnerAnnouncement(winner: Player): string[] {
         return [
             ``,
             `=== VICTORY ===`,
@@ -147,7 +163,7 @@ export class GameEngine {
         ];
     }
 
-    getGameStats() {
+    getGameStats(): GameStats {
         const alive = this.players.filter(p => p.isAlive);
         const dead = this.players.filter(p => !p.isAlive);
 
@@ -164,7 +180,7 @@ export class GameEngine {
         };
     }
 
-    reset() {
+    reset(): void {
         this.day = 1;
         this.phase = 'cornucopia';
         this.gameOver = false;
@@ -173,7 +189,7 @@ export class GameEngine {
     }
 
     // Force end game (for testing or emergency)
-    forceEndGame() {
+    forceEndGame(): void {
         const alive = this.players.filter(p => p.isAlive);
         if (alive.length > 0) {
             this.gameOver = true;
@@ -182,7 +198,7 @@ export class GameEngine {
     }
 
     // Get leaderboard of top killers
-    getLeaderboard() {
+    getLeaderboard(): LeaderboardEntry[] {
         return this.players
             .filter(p => p.kills > 0)
             .sort((a, b) => b.kills - a.kills)
@@ -196,20 +212,23 @@ export class GameEngine {
     }
 
     // Get survival statistics
-    getSurvivalStats() {
+    getSurvivalStats(): SurvivalStats {
         const alive = this.players.filter(p => p.isAlive);
         const dead = this.players.filter(p => !p.isAlive);
 
-        const districtStats = {};
+        const districtStats: { [key: number]: { alive: number; dead: number; total: number } } = {};
         this.players.forEach(player => {
             if (!districtStats[player.district]) {
                 districtStats[player.district] = { alive: 0, dead: 0, total: 0 };
             }
-            districtStats[player.district].total++;
-            if (player.isAlive) {
-                districtStats[player.district].alive++;
-            } else {
-                districtStats[player.district].dead++;
+            const stats = districtStats[player.district];
+            if (stats) {
+                stats.total++;
+                if (player.isAlive) {
+                    stats.alive++;
+                } else {
+                    stats.dead++;
+                }
             }
         });
 
@@ -223,12 +242,13 @@ export class GameEngine {
     }
 
     // Get major event configuration for console access
-    getMajorEventConfig() {
+    getMajorEventConfig(): MajorEventConfig {
         return EventGenerator.majorEventConfig;
     }
 
     // Update major event configuration
-    updateMajorEventConfig(config) {
+    updateMajorEventConfig(config: Partial<MajorEventConfig>): void {
         Object.assign(EventGenerator.majorEventConfig, config);
     }
 }
+

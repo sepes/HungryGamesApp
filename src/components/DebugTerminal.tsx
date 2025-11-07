@@ -1,16 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './DebugTerminal/DebugTerminal.module.scss';
+import { GameEngine } from '../engine/gameEngine';
+import { EventGenerator } from '../engine/eventGenerator';
+import type { GamePhase } from '../types/game.types';
 
-const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton }) => {
-  const [output, setOutput] = useState([
+interface TerminalOutput {
+  type: 'system' | 'error' | 'success' | 'info' | 'command' | 'warning';
+  text: string;
+}
+
+interface DebugTerminalProps {
+  gameEngine: GameEngine | null;
+  gamePhase: GamePhase;
+  onNext: () => void;
+  onShowVictory: () => void;
+  showVictoryButton: boolean;
+}
+
+const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, onNext, onShowVictory: _onShowVictory, showVictoryButton: _showVictoryButton }) => {
+  const [output, setOutput] = useState<TerminalOutput[]>([
     { type: 'system', text: 'Debug Terminal initialized. Type "help" for available commands.' }
   ]);
-  const [input, setInput] = useState('');
-  const [commandHistory, setCommandHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [isAutoplaying, setIsAutoplaying] = useState(false);
-  const inputRef = useRef(null);
-  const outputRef = useRef(null);
+  const [input, setInput] = useState<string>('');
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [isAutoplaying, setIsAutoplaying] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new output is added
   useEffect(() => {
@@ -26,7 +42,7 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
     }
   }, []);
 
-  const addOutput = (type, text) => {
+  const addOutput = (type: TerminalOutput['type'], text: string) => {
     setOutput(prev => [...prev, { type, text }]);
   };
 
@@ -63,7 +79,7 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
   };
 
 
-  const executeCommand = (command) => {
+  const executeCommand = (command: string) => {
     const trimmedCommand = command.trim().toLowerCase();
     
     // Add command to output
@@ -137,27 +153,27 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
         // Summary statistics
         const alivePlayers = gameEngine.players.filter(p => p.isAlive);
         const avgMentalHealth = alivePlayers.reduce((sum, p) => sum + (p.mentalHealth || 75), 0) / alivePlayers.length;
-        const mostEquipped = alivePlayers.reduce((best, player) => {
+        const mostEquipped = alivePlayers.length > 0 ? alivePlayers.reduce((best, player) => {
           const currentItems = (player.inventory || []).length;
-          const bestItems = (best.inventory || []).length;
+          const bestItems = ((best?.inventory) || []).length;
           return currentItems > bestItems ? player : best;
-        }, alivePlayers[0]);
-        const mostDangerous = alivePlayers.reduce((best, player) => {
+        }, alivePlayers[0]) : null;
+        const mostDangerous = alivePlayers.length > 0 ? alivePlayers.reduce((best, player) => {
           const currentScore = (player.kills || 0) + (player.inventory || []).filter(item => 
-            ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name)
+            EventGenerator.WEAPONS.includes(item.name)
           ).length;
-          const bestScore = (best.kills || 0) + (best.inventory || []).filter(item => 
-            ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name)
+          const bestScore = ((best?.kills) || 0) + ((best?.inventory) || []).filter(item => 
+            EventGenerator.WEAPONS.includes(item.name)
           ).length;
           return currentScore > bestScore ? player : best;
-        }, alivePlayers[0]);
+        }, alivePlayers[0]) : null;
         
         addOutput('system', '=== SUMMARY STATISTICS ===');
-        addOutput('system', `Average Mental Health: ${Math.round(avgMentalHealth)}/100`);
-        addOutput('system', `Most Well-Equipped: ${mostEquipped ? mostEquipped.name : 'N/A'} (${(mostEquipped?.inventory || []).length} items)`);
-        addOutput('system', `Most Dangerous: ${mostDangerous ? mostDangerous.name : 'N/A'} (${mostDangerous?.kills || 0} kills, ${(mostDangerous?.inventory || []).filter(item => 
-          ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'].includes(item.name)
-        ).length} weapons)`);
+        addOutput('system', `Average Mental Health: ${alivePlayers.length > 0 ? Math.round(avgMentalHealth) : 0}/100`);
+        addOutput('system', `Most Well-Equipped: ${mostEquipped ? mostEquipped.name : 'N/A'} (${mostEquipped ? (mostEquipped.inventory || []).length : 0} items)`);
+        addOutput('system', `Most Dangerous: ${mostDangerous ? mostDangerous.name : 'N/A'} (${mostDangerous ? (mostDangerous.kills || 0) : 0} kills, ${mostDangerous ? (mostDangerous.inventory || []).filter(item => 
+          EventGenerator.WEAPONS.includes(item.name)
+        ).length : 0} weapons)`);
         break;
         
       case '':
@@ -170,7 +186,7 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
       executeCommand(input);
@@ -178,20 +194,20 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
     }
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (historyIndex < commandHistory.length - 1) {
         const newIndex = historyIndex + 1;
         setHistoryIndex(newIndex);
-        setInput(commandHistory[newIndex]);
+        setInput(commandHistory[newIndex] ?? '');
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (historyIndex > 0) {
         const newIndex = historyIndex - 1;
         setHistoryIndex(newIndex);
-        setInput(commandHistory[newIndex]);
+        setInput(commandHistory[newIndex] ?? '');
       } else if (historyIndex === 0) {
         setHistoryIndex(-1);
         setInput('');
@@ -199,7 +215,7 @@ const DebugTerminal = ({ gameEngine, gamePhase, onNext, onShowVictory, showVicto
     }
   };
 
-  const getOutputClass = (type) => {
+  const getOutputClass = (type: TerminalOutput['type']) => {
     switch (type) {
       case 'command': return styles.terminalCommand;
       case 'system': return styles.terminalSystem;

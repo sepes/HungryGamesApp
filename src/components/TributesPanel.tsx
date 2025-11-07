@@ -1,22 +1,30 @@
 import React from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import styles from './TributesPanel/TributesPanel.module.scss';
+import type { Player } from '../types/game.types';
+import { GameEngine } from '../engine/gameEngine';
 
-const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
+interface TributesPanelProps {
+  gameEngine: GameEngine | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const TributesPanel: React.FC<TributesPanelProps> = ({ gameEngine, isOpen, onClose }) => {
   const containerRef = useFocusTrap(isOpen);
 
   if (!gameEngine) return null;
 
   // Group all players by district
-  const playersByDistrict = {};
+  const playersByDistrict: { [key: number]: Player[] } = {};
   gameEngine.players.forEach(player => {
     if (!playersByDistrict[player.district]) {
       playersByDistrict[player.district] = [];
     }
-    playersByDistrict[player.district].push(player);
+    playersByDistrict[player.district]!.push(player);
   });
 
-  const formatDeathInfo = (player) => {
+  const formatDeathInfo = (player: Player): string | null => {
     if (player.isAlive) return null;
     
     if (player.diedInPhase === 'cornucopia') {
@@ -50,7 +58,7 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
               <div key={district} className={styles.districtGroup}>
                 <h3 className={styles.districtTitle}>District {district}</h3>
                 <div className={styles.districtTributes}>
-                  {playersByDistrict[district].map(player => (
+                  {(playersByDistrict[parseInt(district)] || []).map((player: Player) => (
                     <div 
                       key={player.id} 
                       className={`${styles.tributeItem} ${player.isAlive ? styles.tributeAlive : styles.tributeFallen}`}
@@ -69,13 +77,13 @@ const TributesPanel = ({ gameEngine, isOpen, onClose }) => {
                             <span className={styles.tributeStatusAlive}>Alive</span>
                             {player.inventory && player.inventory.length > 0 && (
                               <div className="tribute-inventory">
-                                <strong>Items:</strong> {player.inventory.map(item => `${item.name} (${item.uses})`).join(', ')}
+                                <strong>Items:</strong> {player.inventory.map((item) => `${item.name} (${item.uses})`).join(', ')}
                               </div>
                             )}
                             {player.alliances && player.alliances.length > 0 && (
                               <div className="tribute-alliances">
-                                <strong>Allies:</strong> {player.alliances.map(allyId => {
-                                  const ally = gameEngine.players.find(p => p.id === allyId);
+                                <strong>Allies:</strong> {player.alliances.map((allyId: string) => {
+                                  const ally = gameEngine?.players.find(p => p.id === allyId);
                                   return ally ? ally.name : 'Unknown';
                                 }).join(', ')}
                               </div>

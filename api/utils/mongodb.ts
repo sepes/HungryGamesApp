@@ -1,14 +1,20 @@
-const { MongoClient } = require('mongodb');
+import { MongoClient, Db, Collection } from 'mongodb';
+import { UserCredential } from '../../src/types/api.types';
 
-let cachedClient = null;
-let cachedDb = null;
+let cachedClient: MongoClient | null = null;
+let cachedDb: Db | null = null;
+
+interface DatabaseConnection {
+    client: MongoClient;
+    db: Db;
+}
 
 /**
  * Connects to MongoDB with connection pooling
  * Reuses existing connection if available
- * @returns {Promise<{client: MongoClient, db: Db}>}
+ * @returns Promise resolving to client and database objects
  */
-async function connectToDatabase() {
+export async function connectToDatabase(): Promise<DatabaseConnection> {
     // Return cached connection if available
     if (cachedClient && cachedDb) {
         return { client: cachedClient, db: cachedDb };
@@ -41,21 +47,22 @@ async function connectToDatabase() {
 
         return { client, db };
     } catch (error) {
-        console.error('MongoDB connection error:', error.message);
+        console.error('MongoDB connection error:', (error as Error).message);
         throw new Error('Failed to connect to database');
     }
 }
 
 /**
  * Gets the user_credentials collection
- * @returns {Promise<Collection>}
+ * @returns Promise resolving to the collection
  */
-async function getUserCredentialsCollection() {
+export async function getUserCredentialsCollection(): Promise<Collection<UserCredential>> {
     const { db } = await connectToDatabase();
-    return db.collection('user_credentials');
+    return db.collection<UserCredential>('user_credentials');
 }
 
 module.exports = {
     connectToDatabase,
     getUserCredentialsCollection
 };
+

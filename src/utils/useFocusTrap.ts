@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
+import type { RefObject } from 'react';
 
-export const useFocusTrap = (isActive) => {
-    const containerRef = useRef(null);
-    const previousActiveElement = useRef(null);
+export const useFocusTrap = (isActive: boolean): RefObject<HTMLDivElement | null> => {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const previousActiveElement = useRef<Element | null>(null);
 
     useEffect(() => {
         if (!isActive || !containerRef.current) return;
@@ -11,7 +12,7 @@ export const useFocusTrap = (isActive) => {
         previousActiveElement.current = document.activeElement;
 
         const container = containerRef.current;
-        const focusableElements = container.querySelectorAll(
+        const focusableElements = container.querySelectorAll<HTMLElement>(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
 
@@ -23,7 +24,7 @@ export const useFocusTrap = (isActive) => {
             firstElement.focus();
         }
 
-        const handleKeyDown = (event) => {
+        const handleKeyDown = (event: KeyboardEvent): void => {
             if (event.key === 'Tab') {
                 if (event.shiftKey) {
                     // Shift + Tab: go to previous element
@@ -53,7 +54,7 @@ export const useFocusTrap = (isActive) => {
             document.removeEventListener('keydown', handleKeyDown);
 
             // Restore focus to the previously focused element when panel closes
-            if (previousActiveElement.current) {
+            if (previousActiveElement.current && previousActiveElement.current instanceof HTMLElement) {
                 previousActiveElement.current.focus();
             }
         };
@@ -61,3 +62,4 @@ export const useFocusTrap = (isActive) => {
 
     return containerRef;
 };
+

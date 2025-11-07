@@ -1,36 +1,37 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import SetupScreen from './components/SetupScreen';
 import SimulationScreen from './components/SimulationScreen';
 import WinnerScreen from './components/WinnerScreen';
 import SettingsPanel from './components/SettingsPanel';
 import VolunteerScreen from './components/VolunteerScreen';
 import { GameEngine } from './engine/gameEngine';
+import type { Player, GamePhase, SimulationPhase, FallenTributeData, MajorEventConfig } from './types/game.types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.scss';
 
 function App() {
-  const [gamePhase, setGamePhase] = useState('setup'); // 'setup' | 'volunteer-collection' | 'simulation' | 'winner'
-  const [gameEngine, setGameEngine] = useState(null);
-  const [currentEvents, setCurrentEvents] = useState([]);
-  const [currentPhase, setCurrentPhase] = useState('cornucopia');
-  const [winner, setWinner] = useState(null);
-  const [eventHistory, setEventHistory] = useState([]);
-  const [showVictoryButton, setShowVictoryButton] = useState(false);
-  const [showSettingsPanel, setShowSettingsPanel] = useState(false);
-  const [tributeData, setTributeData] = useState(null);
+  const [gamePhase, setGamePhase] = useState<GamePhase>('setup');
+  const [gameEngine, setGameEngine] = useState<GameEngine | null>(null);
+  const [currentEvents, setCurrentEvents] = useState<string[]>([]);
+  const [currentPhase, setCurrentPhase] = useState<SimulationPhase>('cornucopia');
+  const [winner, setWinner] = useState<Player | null>(null);
+  const [eventHistory, setEventHistory] = useState<string[][]>([]);
+  const [showVictoryButton, setShowVictoryButton] = useState<boolean>(false);
+  const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(false);
+  const [tributeData, setTributeData] = useState<FallenTributeData[] | null>(null);
   
   // Chat integration state (to be implemented: IRC/EventSub)
-  const [volunteers, setVolunteers] = useState([]);
-  const [maxVolunteerSlots, setMaxVolunteerSlots] = useState(24);
+  const [volunteers, setVolunteers] = useState<string[]>([]);
+  const [maxVolunteerSlots, setMaxVolunteerSlots] = useState<number>(24);
 
-  // Chat integration handlers (to be implemented with IRC/EventSub)
-  const addVolunteerFromChat = (username) => {
+/*   // Chat integration handlers (to be implemented with IRC/EventSub)
+  const _addVolunteerFromChat = (username: string): void => {
     if (gamePhase === 'volunteer-collection') {
       addVolunteer(username);
     }
   };
 
-  const addVolunteer = (username) => {
+  const addVolunteer = (username: string): void => {
     console.log('addVolunteer called with:', username);
     setVolunteers(prev => {
       console.log('Current volunteers:', prev);
@@ -60,9 +61,9 @@ function App() {
       
       return newVolunteers;
     });
-  };
+  }; */
 
-  const openVolunteerCollection = (tributeCount) => {
+  const openVolunteerCollection = (tributeCount: number): void => {
     setMaxVolunteerSlots(tributeCount);
     setVolunteers([]);
     setGamePhase('volunteer-collection');
@@ -70,7 +71,7 @@ function App() {
     // TODO: Send message to chat when IRC/EventSub is implemented
   };
 
-  const startGameWithVolunteers = (volunteerList) => {
+  const startGameWithVolunteers = (volunteerList: string[]): void => {
     // Create players from volunteers
     const players = volunteerList.map((name, i) => ({
       id: `player-${i}`,
@@ -89,7 +90,7 @@ function App() {
     setVolunteers([]);
   };
 
-  const startGame = (players) => {
+  const startGame = (players: Player[]): void => {
     const engine = new GameEngine(players);
     setGameEngine(engine);
     setGamePhase('simulation');
@@ -98,7 +99,7 @@ function App() {
     if (typeof window !== 'undefined') {
       window.HungryGames = {
         majorEventConfig: engine.getMajorEventConfig(),
-        updateMajorEventConfig: (config) => engine.updateMajorEventConfig(config)
+        updateMajorEventConfig: (config: Partial<MajorEventConfig>) => engine.updateMajorEventConfig(config)
       };
     }
     
@@ -106,10 +107,13 @@ function App() {
     handleNext(engine);
   };
 
-  const handleNext = (engine = gameEngine) => {
+  const handleNext = (engine: GameEngine | null = gameEngine): void => {
+    if (!engine) return;
     const result = engine.nextSegment();
     setCurrentEvents(result.events);
-    setCurrentPhase(result.phase);
+    if (result.phase !== 'winner') {
+      setCurrentPhase(result.phase as SimulationPhase);
+    }
     setEventHistory(prev => [...prev, result.events]);
     setTributeData(result.tributeData || null);
     
@@ -120,11 +124,11 @@ function App() {
     }
   };
 
-  const showVictory = () => {
+  const showVictory = (): void => {
     setGamePhase('winner');
   };
 
-  const resetGame = () => {
+  const resetGame = (): void => {
     setGamePhase('setup');
     setGameEngine(null);
     setCurrentEvents([]);
@@ -136,7 +140,7 @@ function App() {
     setVolunteers([]);
   };
 
-  const cancelVolunteerCollection = () => {
+  const cancelVolunteerCollection = (): void => {
     setVolunteers([]);
     setGamePhase('setup');
   };
@@ -183,7 +187,7 @@ function App() {
           />
         )}
         
-        {gamePhase === 'winner' && (
+        {gamePhase === 'winner' && winner && (
           <WinnerScreen 
             winner={winner}
             eventHistory={eventHistory}

@@ -1,4 +1,4 @@
-const firstNames = [
+const firstNames: string[] = [
     'Alex', 'Blake', 'Casey', 'Drew', 'Emery', 'Finley', 'Gray', 'Hayden',
     'Jordan', 'Kai', 'Lane', 'Morgan', 'Nova', 'Parker', 'Quinn', 'River',
     'Sage', 'Taylor', 'Vale', 'Wren', 'Zion', 'Aria', 'Blaze', 'Cedar',
@@ -10,7 +10,7 @@ const firstNames = [
     'Tessa', 'Uma', 'Violet', 'Wyatt', 'Xander', 'Yuki', 'Zoe'
 ];
 
-const lastNames = [
+const lastNames: string[] = [
     'Smith', 'Jones', 'River', 'Stone', 'Wood', 'Hill', 'Lake', 'Forest',
     'Meadow', 'Brook', 'Ridge', 'Valley', 'Creek', 'Pine', 'Oak', 'Ash',
     'Elm', 'Maple', 'Cedar', 'Willow', 'Sage', 'Thorn', 'Blaze', 'Storm',
@@ -21,14 +21,14 @@ const lastNames = [
     'Emerald', 'Diamond', 'Amber', 'Jade', 'Onyx', 'Quartz', 'Topaz'
 ];
 
-export function generateRandomName() {
+export function generateRandomName(): string {
     const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
     const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
     return `${firstName} ${lastName}`;
 }
 
-export function generateAllNames(count) {
-    const names = new Set();
+export function generateAllNames(count: number): string[] {
+    const names = new Set<string>();
 
     while (names.size < count) {
         const name = generateRandomName();
@@ -37,3 +37,4 @@ export function generateAllNames(count) {
 
     return Array.from(names);
 }
+

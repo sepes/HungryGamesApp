@@ -1,13 +1,14 @@
 import React from 'react';
 import styles from './VolunteerScreen/VolunteerScreen.module.scss';
+import type { VolunteerScreenProps } from '../types/component.types';
 
-export default function VolunteerScreen({ 
+const VolunteerScreen: React.FC<VolunteerScreenProps> = ({ 
   volunteers, 
   maxSlots, 
   onStartGame, 
   onCancel,
   channelName 
-}) {
+}) => {
   const slotsFilled = volunteers.length;
   const canStart = slotsFilled >= 2;
 
@@ -35,7 +36,7 @@ export default function VolunteerScreen({
                 style={{ width: `${(slotsFilled / maxSlots) * 100}%` }}
                 role="progressbar"
                 aria-valuenow={slotsFilled}
-                aria-valuemin="0"
+                aria-valuemin={0}
                 aria-valuemax={maxSlots}
                 aria-label={`${slotsFilled} out of ${maxSlots} volunteer slots filled`}
               />
@@ -85,6 +86,8 @@ export default function VolunteerScreen({
       </div>
     </div>
   );
-}
+};
+
+export default VolunteerScreen;
 
 

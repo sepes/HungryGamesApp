@@ -1,4 +1,6 @@
-export const eventTemplates = {
+import type { EventTemplates } from '../types/game.types';
+
+export const eventTemplates: EventTemplates = {
     cornucopia: {
         // Weapon-specific kills with more variety
         sword_kills: [
@@ -814,6 +816,13 @@ export const eventTemplates = {
         ]
     },
 
+    // Special events (placeholder for custom/special scenarios)
+    special: {
+        // Placeholder for special event templates
+        placeholder: [
+            "{player} experiences something unusual"
+        ]
+    },
 
     major_day_events: [
         // User will add event objects here via claude.ai
@@ -1974,22 +1983,24 @@ export const eventTemplates = {
     ]
 };
 
-export const weapons = [
+export const weapons: string[] = [
     'sword', 'knife', 'spear', 'bow', 'axe', 'mace',
     'trident', 'dagger', 'sickle', 'machete', 'club'
 ];
 
-export const items = [
+export const items: string[] = [
     'backpack', 'rope', 'medicine', 'food', 'water',
     'matches', 'sleeping bag', 'bandages', 'iodine', 'night-vision glasses'
 ];
 
 // Helper function to shuffle array
-export function shuffle(array) {
+export function shuffle<T>(array: T[]): T[] {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const temp = shuffled[i];
+        shuffled[i] = shuffled[j]!;
+        shuffled[j] = temp!;
     }
     return shuffled;
 }

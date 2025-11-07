@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import TributesPanel from './TributesPanel';
 import styles from './SimulationScreen/SimulationScreen.module.scss';
+import type { SimulationScreenProps } from '../types/component.types';
 
-const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame, tributeData }) => {
-  const [showTributesPanel, setShowTributesPanel] = useState(false);
-  const [fallenAnimation, setFallenAnimation] = useState({
+interface FallenAnimationState {
+  isPlaying: boolean;
+  currentIndex: number;
+  isVisible: boolean;
+  isAnimating: boolean;
+  isHurried: boolean;
+}
+
+const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame: _onResetGame, tributeData }) => {
+  const [showTributesPanel, setShowTributesPanel] = useState<boolean>(false);
+  const [fallenAnimation, setFallenAnimation] = useState<FallenAnimationState>({
     isPlaying: false,
     currentIndex: 0,
     isVisible: false,
@@ -99,7 +108,7 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
     });
   };
 
-  const getPhaseDisplayName = (phase) => {
+  const getPhaseDisplayName = (phase: string) => {
     switch(phase) {
       case 'cornucopia': return 'The Cornucopia';
       case 'day': return 'Day';
@@ -127,7 +136,7 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
         <div className={styles.gameStats} role="status" aria-label="Game statistics">
           <div className={styles.stat}>
             <span className={styles.statLabel}>Day:</span>
-            <span className={styles.statValue} aria-label={`Day ${gameEngine.day}`}>{gameEngine.day}</span>
+            <span className={styles.statValue} aria-label={`Day ${gameEngine?.day || 0}`}>{gameEngine?.day || 0}</span>
           </div>
           <div className={styles.stat}>
             <span className={styles.statLabel}>Phase:</span>
@@ -155,17 +164,17 @@ const SimulationScreen = ({ events, onNext, gameEngine, currentPhase, showVictor
               {tributeData && tributeData[fallenAnimation.currentIndex] && (
                 <div className={styles.fallenTributeAnnouncement}>
                   <div className={styles.fallenTributeContent}>
-                    {tributeData[fallenAnimation.currentIndex].isNoFallen ? (
+                    {tributeData[fallenAnimation.currentIndex]?.isNoFallen ? (
                       <div className={styles.fallenNoDeaths}>
-                        No fallen on day {gameEngine.day}
+                        No fallen on day {gameEngine?.day || 0}
                       </div>
                     ) : (
                       <>
                         <div className={styles.fallenTributeName}>
-                            {tributeData[fallenAnimation.currentIndex].name}
+                            {tributeData[fallenAnimation.currentIndex]?.name}
                         </div>
-                        <div className={styles.fallenTributeDistrict} hidden={tributeData[fallenAnimation.currentIndex].isEmpty}>
-                          District {tributeData[fallenAnimation.currentIndex].district}
+                        <div className={styles.fallenTributeDistrict} hidden={tributeData[fallenAnimation.currentIndex]?.isEmpty}>
+                          District {tributeData[fallenAnimation.currentIndex]?.district}
                         </div>
                       </>
                     )}

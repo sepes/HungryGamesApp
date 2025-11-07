@@ -1,7 +1,9 @@
-const { getUserCredentialsCollection } = require('./utils/mongodb');
-const { encryptToken } = require('./utils/encryption');
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import { getUserCredentialsCollection } from './utils/mongodb';
+import { encryptToken } from './utils/encryption';
+import { RegisterRequest, RegisterResponse, RegisterErrorResponse, StreamElementsChannelInfo, UserCredential } from '../src/types/api.types';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,31 +16,35 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+        res.status(405).json({ error: 'Method not allowed' } as RegisterErrorResponse);
+        return;
     }
 
-    const { userId, jwtToken } = req.body;
+    const { userId, jwtToken } = req.body as RegisterRequest;
 
     if (!userId || !jwtToken) {
-        return res.status(400).json({ error: 'Missing userId or jwtToken' });
+        res.status(400).json({ error: 'Missing userId or jwtToken' } as RegisterErrorResponse);
+        return;
     }
 
     // Validate encryption key is set
     if (!process.env.JWT_ENCRYPTION_KEY) {
         console.error('JWT_ENCRYPTION_KEY not set');
-        return res.status(500).json({
+        res.status(500).json({
             error: 'Server configuration error: JWT_ENCRYPTION_KEY environment variable is not set. Please add JWT_ENCRYPTION_KEY to your .env file and restart the server.',
             errorCode: 'MISSING_ENCRYPTION_KEY'
-        });
+        } as RegisterErrorResponse);
+        return;
     }
 
     // Validate MongoDB URI is set
     if (!process.env.MONGODB_URI) {
         console.error('MONGODB_URI not set');
-        return res.status(500).json({
+        res.status(500).json({
             error: 'Server configuration error: MONGODB_URI environment variable is not set. Please add MONGODB_URI to your .env file and restart the server.',
             errorCode: 'MISSING_MONGODB_URI'
-        });
+        } as RegisterErrorResponse);
+        return;
     }
 
     try {
@@ -52,13 +58,14 @@ module.exports = async function handler(req, res) {
 
         if (!response.ok) {
             console.error('StreamElements validation failed:', response.status, await response.text());
-            return res.status(401).json({
+            res.status(401).json({
                 error: `Invalid StreamElements JWT token (HTTP ${response.status}). Please check that your token is correct and hasn't expired. Get a new token from: StreamElements → Account Settings → Channels → Show Secrets`,
                 errorCode: 'INVALID_SE_TOKEN'
-            });
+            } as RegisterErrorResponse);
+            return;
         }
 
-        const channelInfo = await response.json();
+        const channelInfo = await response.json() as StreamElementsChannelInfo;
 
         // Encrypt the JWT token
         const { encrypted, iv, authTag } = encryptToken(jwtToken, process.env.JWT_ENCRYPTION_KEY);
@@ -66,7 +73,7 @@ module.exports = async function handler(req, res) {
         // Store credentials in MongoDB
         const collection = await getUserCredentialsCollection();
 
-        const credential = {
+        const credential: UserCredential = {
             user_id: userId,
             jwt_token_encrypted: encrypted,
             auth_tag: authTag,
@@ -80,35 +87,38 @@ module.exports = async function handler(req, res) {
 
         console.log('User registered successfully:', userId);
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             userId,
             channelName: channelInfo.displayName
-        });
+        } as RegisterResponse);
     } catch (error) {
-        console.error('Registration error:', error.message, error.stack);
+        console.error('Registration error:', (error as Error).message, (error as Error).stack);
 
         // Provide specific error messages based on error type
         let errorMessage = 'Server error during registration: ';
         let errorCode = 'UNKNOWN_ERROR';
 
-        if (error.message.includes('MONGODB_URI')) {
+        if ((error as Error).message.includes('MONGODB_URI')) {
             errorMessage += 'MongoDB connection failed. Check your MONGODB_URI environment variable.';
             errorCode = 'MONGODB_CONNECTION_ERROR';
-        } else if (error.message.includes('fetch')) {
+        } else if ((error as Error).message.includes('fetch')) {
             errorMessage += 'Failed to connect to StreamElements API. Check your internet connection.';
             errorCode = 'NETWORK_ERROR';
-        } else if (error.message.includes('encrypt')) {
+        } else if ((error as Error).message.includes('encrypt')) {
             errorMessage += 'Token encryption failed. Check JWT_ENCRYPTION_KEY format (should be 64-char hex string).';
             errorCode = 'ENCRYPTION_ERROR';
         } else {
-            errorMessage += error.message;
+            errorMessage += (error as Error).message;
         }
 
-        return res.status(500).json({
+        res.status(500).json({
             error: errorMessage,
             errorCode: errorCode,
-            details: error.message
-        });
+            details: (error as Error).message
+        } as RegisterErrorResponse);
     }
-};
+}
+
+module.exports = handler;
+

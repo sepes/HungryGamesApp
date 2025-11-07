@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import styles from './TributeList/TributeList.module.scss';
+import type { Player } from '../types/game.types';
 
-const TributeList = ({ players, type, title }) => {
+interface TributeListProps {
+  players: Player[];
+  type: 'alive' | 'fallen';
+  title: string;
+}
+
+const TributeList: React.FC<TributeListProps> = ({ players, type, title }) => {
   const [sortBy, setSortBy] = useState(type === 'fallen' ? 'order' : 'district');
   const [reverseOrder, setReverseOrder] = useState(false);
 
@@ -21,7 +28,7 @@ const TributeList = ({ players, type, title }) => {
     }
   };
 
-  const sortPlayers = (players) => {
+  const sortPlayers = (players: Player[]) => {
     const sorted = [...players].sort((a, b) => {
       let comparison = 0;
       
@@ -51,7 +58,7 @@ const TributeList = ({ players, type, title }) => {
     return reverseOrder ? sorted.reverse() : sorted;
   };
 
-  const formatDeathInfo = (player) => {
+  const formatDeathInfo = (player: Player): string | null => {
     if (type !== 'fallen') return null;
     
     if (player.diedInPhase === 'cornucopia') {

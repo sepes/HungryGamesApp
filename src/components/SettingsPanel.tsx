@@ -2,20 +2,25 @@ import React, { useState } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import DebugTerminal from './DebugTerminal';
 import styles from './SettingsPanel/SettingsPanel.module.scss';
+import type { SettingsPanelProps } from '../types/component.types';
 
-const SettingsPanel = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton, seConnected, seChannelName, seUserId, onRevokeStreamElements, onReconfigureStreamElements }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton, seConnected, seChannelName, seUserId, onRevokeStreamElements, onReconfigureStreamElements }) => {
   const containerRef = useFocusTrap(isOpen);
-  const [showTerminal, setShowTerminal] = useState(false);
-  const [showRevokeConfirm, setShowRevokeConfirm] = useState(false);
+  const [showTerminal, setShowTerminal] = useState<boolean>(false);
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
 
-  const handleRevoke = async () => {
-    await onRevokeStreamElements();
+  const handleRevoke = async (): Promise<void> => {
+    if (onRevokeStreamElements) {
+      await onRevokeStreamElements();
+    }
     setShowRevokeConfirm(false);
     onClose();
   };
 
-  const handleReconfigure = () => {
-    onReconfigureStreamElements();
+  const handleReconfigure = (): void => {
+    if (onReconfigureStreamElements) {
+      onReconfigureStreamElements();
+    }
     onClose();
   };
 
