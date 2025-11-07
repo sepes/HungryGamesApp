@@ -4,7 +4,7 @@ import DebugTerminal from './DebugTerminal';
 import styles from './SettingsPanel/SettingsPanel.module.scss';
 import type { SettingsPanelProps } from '../types/component.types';
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton, seConnected, seChannelName, seUserId, onRevokeStreamElements, onReconfigureStreamElements }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton, seConnected, seChannelName, seUserId, onRevokeStreamElements, onReconfigureStreamElements, enableTributeConfig }) => {
   const containerRef = useFocusTrap(isOpen);
   const [showTerminal, setShowTerminal] = useState<boolean>(false);
   const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
@@ -135,6 +135,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetG
                   onNext={onNext}
                   onShowVictory={onShowVictory}
                   showVictoryButton={showVictoryButton}
+                  enableTributeConfig={enableTributeConfig}
                 />
               </div>
             )}

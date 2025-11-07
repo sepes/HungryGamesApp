@@ -161,6 +161,7 @@ function App() {
           <SetupScreen 
             onStart={startGame}
             onOpenVolunteers={openVolunteerCollection}
+            onTributeConfigUpdate={true}
           />
         )}
         
@@ -206,6 +207,7 @@ function App() {
         onNext={handleNext}
         onShowVictory={showVictory}
         showVictoryButton={showVictoryButton}
+        enableTributeConfig={gamePhase === 'setup'}
       />
     </div>
   );

@@ -10,6 +10,7 @@ export interface SetupScreenProps {
   onOpenVolunteers: (tributeCount: number) => void;
   seConnected?: boolean;
   seChannelName?: string;
+  onTributeConfigUpdate?: boolean;
 }
 
 // Volunteer Screen Props
@@ -56,6 +57,7 @@ export interface SettingsPanelProps {
   seUserId?: string;
   onRevokeStreamElements?: () => Promise<void>;
   onReconfigureStreamElements?: () => void;
+  enableTributeConfig?: boolean;
 }
 
 // Tributes Panel Props

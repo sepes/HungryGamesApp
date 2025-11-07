@@ -15,9 +15,10 @@ interface DebugTerminalProps {
   onNext: () => void;
   onShowVictory: () => void;
   showVictoryButton: boolean;
+  enableTributeConfig?: boolean;
 }
 
-const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, onNext, onShowVictory: _onShowVictory, showVictoryButton: _showVictoryButton }) => {
+const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, onNext, onShowVictory: _onShowVictory, showVictoryButton: _showVictoryButton, enableTributeConfig }) => {
   const [output, setOutput] = useState<TerminalOutput[]>([
     { type: 'system', text: 'Debug Terminal initialized. Type "help" for available commands.' }
   ]);
@@ -78,9 +79,153 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     }, 100); // Advance every 100ms
   };
 
+  const handleTributesCommand = (args: string[], calculateOnly = false) => {
+    if (!enableTributeConfig) {
+      addOutput('error', 'Tributes command is only available during setup phase.');
+      return;
+    }
+
+    // Check for "null" or "0" as first argument (calculate tributes from districts and per-district)
+    const isNullFirst = args[0] && (args[0].toLowerCase() === 'null' || args[0] === '0');
+    
+    // Parse arguments
+    const numArgs = args.filter(arg => !isNaN(parseInt(arg)));
+    
+    if (isNullFirst) {
+      // Handle: tributes null/0 [districts] [per-district]
+      const requiredArgs = args[0] === '0' ? 2 : 2; // Need 2 more args (districts and per-district)
+      const availableArgs = args[0] === '0' ? numArgs.length - 1 : numArgs.length; // Subtract 1 if first is "0" since it's in numArgs
+      
+      if (availableArgs !== requiredArgs) {
+        addOutput('error', 'When using "null" or "0", you must provide exactly 2 numbers: [districts] [tributes-per-district]');
+        return;
+      }
+    } else {
+      if (numArgs.length === 0 || numArgs.length > 3) {
+        addOutput('error', 'Invalid number of arguments. Use "tributes --help" for usage information.');
+        return;
+      }
+    }
+
+    let tributes: number, districts: number | null, tributesPerDistrict: number | null;
+    
+    if (isNullFirst) {
+      // Calculate tributes from districts and per-district
+      if (args[0] === '0') {
+        // If first arg is "0", it's already in numArgs, so districts is at index 1, per-district at index 2
+        districts = parseInt(numArgs[1]!);
+        tributesPerDistrict = parseInt(numArgs[2]!);
+      } else {
+        // If first arg is "null", it's not in numArgs, so districts is at index 0, per-district at index 1
+        districts = parseInt(numArgs[0]!);
+        tributesPerDistrict = parseInt(numArgs[1]!);
+      }
+      tributes = districts * tributesPerDistrict;
+    } else {
+      tributes = parseInt(numArgs[0]!);
+      districts = numArgs.length >= 2 ? parseInt(numArgs[1]!) : null;
+      tributesPerDistrict = numArgs.length >= 3 ? parseInt(numArgs[2]!) : null;
+    }
+
+    // Validation: Check for 0 or negative values
+    if (tributes <= 0) {
+      addOutput('error', 'Tributes cannot be 0 or less.');
+      return;
+    }
+    if (districts !== null && districts <= 0) {
+      addOutput('error', 'Districts cannot be 0 or less.');
+      return;
+    }
+    if (tributesPerDistrict !== null && tributesPerDistrict <= 0) {
+      addOutput('error', 'Tributes per district cannot be 0 or less.');
+      return;
+    }
+
+    // Validation: Check for max values
+    if (tributes > 1024) {
+      addOutput('error', 'Maximum number of tributes is 1024.');
+      return;
+    }
+    if (districts !== null && districts > 1024) {
+      addOutput('error', 'Maximum number of districts is 1024.');
+      return;
+    }
+    if (tributesPerDistrict !== null && tributesPerDistrict > 1024) {
+      addOutput('error', 'Maximum tributes per district is 1024.');
+      return;
+    }
+
+    // Calculate based on provided parameters
+    const warnings: string[] = [];
+
+    if (isNullFirst) {
+      // Tributes calculated from districts and per-district
+      warnings.push(`WARNING: ${districts} districts filled with ${tributes} tributes (${tributesPerDistrict} per district).`);
+    } else if (numArgs.length === 1) {
+      // Only tributes provided - auto-calculate districts
+      districts = Math.min(12, tributes);
+      if (tributes < 12) {
+        warnings.push(`WARNING: Tributes (${tributes}) is less than default districts (12). Setting districts to ${districts}.`);
+      }
+      tributesPerDistrict = Math.floor(tributes / districts);
+      if (tributes % districts !== 0) {
+        const remainder = tributes % districts;
+        const higherCount = tributesPerDistrict + 1;
+        const lowerCount = tributesPerDistrict;
+        warnings.push(`WARNING: ${tributes} tributes cannot be evenly distributed across ${districts} districts. Districts 1-${remainder} will have ${higherCount} tributes, districts ${remainder + 1}-${districts} will have ${lowerCount} tributes.`);
+      }
+    } else if (numArgs.length === 2) {
+      // Tributes and districts provided - calculate per district
+      if (tributes < districts!) {
+        const oldDistricts = districts;
+        districts = tributes;
+        warnings.push(`WARNING: Tributes (${tributes}) is less than districts (${oldDistricts}). Setting districts to ${districts}.`);
+      }
+      tributesPerDistrict = Math.floor(tributes / districts!);
+      if (tributes % districts! !== 0) {
+        const remainder = tributes % districts!;
+        const higherCount = tributesPerDistrict + 1;
+        const lowerCount = tributesPerDistrict;
+        warnings.push(`WARNING: ${tributes} tributes cannot be evenly distributed across ${districts} districts. Districts 1-${remainder} will have ${higherCount} tributes, districts ${remainder + 1}-${districts} will have ${lowerCount} tributes.`);
+      }
+    } else if (numArgs.length === 3) {
+      // All three provided
+      const expectedTotal = districts! * tributesPerDistrict!;
+      if (tributes !== expectedTotal) {
+        if (tributes < districts!) {
+          const oldDistricts = districts;
+          districts = tributes;
+          tributesPerDistrict = 1;
+          warnings.push(`WARNING: Tributes (${tributes}) is less than districts (${oldDistricts}). Setting districts to ${districts}.`);
+        }
+        const lastDistrictCount = tributes - (tributesPerDistrict! * (districts! - 1));
+        warnings.push(`WARNING: Total tributes (${tributes}) does not match districts (${districts}) × tributes per district (${tributesPerDistrict}). Last district will have ${lastDistrictCount} tributes.`);
+      }
+    }
+
+    // Output results
+    addOutput('info', `Configuration: ${tributes} tributes, ${districts} districts, ${tributesPerDistrict} per district`);
+    
+    // Show warnings
+    warnings.forEach(warning => addOutput('warning', warning));
+
+    if (calculateOnly) {
+      addOutput('system', 'Calculation complete (--calculate mode, no changes applied).');
+    } else {
+      // Apply the configuration
+      if (typeof window !== 'undefined' && (window as any).updateTributeConfig) {
+        (window as any).updateTributeConfig({ tributes, districts, tributesPerDistrict });
+        addOutput('system', 'Tribute configuration updated successfully!');
+      } else {
+        addOutput('error', 'Failed to update configuration. Make sure you are on the setup screen.');
+      }
+    }
+  };
+
 
   const executeCommand = (command: string) => {
-    const trimmedCommand = command.trim().toLowerCase();
+    const trimmedCommand = command.trim();
+    const lowerCommand = trimmedCommand.toLowerCase();
     
     // Add command to output
     addOutput('command', `> ${command}`);
@@ -89,27 +234,64 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     setCommandHistory(prev => [command, ...prev.filter(cmd => cmd !== command)]);
     setHistoryIndex(-1);
     
+    // Parse command with arguments
+    const parts = trimmedCommand.split(/\s+/);
+    const cmd = parts[0]?.toLowerCase() ?? '';
+    const args = parts.slice(1);
+    
     // Execute command
-    switch (trimmedCommand) {
+    if (cmd === 'tributes' || cmd === 'tbs') {
+      // Handle tributes command
+      if (args.includes('--help')) {
+        addOutput('system', 'TRIBUTES COMMAND USAGE:');
+        addOutput('system', '');
+        addOutput('system', '  tributes [number-of-tributes]');
+        addOutput('system', '    Set custom number of tributes. Districts auto-calculated.');
+        addOutput('system', '');
+        addOutput('system', '  tributes [number-of-tributes] [number-of-districts]');
+        addOutput('system', '    Set tributes and districts. Tributes per district auto-calculated.');
+        addOutput('system', '');
+        addOutput('system', '  tributes [number-of-tributes] [number-of-districts] [tributes-per-district]');
+        addOutput('system', '    Set all three parameters. Last district adjusts for remainder.');
+        addOutput('system', '');
+        addOutput('system', '  tributes null [number-of-districts] [tributes-per-district]');
+        addOutput('system', '  tributes 0 [number-of-districts] [tributes-per-district]');
+        addOutput('system', '    Calculate total tributes from districts and per-district count.');
+        addOutput('system', '');
+        addOutput('system', 'FLAGS:');
+        addOutput('system', '  --help      Show this help message');
+        addOutput('system', '  --calculate, --calc  Calculate distribution without applying changes');
+        addOutput('system', '');
+        addOutput('system', 'RULES:');
+        addOutput('system', '  - All numbers must be greater than 0');
+        addOutput('system', '  - Maximum value for any parameter is 1024');
+        addOutput('system', '  - If tributes < districts, districts will be adjusted');
+        addOutput('system', '  - If uneven distribution, remainders are distributed from district 1 onwards');
+        return;
+      }
+      
+      const calculateOnly = args.includes('--calculate') || args.includes('--calc');
+      const numericArgs = args.filter(arg => arg !== '--calculate' && arg !== '--calc');
+      handleTributesCommand(numericArgs, calculateOnly);
+      return;
+    }
+    
+    // Regular commands
+    switch (lowerCommand) {
       case 'help':
         addOutput('system', 'Available commands:');
         addOutput('system', '  help     - Show this help message');
         addOutput('system', '  clear    - Clear the terminal output');
-        addOutput('system', '  version  - Show terminal version');
         addOutput('system', '  test     - Test color coding (info/warning/error)');
         addOutput('system', '  autoplay - Automatically advance game until winner is found');
         addOutput('system', '  stats    - Show detailed player statistics');
+        addOutput('system', '  tributes, tbs - Configure custom tribute counts (use "tributes --help")');
         addOutput('system', '');
         addOutput('system', 'More commands will be added in future updates. PS: there is no cheats to have your name win the game.');
         break;
         
       case 'clear':
         setOutput([]);
-        break;
-        
-      case 'version':
-        addOutput('system', 'Debug Terminal v1.0.0');
-        addOutput('system', 'Built for Hunger Games Simulator');
         break;
         
       case 'test':

@@ -68,6 +68,17 @@
     margin-bottom: 20px;
 }
 
+.customConfigInfo {
+    margin-top: 15px;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--accent-secondary);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-weight: bold;
+    text-align: center;
+}
+
 .nameInstructions {
     color: var(--text-primary);
     font-size: 18px;

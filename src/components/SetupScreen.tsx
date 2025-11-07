@@ -3,14 +3,38 @@ import { generateRandomName } from '../utils/nameGenerator';
 import styles from './SetupScreen/SetupScreen.module.scss';
 import type { SetupScreenProps } from '../types/component.types';
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName }) => {
+interface CustomTributeConfig {
+  tributes: number;
+  districts: number;
+  tributesPerDistrict: number;
+}
+
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName, onTributeConfigUpdate }) => {
   const [playerCount, setPlayerCount] = useState<number>(12);
   const [names, setNames] = useState<string[]>(Array(12).fill(''));
+  const [customTributeConfig, setCustomTributeConfig] = useState<CustomTributeConfig | null>(null);
 
   const handleCountChange = (count: number): void => {
     setPlayerCount(count);
     setNames(Array(count).fill(''));
+    setCustomTributeConfig(null); // Clear custom config when using preset buttons
   };
+
+  // Handle custom tribute configuration from terminal
+  React.useEffect(() => {
+    if (onTributeConfigUpdate) {
+      (window as any).updateTributeConfig = (config: CustomTributeConfig) => {
+        setCustomTributeConfig(config);
+        setPlayerCount(config.tributes);
+        setNames(Array(config.tributes).fill(''));
+      };
+    }
+    return () => {
+      if ((window as any).updateTributeConfig) {
+        delete (window as any).updateTributeConfig;
+      }
+    };
+  }, [onTributeConfigUpdate]);
 
   const handleNameChange = (index: number, value: string): void => {
     const newNames = [...names];
@@ -93,17 +117,44 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
 
     setValidationMessage('');
 
-    // Create players
-    const players = names.map((name, i) => ({
-      id: `player-${i}`,
-      name: name.trim(),
-      district: Math.floor(i / (playerCount / 12)) + 1,
-      isAlive: true,
-      kills: 0,
-      items: [],
-      diedInPhase: null,
-      diedOnDay: null
-    }));
+    // Create players with proper district assignment
+    const players = names.map((name, i) => {
+      let district: number;
+      if (customTributeConfig) {
+        const numDistricts = customTributeConfig.districts;
+        const basePerDistrict = customTributeConfig.tributesPerDistrict;
+        const remainder = playerCount % numDistricts;
+        const cutoff = remainder * (basePerDistrict + 1);
+        
+        // Distribute remainders from first districts onwards
+        if (i < cutoff) {
+          district = Math.floor(i / (basePerDistrict + 1)) + 1;
+        } else {
+          district = remainder + Math.floor((i - cutoff) / basePerDistrict) + 1;
+        }
+      } else {
+        const basePerDistrict = Math.floor(playerCount / 12);
+        const remainder = playerCount % 12;
+        const cutoff = remainder * (basePerDistrict + 1);
+        
+        if (i < cutoff) {
+          district = Math.floor(i / (basePerDistrict + 1)) + 1;
+        } else {
+          district = remainder + Math.floor((i - cutoff) / basePerDistrict) + 1;
+        }
+      }
+      
+      return {
+        id: `player-${i}`,
+        name: name.trim(),
+        district: district,
+        isAlive: true,
+        kills: 0,
+        items: [],
+        diedInPhase: null,
+        diedOnDay: null
+      };
+    });
 
     onStart(players);
   };
@@ -155,15 +206,20 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
               {[12, 24, 48].map(count => (
                 <button
                   key={count}
-                  className={`transition-button small ${playerCount === count ? 'active' : ''}`}
+                  className={`transition-button small ${playerCount === count && !customTributeConfig ? 'active' : ''}`}
                   onClick={() => handleCountChange(count)}
-                  aria-pressed={playerCount === count}
+                  aria-pressed={playerCount === count && !customTributeConfig}
                   aria-label={`${count} tributes`}
                 >
                   {count} Tributes
                 </button>
               ))}
             </div>
+            {customTributeConfig && (
+              <div className={styles.customConfigInfo}>
+                Custom: {customTributeConfig.tributes} tributes, {customTributeConfig.districts} districts
+              </div>
+            )}
           </fieldset>
         </section>
 
@@ -178,10 +234,20 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
           
           <fieldset>
             <div className={styles.districtsContainer}>
-              {Array.from({ length: 12 }, (_, districtIndex) => {
-                const tributesPerDistrict = playerCount / 12;
-                const startIndex = districtIndex * tributesPerDistrict;
-                const districtTributes = names.slice(startIndex, startIndex + tributesPerDistrict);
+              {Array.from({ length: customTributeConfig ? customTributeConfig.districts : 12 }, (_, districtIndex) => {
+                const numDistricts = customTributeConfig ? customTributeConfig.districts : 12;
+                const basePerDistrict = customTributeConfig ? customTributeConfig.tributesPerDistrict : Math.floor(playerCount / 12);
+                
+                // Distribute remainders from first districts onwards
+                const remainder = playerCount % numDistricts;
+                const districtTributeCount = districtIndex < remainder ? basePerDistrict + 1 : basePerDistrict;
+                
+                // Calculate start index: districts before remainder get +1, after get base amount
+                const startIndex = districtIndex < remainder 
+                  ? districtIndex * (basePerDistrict + 1)
+                  : remainder * (basePerDistrict + 1) + (districtIndex - remainder) * basePerDistrict;
+                
+                const districtTributes = names.slice(startIndex, startIndex + districtTributeCount);
                 
                 return (
                   <div key={districtIndex} className={styles.districtGroup}>
