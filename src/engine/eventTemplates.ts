@@ -268,7 +268,7 @@ export const eventTemplates: EventTemplates = {
         weapon_grab_kills: [
             "{killer} wraps their hand around a {weapon} and immediately buries it in {victim}'s chest",
             "{killer} tests the weight of a {weapon} by using it on {victim}",
-            "{killer} and {victim} reach for the same {weapon}, but {killer} gets there first and uses it immediately",
+            "{killer} and {victim} reach for the same {weapon}, but {killer} gets there first and uses it immediately brutally killing {victim}",
             "{killer} fumbles with a {weapon} for only a second before finding their mark in {victim}",
             "{killer} grabs a {weapon} mid-roll and comes up swinging at {victim}"
         ]
@@ -579,7 +579,7 @@ export const eventTemplates: EventTemplates = {
             "{killer} approaches on silent feet and drives their knife through {victim}'s temple",
             "{killer} cuts {victim}'s sleeping bag straps, then cuts {victim} as they stir",
             "{killer} times their strike between {victim}'s breaths, their knife swift and silent",
-            "{killer} uses the darkness to get close enough to drive their knife home",
+            "{killer} uses the darkness to get close enough to drive their knife home. Killing {victim} silently and efficiently",
             "{killer} slits {victim}'s throat so quickly they barely twitch"
         ],
         sword_stealth_kills: [

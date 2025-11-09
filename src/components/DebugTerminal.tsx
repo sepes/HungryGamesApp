@@ -47,7 +47,7 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     setOutput(prev => [...prev, { type, text }]);
   };
 
-  const autoplayGame = async () => {
+  const autoplayGame = async (devMode = false) => {
     if (gamePhase !== 'simulation') {
       addOutput('error', 'Autoplay is only available during simulation phase.');
       return;
@@ -59,24 +59,54 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     }
 
     setIsAutoplaying(true);
-    addOutput('info', 'Starting autoplay... Game will advance automatically until a winner is found.');
+    if (devMode) {
+      addOutput('info', 'Starting autoplay (DEV MODE - fast forward)... Game will advance rapidly until a winner is found.');
+    } else {
+      addOutput('info', 'Starting autoplay... Game will advance automatically until a winner is found.');
+    }
     
-    const autoplayInterval = setInterval(() => {
-      // Check if game has a winner by counting alive players
-      if (gameEngine) {
-        const alivePlayers = gameEngine.players.filter(p => p.isAlive);
-        if (alivePlayers.length === 1) {
-          clearInterval(autoplayInterval);
-          setIsAutoplaying(false);
-          addOutput('info', 'Autoplay complete! Winner found.');
-          return;
+    const autoplayStep = () => {
+      // Check if game engine exists and phase is valid
+      if (!gameEngine || gamePhase !== 'simulation') {
+        setIsAutoplaying(false);
+        return;
+      }
+      
+      // Check if game is already over (game engine detected winner at start of phase)
+      if (gameEngine.gameOver) {
+        setIsAutoplaying(false);
+        addOutput('info', 'Autoplay complete! Winner found.');
+        return;
+      }
+      
+      // Calculate delay before advancing
+      const alivePlayers = gameEngine.players.filter(p => p.isAlive);
+      let delay: number;
+      
+      if (devMode) {
+        // Dev mode: minimal delay for rapid testing
+        delay = 50;
+      } else {
+        // Normal mode: Calculate dynamic delay: 5000ms base + 3000ms per alive player
+        delay = 5000 + (3000 * alivePlayers.length);
+        
+        // Add extra delay for fallen phase to allow animation to complete
+        if (gameEngine.phase === 'fallen') {
+          const fallenCount = gameEngine.fallenTributeData?.length || 0;
+          // Each tribute animation takes 4000ms (1s fade in + 2s display + 1s fade out)
+          delay += fallenCount * 4000;
         }
       }
       
-      if (gamePhase === 'simulation' && onNext) {
-        onNext();
-      }
-    }, 100); // Advance every 100ms
+      // Advance the game
+      onNext();
+      
+      // Schedule next step with calculated delay
+      setTimeout(autoplayStep, delay);
+    };
+    
+    // Start the autoplay loop
+    autoplayStep();
   };
 
   const handleTributesCommand = (args: string[], calculateOnly = false) => {
@@ -225,7 +255,6 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
 
   const executeCommand = (command: string) => {
     const trimmedCommand = command.trim();
-    const lowerCommand = trimmedCommand.toLowerCase();
     
     // Add command to output
     addOutput('command', `> ${command}`);
@@ -277,13 +306,14 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     }
     
     // Regular commands
-    switch (lowerCommand) {
+    switch (cmd) {
       case 'help':
         addOutput('system', 'Available commands:');
         addOutput('system', '  help     - Show this help message');
         addOutput('system', '  clear    - Clear the terminal output');
         addOutput('system', '  test     - Test color coding (info/warning/error)');
-        addOutput('system', '  autoplay - Automatically advance game until winner is found');
+        addOutput('system', '  autoplay [--dev] - Automatically advance game until winner is found');
+        addOutput('system', '             Use --dev flag for rapid testing (50ms delay)');
         addOutput('system', '  stats    - Show detailed player statistics');
         addOutput('system', '  tributes, tbs - Configure custom tribute counts (use "tributes --help")');
         addOutput('system', '');
@@ -301,7 +331,8 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         break;
         
       case 'autoplay':
-        autoplayGame();
+        // Check for --dev flag
+        autoplayGame(args.includes('--dev'));
         break;
         
       case 'stats':

@@ -4,22 +4,37 @@ import DebugTerminal from './DebugTerminal';
 import styles from './SettingsPanel/SettingsPanel.module.scss';
 import type { SettingsPanelProps } from '../types/component.types';
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetGame, gameEngine, gamePhase, onNext, onShowVictory, showVictoryButton, seConnected, seChannelName, seUserId, onRevokeStreamElements, onReconfigureStreamElements, enableTributeConfig }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
+  isOpen, 
+  onClose, 
+  onResetGame, 
+  gameEngine, 
+  gamePhase, 
+  onNext, 
+  onShowVictory, 
+  showVictoryButton, 
+  enableTributeConfig,
+  twitchConnected,
+  twitchChannelName,
+  twitchConnectionType,
+  onReconfigureTwitch,
+  onDisconnectTwitch
+}) => {
   const containerRef = useFocusTrap(isOpen);
   const [showTerminal, setShowTerminal] = useState<boolean>(false);
-  const [showRevokeConfirm, setShowRevokeConfirm] = useState<boolean>(false);
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState<boolean>(false);
 
-  const handleRevoke = async (): Promise<void> => {
-    if (onRevokeStreamElements) {
-      await onRevokeStreamElements();
+  const handleDisconnect = async (): Promise<void> => {
+    if (onDisconnectTwitch) {
+      await onDisconnectTwitch();
     }
-    setShowRevokeConfirm(false);
+    setShowDisconnectConfirm(false);
     onClose();
   };
 
   const handleReconfigure = (): void => {
-    if (onReconfigureStreamElements) {
-      onReconfigureStreamElements();
+    if (onReconfigureTwitch) {
+      onReconfigureTwitch();
     }
     onClose();
   };
@@ -39,10 +54,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetG
         </div>
         
         <div className={styles.settingsPanelBody}>
-          {/* StreamElements Section */}
+          {/* Twitch Chat Section */}
           <div className={styles.settingsSection}>
-            <h3>StreamElements</h3>
-            {seConnected ? (
+            <h3>Twitch Chat Integration</h3>
+            {twitchConnected ? (
               <>
                 <div className={styles.statusInfo}>
                   <p className={styles.statusLabel}>Status:</p>
@@ -50,39 +65,43 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetG
                 </div>
                 <div className={styles.statusInfo}>
                   <p className={styles.statusLabel}>Channel:</p>
-                  <p className={styles.statusValue}>{seChannelName || seUserId}</p>
+                  <p className={styles.statusValue}>{twitchChannelName}</p>
+                </div>
+                <div className={styles.statusInfo}>
+                  <p className={styles.statusLabel}>Connection Type:</p>
+                  <p className={styles.statusValue}>{twitchConnectionType === 'irc' ? 'IRC' : 'OAuth'}</p>
                 </div>
                 <div className={styles.buttonGroup}>
                   <button 
                     onClick={handleReconfigure} 
                     className="transition-button small"
-                    aria-label="Reconfigure StreamElements connection"
+                    aria-label="Reconfigure Twitch connection"
                   >
                     Reconfigure
                   </button>
-                  {!showRevokeConfirm ? (
+                  {!showDisconnectConfirm ? (
                     <button 
-                      onClick={() => setShowRevokeConfirm(true)} 
+                      onClick={() => setShowDisconnectConfirm(true)} 
                       className="danger-button small"
-                      aria-label="Revoke StreamElements access"
+                      aria-label="Disconnect from Twitch"
                     >
-                      Revoke Access
+                      Disconnect
                     </button>
                   ) : (
                     <div className={styles.confirmRevoke}>
-                      <p>Are you sure? This will disconnect and delete your credentials.</p>
+                      <p>Are you sure? This will disconnect from Twitch chat.</p>
                       <div className={styles.confirmButtons}>
                         <button 
-                          onClick={handleRevoke} 
+                          onClick={handleDisconnect} 
                           className="danger-button small"
-                          aria-label="Confirm revoke access"
+                          aria-label="Confirm disconnect"
                         >
-                          Yes, Revoke
+                          Yes, Disconnect
                         </button>
                         <button 
-                          onClick={() => setShowRevokeConfirm(false)} 
+                          onClick={() => setShowDisconnectConfirm(false)} 
                           className="transition-button small"
-                          aria-label="Cancel revoke"
+                          aria-label="Cancel disconnect"
                         >
                           Cancel
                         </button>
@@ -97,9 +116,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onResetG
                 <button 
                   onClick={handleReconfigure} 
                   className="transition-button small"
-                  aria-label="Configure StreamElements"
+                  aria-label="Configure Twitch Chat"
                 >
-                  Configure StreamElements
+                  Configure Twitch Chat
                 </button>
               </>
             )}

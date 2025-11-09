@@ -315,6 +315,24 @@ export class EventGenerator {
         this.alivePlayers = this.allPlayers.filter(p => p.isAlive);
     }
 
+    // Clean up alliances with dead players
+    cleanupDeadAlliances(): void {
+        this.alivePlayers.forEach(player => {
+            if (player.alliances && player.alliances.length > 0) {
+                // Filter out dead allies
+                const originalLength = player.alliances.length;
+                player.alliances = player.alliances.filter(allyId => 
+                    this.alivePlayers.some(alive => alive.id === allyId)
+                );
+                
+                // Log if alliances were broken
+                if (player.alliances.length < originalLength) {
+                    console.log(`[Alliance Cleanup] ${player.name} lost ${originalLength - player.alliances.length} dead ally(ies)`);
+                }
+            }
+        });
+    }
+
     // Generate bell curve death count for cornucopia: 8-12 deaths out of 24 tributes
     generateCornucopiaDeathCount(totalTributes: number): number {
         // Box-Muller transform for normal distribution
@@ -464,6 +482,10 @@ export class EventGenerator {
 
     generateDayEvents(): string[] {
         this.usedThisSegment.clear();
+        
+        // Clean up alliances with dead players at start of each day
+        this.cleanupDeadAlliances();
+        
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
 
@@ -557,6 +579,10 @@ export class EventGenerator {
 
     generateNightEvents(): string[] {
         this.usedThisSegment.clear();
+        
+        // Clean up alliances with dead players at start of each night
+        this.cleanupDeadAlliances();
+        
         const events = [];
         const participants = shuffle([...this.alivePlayers]);
 

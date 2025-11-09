@@ -1,5 +1,5 @@
 import { MongoClient, Db, Collection } from 'mongodb';
-import { UserCredential } from '../../src/types/api.types';
+import { UserCredential, TwitchConnection } from '../../src/types/api.types';
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
@@ -38,6 +38,7 @@ export async function connectToDatabase(): Promise<DatabaseConnection> {
 
         // Ensure indexes exist
         await db.collection('user_credentials').createIndex({ user_id: 1 }, { unique: true });
+        await db.collection('twitch_connections').createIndex({ user_id: 1, connection_type: 1 }, { unique: true });
 
         // Cache for reuse
         cachedClient = client;
@@ -61,8 +62,18 @@ export async function getUserCredentialsCollection(): Promise<Collection<UserCre
     return db.collection<UserCredential>('user_credentials');
 }
 
+/**
+ * Gets the twitch_connections collection
+ * @returns Promise resolving to the collection
+ */
+export async function getTwitchConnectionsCollection(): Promise<Collection<TwitchConnection>> {
+    const { db } = await connectToDatabase();
+    return db.collection<TwitchConnection>('twitch_connections');
+}
+
 module.exports = {
     connectToDatabase,
-    getUserCredentialsCollection
+    getUserCredentialsCollection,
+    getTwitchConnectionsCollection
 };
 

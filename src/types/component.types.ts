@@ -7,10 +7,14 @@ export interface AppProps {}
 // Setup Screen Props
 export interface SetupScreenProps {
   onStart: (players: Player[]) => void;
-  onOpenVolunteers: (tributeCount: number) => void;
+  onOpenVolunteers: (tributeCount: number) => Promise<void>;
   seConnected?: boolean;
   seChannelName?: string;
   onTributeConfigUpdate?: boolean;
+  onConnectToTwitch?: () => void;
+  preFilledNames?: string[];
+  preFilledCount?: number;
+  onClearPreFilled?: () => void;
 }
 
 // Volunteer Screen Props
@@ -20,6 +24,7 @@ export interface VolunteerScreenProps {
   onStartGame: () => void;
   onCancel: () => void;
   channelName: string;
+  isConnected?: boolean;
 }
 
 // Simulation Screen Props
@@ -52,12 +57,12 @@ export interface SettingsPanelProps {
   onNext: () => void;
   onShowVictory: () => void;
   showVictoryButton: boolean;
-  seConnected?: boolean;
-  seChannelName?: string;
-  seUserId?: string;
-  onRevokeStreamElements?: () => Promise<void>;
-  onReconfigureStreamElements?: () => void;
   enableTributeConfig?: boolean;
+  twitchConnected?: boolean;
+  twitchChannelName?: string;
+  twitchConnectionType?: 'irc' | 'oauth' | null;
+  onReconfigureTwitch?: () => void;
+  onDisconnectTwitch?: () => Promise<void>;
 }
 
 // Tributes Panel Props

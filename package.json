@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "private": true,
     "dependencies": {
+        "@twurple/api": "^7.4.0",
+        "@twurple/auth": "^7.4.0",
+        "@twurple/eventsub-http": "^7.4.0",
         "body-parser": "^2.2.0",
         "bootstrap": "^5.3.8",
         "dotenv": "^17.2.3",
@@ -12,10 +15,12 @@
         "react-dom": "^18.2.0",
         "react-scripts": "5.0.1",
         "sass": "^1.93.2",
+        "tmi.js": "^1.8.5",
         "zod": "^4.1.12"
     },
     "scripts": {
         "start": "react-scripts start",
+        "dev": "vercel dev",
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject"
@@ -52,6 +57,7 @@
         "@types/node": "^24.10.0",
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.2",
+        "@types/tmi.js": "^1.8.6",
         "@vercel/node": "^5.5.4",
         "concurrently": "^9.2.1",
         "typescript": "^5.9.3"

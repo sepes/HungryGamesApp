@@ -30,6 +30,118 @@ export class GameEngine {
     }
 
     nextSegment(): GameSegmentResult {
+        // Check for winner at the START of the phase, before generating any events
+        const alive = this.players.filter(p => p.isAlive);
+        
+        if (alive.length <= 1) {
+            if (alive.length === 1) {
+                const winner = alive[0]!; // Safe: checked length === 1
+                this.gameOver = true;
+                this.winner = winner;
+                this.totalDays = this.day;
+                return {
+                    phase: 'winner',
+                    events: this.formatWinnerAnnouncement(winner),
+                    winner: winner,
+                    alive: 1,
+                    total: this.players.length
+                };
+            } else if (alive.length === 0) {
+                // Edge case: everyone died - find the last player(s) to die
+                this.gameOver = true;
+                this.totalDays = this.day;
+                
+                // Find all players who died on the current day and phase
+                const lastDead = this.players.filter(p => 
+                    !p.isAlive && 
+                    p.diedOnDay === this.day
+                );
+                
+                // Sort by phase to find who died last (more recent phase = later death)
+                const phaseOrder = ['cornucopia', 'day', 'night', 'fallen'];
+                lastDead.sort((a, b) => {
+                    const aPhaseIndex = a.diedInPhase ? phaseOrder.indexOf(a.diedInPhase) : -1;
+                    const bPhaseIndex = b.diedInPhase ? phaseOrder.indexOf(b.diedInPhase) : -1;
+                    return bPhaseIndex - aPhaseIndex;
+                });
+                
+                const narrativeEvents: string[] = [``, `=== TRAGIC END ===`, ``];
+                
+                if (lastDead.length === 1) {
+                    const finalPlayer = lastDead[0]!;
+                    narrativeEvents.push(
+                        `In a tragic turn of events, the final tribute ${finalPlayer.name} from District ${finalPlayer.district}`,
+                        `perished ${finalPlayer.diedInPhase === 'cornucopia' ? 'during the initial bloodbath' : 
+                                   finalPlayer.diedInPhase === 'day' ? 'during the day' :
+                                   finalPlayer.diedInPhase === 'night' ? 'during the night' : 
+                                   'in an unexpected event'}.`,
+                        ``,
+                        `The Hunger Games have concluded with no victor.`,
+                        `The Capitol declares this year's games... inconclusive.`,
+                        ``
+                    );
+                } else if (lastDead.length > 1) {
+                    narrativeEvents.push(
+                        `In an unprecedented catastrophe, the final ${lastDead.length} tributes`,
+                        `perished simultaneously on Day ${this.day}.`,
+                        ``,
+                        `The fallen:`,
+                        ...lastDead.map(p => `  • ${p.name} (District ${p.district})`),
+                        ``,
+                        `For the first time in history, the Hunger Games conclude with no victor.`,
+                        `The Capitol mourns this unprecedented tragedy.`,
+                        ``
+                    );
+                } else {
+                    // Fallback if we can't determine who died last
+                    narrativeEvents.push(
+                        `Through a series of catastrophic events, all tributes have perished.`,
+                        ``,
+                        `The Hunger Games have ended in unprecedented tragedy.`,
+                        `There is no winner.`,
+                        ``
+                    );
+                }
+                
+                return {
+                    phase: 'winner',
+                    events: narrativeEvents,
+                    winner: null,
+                    alive: 0,
+                    total: this.players.length
+                };
+            }
+        }
+
+        // Prevent infinite games - if only 2 left and it's been many days, force confrontation
+        if (alive.length === 2 && this.day > 10) {
+            const p1 = alive[0]!; // Safe: checked length === 2
+            const p2 = alive[1]!; // Safe: checked length === 2
+            const winner = Math.random() < 0.5 ? p1 : p2;
+            const loser = winner === p1 ? p2 : p1;
+            this.gameOver = true;
+            this.winner = winner;
+            loser.isAlive = false;
+            winner.kills = (winner.kills || 0) + 1;
+
+            return {
+                phase: 'winner',
+                events: [
+                    `=== FINAL CONFRONTATION ===`,
+                    ``,
+                    `After ${this.day} brutal days, ${p1.name} and ${p2.name} are forced together by the Gamemakers.`,
+                    `They fight desperately for survival.`,
+                    `${winner.name} emerges victorious, killing ${loser.name} in the final battle.`,
+                    ``,
+                    ...this.formatWinnerAnnouncement(winner)
+                ],
+                winner: winner,
+                alive: 1,
+                total: this.players.length
+            };
+        }
+        
+        // If game is still ongoing, generate events for current phase
         let events: string[] = [];
         const currentPhase = this.phase; // Save current phase for header
 
@@ -67,50 +179,6 @@ export class GameEngine {
                 this.phase = 'day';
                 events = ['Something unexpected happened...'];
                 break;
-        }
-
-        // Check for winner
-        const alive = this.players.filter(p => p.isAlive);
-        if (alive.length === 1) {
-            const winner = alive[0]!; // Safe: checked length === 1
-            this.gameOver = true;
-            this.winner = winner;
-            this.totalDays = this.day;
-            return {
-                phase: 'winner',
-                events: this.formatWinnerAnnouncement(winner),
-                winner: winner,
-                alive: 1,
-                total: this.players.length
-            };
-        }
-
-        // Prevent infinite games - if only 2 left and it's been many days, force confrontation
-        if (alive.length === 2 && this.day > 10) {
-            const p1 = alive[0]!; // Safe: checked length === 2
-            const p2 = alive[1]!; // Safe: checked length === 2
-            const winner = Math.random() < 0.5 ? p1 : p2;
-            const loser = winner === p1 ? p2 : p1;
-            this.gameOver = true;
-            this.winner = winner;
-            loser.isAlive = false;
-            winner.kills = (winner.kills || 0) + 1;
-
-            return {
-                phase: 'winner',
-                events: [
-                    `=== FINAL CONFRONTATION ===`,
-                    ``,
-                    `After ${this.day} brutal days, ${p1.name} and ${p2.name} are forced together by the Gamemakers.`,
-                    `They fight desperately for survival.`,
-                    `${winner.name} emerges victorious, killing ${loser.name} in the final battle.`,
-                    ``,
-                    ...this.formatWinnerAnnouncement(winner)
-                ],
-                winner: winner,
-                alive: 1,
-                total: this.players.length
-            };
         }
 
         // Add phase header using the CURRENT phase (before it changed)

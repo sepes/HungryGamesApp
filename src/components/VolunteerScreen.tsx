@@ -10,7 +10,14 @@ const VolunteerScreen: React.FC<VolunteerScreenProps> = ({
   channelName 
 }) => {
   const slotsFilled = volunteers.length;
-  const canStart = slotsFilled >= 2;
+  const canStart = slotsFilled >= 1; // Changed from 2 to 1
+  const isFull = slotsFilled === maxSlots;
+
+  const getButtonText = () => {
+    if (!canStart) return 'Waiting for Volunteers';
+    if (isFull) return `Submit (${slotsFilled} Tributes)`;
+    return `Submit anyway (${slotsFilled}/${maxSlots})`;
+  };
 
   return (
     <div className={styles.volunteerScreen}>
@@ -70,9 +77,10 @@ const VolunteerScreen: React.FC<VolunteerScreenProps> = ({
             onClick={onStartGame}
             className="transition-button large"
             disabled={!canStart}
-            aria-label={canStart ? 'Start the game now' : `Need at least 2 volunteers to start (currently ${slotsFilled})`}
+            aria-label={canStart ? 'Submit volunteers and return to setup' : `Need at least 1 volunteer to submit (currently ${slotsFilled})`}
+            title={!isFull && canStart ? 'Submit incomplete list - remaining slots will be empty' : undefined}
           >
-            {canStart ? `Start Game (${slotsFilled} Tributes)` : 'Waiting for Volunteers'}
+            {getButtonText()}
           </button>
           
           <button 

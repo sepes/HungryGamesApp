@@ -9,14 +9,46 @@ interface CustomTributeConfig {
   tributesPerDistrict: number;
 }
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName, onTributeConfigUpdate }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName, onTributeConfigUpdate, onConnectToTwitch, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
   const [playerCount, setPlayerCount] = useState<number>(12);
   const [names, setNames] = useState<string[]>(Array(12).fill(''));
   const [customTributeConfig, setCustomTributeConfig] = useState<CustomTributeConfig | null>(null);
 
-  const handleCountChange = (count: number): void => {
+  // Load pre-filled names from volunteers when they exist
+  React.useEffect(() => {
+    if (preFilledNames && preFilledNames.length > 0 && preFilledCount > 0) {
+      // Use the count from volunteer collection
+      setPlayerCount(preFilledCount);
+      const newNames = Array(preFilledCount).fill('');
+      preFilledNames.forEach((name, idx) => {
+        newNames[idx] = name;
+      });
+      setNames(newNames);
+      
+      // Clear the pre-filled names after loading
+      if (onClearPreFilled) {
+        onClearPreFilled();
+      }
+    }
+  }, [preFilledNames, preFilledCount, onClearPreFilled]);
+
+  // Shared function to update player count while preserving names
+  const updatePlayerCountPreservingNames = (count: number): void => {
     setPlayerCount(count);
-    setNames(Array(count).fill(''));
+    
+    // Preserve existing names when changing count
+    const newNames = Array(count).fill('');
+    names.forEach((name, idx) => {
+      if (idx < count) {
+        newNames[idx] = name;
+      }
+    });
+    
+    setNames(newNames);
+  };
+
+  const handleCountChange = (count: number): void => {
+    updatePlayerCountPreservingNames(count);
     setCustomTributeConfig(null); // Clear custom config when using preset buttons
   };
 
@@ -25,8 +57,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
     if (onTributeConfigUpdate) {
       (window as any).updateTributeConfig = (config: CustomTributeConfig) => {
         setCustomTributeConfig(config);
-        setPlayerCount(config.tributes);
-        setNames(Array(config.tributes).fill(''));
+        updatePlayerCountPreservingNames(config.tributes);
       };
     }
     return () => {
@@ -34,7 +65,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
         delete (window as any).updateTributeConfig;
       }
     };
-  }, [onTributeConfigUpdate]);
+  }, [onTributeConfigUpdate, names]); // Add 'names' dependency
 
   const handleNameChange = (index: number, value: string): void => {
     const newNames = [...names];
@@ -97,6 +128,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
   const [validationMessage, setValidationMessage] = useState('');
 
   const handleUseVolunteers = () => {
+    if (!seConnected) {
+      // If not connected, trigger the connection flow
+      if (onConnectToTwitch) {
+        onConnectToTwitch();
+      }
+      return;
+    }
+    console.log('[SetupScreen] Opening volunteers with playerCount:', playerCount);
     onOpenVolunteers(playerCount);
   };
 
@@ -299,25 +338,31 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
         <div className={styles.actionControls}>
           {seConnected && (
             <>
-            <div className={styles.volunteerOption}>
-              <p className={styles.volunteerInfo}>
-                Connected to: <strong>{seChannelName}</strong>
-              </p>
-              <button 
-                onClick={handleUseVolunteers}
-                className="transition-button large"
-                aria-label="Use chat volunteers to fill tribute slots"
-              >
-                Use Chat Volunteers
-              </button>
-              <p className={styles.volunteerHelp}>
-                Let your viewers volunteer as tributes!
-              </p>
-            </div>
-            <div className={styles.divider}>or</div>
-            </>
-          )}
-          
+          <div className={styles.volunteerOption}>
+            <p className={styles.volunteerInfo}>
+              {seConnected ? (
+                <>Connected to: <strong>{seChannelName}</strong></>
+              ) : (
+                'Not connected to Twitch'
+              )}
+            </p>
+            <button 
+              onClick={handleUseVolunteers}
+              className="transition-button large"
+              aria-label={seConnected ? "Use chat volunteers to fill tribute slots" : "Connect to Twitch to use chat volunteers"}
+            >
+              Use Chat Volunteers
+            </button>
+            <p className={styles.volunteerHelp}>
+              {seConnected 
+                ? 'Let your viewers volunteer as tributes!' 
+                : 'Connect to Twitch to let viewers volunteer!'
+              }
+            </p>
+          </div>
+          <div className={styles.divider}>or</div>
+          </>
+        )}  
           <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
             Start the Games
           </button>
