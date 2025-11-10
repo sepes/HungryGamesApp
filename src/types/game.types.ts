@@ -1,5 +1,5 @@
 // Game Phase Types
-export type GamePhase = 'setup' | 'volunteer-collection' | 'simulation' | 'winner';
+export type GamePhase = 'setup' | 'simulation' | 'winner';
 export type SimulationPhase = 'cornucopia' | 'day' | 'night' | 'fallen';
 
 // Player/Tribute Types

@@ -98,4 +98,3 @@ const VolunteerScreen: React.FC<VolunteerScreenProps> = ({
 
 export default VolunteerScreen;
 
-

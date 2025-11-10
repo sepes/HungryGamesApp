@@ -1,3 +1,4 @@
+// TODO: Make test folder for all the tests
 // Simple test to verify game balance
 import { GameEngine } from './engine/gameEngine.js';
 

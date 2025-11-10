@@ -71,15 +71,6 @@ export interface TributesPanelProps {
   currentPhase: SimulationPhase;
 }
 
-// Tribute List Props
-export interface TributeListProps {
-  tributes: Player[];
-  title: string;
-  emptyMessage?: string;
-  showKills?: boolean;
-  sortByKills?: boolean;
-}
-
 // Debug Terminal Props
 export interface DebugTerminalProps {
   isVisible: boolean;
@@ -92,13 +83,6 @@ export interface HistoryModalProps {
   onClose: () => void;
   eventHistory: string[][];
   gameEngine: GameEngine | null;
-}
-
-// StreamElements Setup Props
-export interface StreamElementsSetupProps {
-  onComplete?: (userId: string, channelName: string) => void;
-  isModal?: boolean;
-  onClose?: () => void;
 }
 
 // Terminal Context Types
