@@ -9,7 +9,7 @@ interface CustomTributeConfig {
   tributesPerDistrict: number;
 }
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName, onTributeConfigUpdate, onConnectToTwitch, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdate, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
   const [playerCount, setPlayerCount] = useState<number>(12);
   const [names, setNames] = useState<string[]>(Array(12).fill(''));
   const [customTributeConfig, setCustomTributeConfig] = useState<CustomTributeConfig | null>(null);
@@ -126,18 +126,6 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
   };
 
   const [validationMessage, setValidationMessage] = useState('');
-
-  const handleUseVolunteers = () => {
-    if (!seConnected) {
-      // If not connected, trigger the connection flow
-      if (onConnectToTwitch) {
-        onConnectToTwitch();
-      }
-      return;
-    }
-    console.log('[SetupScreen] Opening volunteers with playerCount:', playerCount);
-    onOpenVolunteers(playerCount);
-  };
 
   const startGame = () => {
     // Validate names
@@ -336,37 +324,21 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
       
       <div className="right-panel">
         <div className={styles.actionControls}>
-          {seConnected && (
-            <>
-          <div className={styles.volunteerOption}>
-            <p className={styles.volunteerInfo}>
-              {seConnected ? (
-                <>Connected to: <strong>{seChannelName}</strong></>
-              ) : (
-                'Not connected to Twitch'
-              )}
-            </p>
-            <button 
-              onClick={handleUseVolunteers}
-              className="transition-button large"
-              aria-label={seConnected ? "Use chat volunteers to fill tribute slots" : "Connect to Twitch to use chat volunteers"}
-            >
-              Use Chat Volunteers
-            </button>
-            <p className={styles.volunteerHelp}>
-              {seConnected 
-                ? 'Let your viewers volunteer as tributes!' 
-                : 'Connect to Twitch to let viewers volunteer!'
-              }
-            </p>
-          </div>
-          <div className={styles.divider}>or</div>
-          </>
-        )}  
           <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
             Start the Games
           </button>
         </div>
+      </div>
+      
+      <div className={styles.footerLink}>
+        <a 
+          href="https://github.com/sepes/HungryGamesApp/issues" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className={styles.bugReportLink}
+        >
+          Please report bugs here, also for feature requests
+        </a>
       </div>
     </div>
   );

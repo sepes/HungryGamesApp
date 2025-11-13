@@ -7,11 +7,7 @@ export interface AppProps {}
 // Setup Screen Props
 export interface SetupScreenProps {
   onStart: (players: Player[]) => void;
-  onOpenVolunteers: (tributeCount: number) => Promise<void>;
-  seConnected?: boolean;
-  seChannelName?: string;
   onTributeConfigUpdate?: boolean;
-  onConnectToTwitch?: () => void;
   preFilledNames?: string[];
   preFilledCount?: number;
   onClearPreFilled?: () => void;
@@ -63,6 +59,12 @@ export interface SettingsPanelProps {
   twitchConnectionType?: 'irc' | 'oauth' | null;
   onReconfigureTwitch?: () => void;
   onDisconnectTwitch?: () => Promise<void>;
+  onTwitchSetupComplete?: (channelName: string, connectionType: 'irc' | 'oauth') => Promise<void>;
+  volunteers?: string[];
+  maxVolunteerSlots?: number;
+  onStartVolunteerCollection?: (tributeCount: number) => Promise<void>;
+  onSubmitVolunteers?: (volunteerList: string[]) => void;
+  onCancelVolunteerCollection?: () => Promise<void>;
 }
 
 // Tributes Panel Props

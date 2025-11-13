@@ -1327,11 +1327,11 @@ export const eventTemplates: EventTemplates = {
                 "{player} avoids the densest areas of forest"
             ],
             deathTemplates: [
-                "{player} is strangled by carnivorous vines",
-                "{player} is pulled into a massive plant maw",
-                "{player} is slowly digested by acid-spewing flora",
-                "{player} cannot break free from the plant's grasp",
-                "{player} is dragged underground by root systems"
+                "{player} is strangled by carnivorous vines and dies.",
+                "{player} is pulled into a massive plant maw and meets their end.",
+                "{player} is slowly digested by acid-spewing flora and perishes.",
+                "{player} cannot break free from the plant's grasp and dies.",
+                "{player} is dragged underground by root systems and does not survive."
             ],
             ally_killTemplates: [
                 "{killer} pushes {victim} into the carnivorous plants and flees",

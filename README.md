@@ -29,10 +29,10 @@ A text-based Hunger Games simulator built with React. Create custom tributes, wa
 ### Installation
 
 ```bash
-npm ic
+npm ci
 ```
 
-**Note:** `npm ic` is short for `npm install --ignore-scripts`, which prevents execution of lifecycle scripts during installation. This protects against supply chain attacks. This is now the recommended installation method for npm packages.
+**Note:** `npm ci` is short for `npm install --ignore-scripts`, which prevents execution of lifecycle scripts during installation. This protects against supply chain attacks. This is now the recommended installation method for npm packages.
 
 ### Running the Application
 

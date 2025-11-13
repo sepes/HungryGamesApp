@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import DebugTerminal from './DebugTerminal';
+import twitchLogo from '../assets/twitch-logo.svg';
 import styles from './SettingsPanel/SettingsPanel.module.scss';
 import type { SettingsPanelProps } from '../types/component.types';
 
@@ -18,11 +19,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   twitchChannelName,
   twitchConnectionType,
   onReconfigureTwitch,
-  onDisconnectTwitch
+  onDisconnectTwitch,
+  volunteers = [],
+  maxVolunteerSlots = 24,
+  onStartVolunteerCollection,
+  onSubmitVolunteers,
+  onCancelVolunteerCollection
 }) => {
   const containerRef = useFocusTrap(isOpen);
   const [showTerminal, setShowTerminal] = useState<boolean>(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState<boolean>(false);
+  const [showVolunteerCollection, setShowVolunteerCollection] = useState<boolean>(false);
 
   const handleDisconnect = async (): Promise<void> => {
     if (onDisconnectTwitch) {
@@ -56,7 +63,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <div className={styles.settingsPanelBody}>
           {/* Twitch Chat Section */}
           <div className={styles.settingsSection}>
-            <h3>Twitch Chat Integration</h3>
+            <h3 className={styles.twitchSectionHeading}>
+              Twitch Chat Integration
+              <img src={twitchLogo} alt="Twitch Logo" className={styles.twitchLogo} />
+            </h3>
             {twitchConnected ? (
               <>
                 <div className={styles.statusInfo}>
@@ -121,6 +131,125 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   Configure Twitch Chat
                 </button>
               </>
+            )}
+          </div>
+          
+          {/* Volunteer Collection Section */}
+          <div className={styles.settingsSection}>
+            <h3>Volunteer Collection</h3>
+            <div className={styles.volunteerCollectionButtons}>
+              <button 
+                onClick={() => setShowVolunteerCollection(!showVolunteerCollection)} 
+                className="transition-button small"
+                aria-label={showVolunteerCollection ? "Hide volunteer collection" : "Show volunteer collection"}
+              >
+                {showVolunteerCollection ? 'Hide Volunteer Collection' : 'Show Volunteer Collection'}
+              </button>
+              {twitchConnected && volunteers.length === 0 && maxVolunteerSlots === 24 && (
+                <button 
+                  onClick={async () => {
+                    if (onStartVolunteerCollection && gamePhase === 'setup') {
+                      await onStartVolunteerCollection(24);
+                    }
+                  }}
+                  className="transition-button small"
+                  disabled={gamePhase !== 'setup' || !twitchConnected || !onStartVolunteerCollection}
+                  aria-label="Start volunteer collection"
+                >
+                  Start Collection
+                </button>
+              )}
+            </div>
+            {showVolunteerCollection && (
+              <div className={styles.volunteerCollectionContent}>
+                {twitchConnected ? (
+                  <>
+                    {(volunteers.length > 0 || maxVolunteerSlots !== 24) ? (
+                      <>
+                        <div className={styles.volunteerInfo}>
+                          <h4>How to Join</h4>
+                          <p>
+                            Viewers can type <strong>&quot;I volunteer&quot;</strong> in chat to enter the Hunger Games!
+                          </p>
+                        </div>
+
+                        <div className={styles.slotStatus} aria-live="polite">
+                          <h4>Volunteer Status</h4>
+                          <div className={styles.statusBar}>
+                            <div className={styles.progressBar}>
+                              <div 
+                                className={styles.progress} 
+                                style={{ width: `${(volunteers.length / maxVolunteerSlots) * 100}%` }}
+                                role="progressbar"
+                                aria-valuenow={volunteers.length}
+                                aria-valuemin={0}
+                                aria-valuemax={maxVolunteerSlots}
+                                aria-label={`${volunteers.length} out of ${maxVolunteerSlots} volunteer slots filled`}
+                              />
+                            </div>
+                            <span className={styles.statusText}>
+                              {volunteers.length} / {maxVolunteerSlots} Tributes
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className={styles.volunteerList}>
+                          <h4 id="volunteer-list-heading">Current Volunteers</h4>
+                          {volunteers.length === 0 ? (
+                            <p className={styles.emptyMessage}>Waiting for volunteers...</p>
+                          ) : (
+                            <ul aria-labelledby="volunteer-list-heading">
+                              {volunteers.map((name: string, idx: number) => (
+                                <li key={idx} className={styles.volunteerItem}>
+                                  <span className={styles.volunteerNumber}>{idx + 1}</span>
+                                  <span className={styles.volunteerName}>{name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+
+                        <div className={styles.volunteerActions}>
+                          <button 
+                            onClick={() => {
+                              if (onSubmitVolunteers && volunteers.length >= 1) {
+                                onSubmitVolunteers(volunteers);
+                              }
+                            }}
+                            className="transition-button small"
+                            disabled={gamePhase !== 'setup' || !twitchConnected || volunteers.length < 1}
+                            aria-label={volunteers.length >= 1 ? 'Submit volunteers and return to setup' : `Need at least 1 volunteer to submit (currently ${volunteers.length})`}
+                            title={volunteers.length < maxVolunteerSlots && volunteers.length >= 1 ? 'Submit incomplete list - remaining slots will be empty' : undefined}
+                          >
+                            {volunteers.length < 1 
+                              ? 'Waiting for Volunteers' 
+                              : volunteers.length === maxVolunteerSlots 
+                                ? `Submit (${volunteers.length} Tributes)` 
+                                : `Submit anyway (${volunteers.length}/${maxVolunteerSlots})`}
+                          </button>
+                          
+                          <button 
+                            onClick={() => {
+                              if (onCancelVolunteerCollection) {
+                                onCancelVolunteerCollection();
+                              }
+                            }}
+                            className="transition-button small orange"
+                            disabled={gamePhase !== 'setup' || !twitchConnected}
+                            aria-label="Cancel volunteer collection"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className={styles.statusDisconnected}>
+                    Connect to Twitch Chat to enable volunteer collection.
+                  </p>
+                )}
+              </div>
             )}
           </div>
           

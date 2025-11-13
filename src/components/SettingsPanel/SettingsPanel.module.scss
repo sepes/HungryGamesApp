@@ -66,9 +66,27 @@
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 2px solid var(--accent-primary);
+    
     h3 {
         color: var(--accent-primary);
         margin-bottom: 15px;
+    }
+}
+
+// Match volunteer collection button widths - use fixed width to match narrower button
+.settingsSection:has(.volunteerCollectionContent) {
+    > button.transition-button.small {
+        width: 140px;
+        min-width: 140px;
+        max-width: 140px;
+    }
+    
+    .volunteerCollectionContent {
+        :global(.transition-button.small) {
+            width: 140px;
+            min-width: 140px;
+            max-width: 140px;
+        }
     }
 }
 
@@ -152,4 +170,367 @@
     color: var(--accent-secondary);
     font-size: 18px;
     text-shadow: var(--shadow-color);
+}
+
+.twitchSectionHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.twitchLogo {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+    
+    &:hover {
+        opacity: 1;
+    }
+}
+
+// Volunteer Collection Styles
+.volunteerCollectionButtons {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    
+    button {
+        flex: 1 1 50%;
+        min-width: 0;
+    }
+}
+
+.volunteerCollectionContent {
+    margin-top: 1rem;
+    
+    // Match button widths - use the narrower width
+    :global(.transition-button.small) {
+        width: 140px; // Match the narrower "Start Collection" button width
+        min-width: 140px;
+    }
+}
+
+
+.volunteerInfo {
+    margin-bottom: 1.5rem;
+    h4 {
+        margin: 0 0 0.75rem 0;
+        color: var(--accent-secondary);
+        font-size: 16px;
+    }
+    p {
+        margin: 0.5rem 0;
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
+    strong {
+        color: var(--accent-secondary);
+        font-weight: 600;
+    }
+}
+
+.channelInfo {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.slotStatus {
+    margin-bottom: 1.5rem;
+    h4 {
+        margin: 0 0 1rem 0;
+        color: var(--accent-secondary);
+        font-size: 16px;
+    }
+}
+
+.statusBar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.progressBar {
+    width: 100%;
+    height: 2rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 1rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress {
+    height: 100%;
+    background: var(--accent-secondary);
+    transition: width 0.3s ease;
+    border-radius: 1rem;
+}
+
+.statusText {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.volunteerList {
+    margin-bottom: 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    h4 {
+        margin: 0 0 1rem 0;
+        color: var(--accent-secondary);
+        font-size: 16px;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+}
+
+.emptyMessage {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 1.5rem;
+}
+
+.volunteerItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 8px;
+    transition: background 0.2s;
+    flex: 1 1 calc(33.333% - 0.5rem);
+    min-width: 0;
+    &:hover {
+        background: var(--bg-tertiary);
+    }
+}
+
+.volunteerNumber {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    background: var(--accent-secondary);
+    color: var(--bg-primary);
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.volunteerName {
+    flex: 1;
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.volunteerActions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+// Shared styles for nested content
+@mixin nestedContent {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 8px;
+}
+
+@mixin sectionHeading {
+    color: var(--accent-secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    text-shadow: var(--shadow-color);
+}
+
+@mixin sectionText {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+@mixin themedInput {
+    padding: 0.5rem;
+    border: 2px solid var(--accent-primary);
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    
+    &:focus {
+        outline: none;
+        border-color: var(--accent-secondary);
+        box-shadow: var(--shadow-light);
+    }
+    
+    &:disabled {
+        background: var(--bg-secondary);
+        opacity: 0.6;
+    }
+}
+
+
+.twitchSetupContainer {
+    @include nestedContent;
+    
+    // Override TwitchSetup styles to match SettingsPanel theme
+    :global {
+        .setupCard,
+        .setupCardModal {
+            background: transparent;
+            padding: 0;
+            max-width: none;
+            width: 100%;
+            box-shadow: none;
+            border-radius: 0;
+            max-height: none;
+            overflow-y: visible;
+            
+            h2 {
+                @include sectionHeading;
+                font-size: 1.2rem;
+            }
+        }
+        
+        .description {
+            @include sectionText;
+            margin-bottom: 1rem;
+        }
+        
+        .form {
+            gap: 1rem;
+        }
+        
+        .formGroup {
+            label {
+                @include sectionHeading;
+                font-size: 0.9rem;
+            }
+            
+            input {
+                @include themedInput;
+            }
+            
+            small {
+                @include sectionText;
+                font-size: 0.8rem;
+                
+                a {
+                    color: var(--accent-secondary);
+                    text-decoration: none;
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+        }
+        
+        .error {
+            padding: 1rem;
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid #f44336;
+            border-radius: 6px;
+            margin-top: 0;
+            color: var(--error-color);
+            font-size: 0.85rem;
+            
+            strong {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        .submitButton {
+            @include transition-button-base;
+            @include transition-button-size(10px 20px, $font-size-base);
+        }
+        
+        .security {
+            @include themed-card;
+            margin-top: 1rem;
+            
+            h3 {
+                @include sectionHeading;
+                font-size: 0.9rem;
+            }
+            
+            p {
+                @include sectionText;
+                font-size: 0.8rem;
+                margin: 0;
+            }
+            
+            a {
+                color: var(--accent-secondary);
+                text-decoration: none;
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+        
+        .connectionOptions {
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .optionCard {
+            @include themed-card;
+            cursor: pointer;
+            
+            &:hover {
+                transform: translateY(-2px);
+            }
+            
+            h3 {
+                @include sectionHeading;
+                font-size: 1rem;
+                margin: 0 0 0.5rem 0;
+            }
+            
+            p {
+                @include sectionText;
+                margin: 0 0 0.75rem 0;
+                font-size: 0.85rem;
+            }
+            
+            ul {
+                li {
+                    color: var(--text-primary);
+                    font-size: 0.8rem;
+                }
+            }
+        }
+        
+        .backButton {
+            @include transition-button-base;
+            @include transition-button-size(10px 20px, $font-size-base);
+            margin-bottom: 0.75rem;
+        }
+        
+        .closeButton {
+            display: none; // Hide close button when not modal
+        }
+    }
 }

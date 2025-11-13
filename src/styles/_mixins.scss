@@ -53,7 +53,7 @@
     gap: $spacing-sm;
     display: flex;
     flex-direction: column;
-    max-height: 70vh;
+    height: 100%;
     overflow-y: auto;
 }
 
@@ -64,7 +64,7 @@
     justify-content: flex-end;
     align-items: flex-start;
     gap: $spacing-sm;
-    max-height: 70vh;
+    height: 100%;
     overflow-y: auto;
 }
 
@@ -143,4 +143,19 @@
 
 @mixin curtain-animation {
     transition: $transition-curtain;
+}
+
+// Card Mixins
+@mixin themed-card {
+    background: var(--bg-tertiary);
+    border: 2px solid var(--accent-primary);
+    border-radius: $border-radius-large;
+    padding: 1rem;
+    transition: all 0.2s;
+    
+    &:hover {
+        border-color: var(--accent-secondary);
+        background: var(--bg-secondary);
+        box-shadow: var(--shadow-light);
+    }
 }
