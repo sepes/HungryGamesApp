@@ -110,10 +110,13 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
 
   const getPhaseDisplayName = (phase: string) => {
     switch(phase) {
+      case 'prologue': return 'Arena Prologue';
       case 'cornucopia': return 'The Cornucopia';
       case 'day': return 'Day';
       case 'night': return 'Night';
       case 'fallen': return 'Fallen Tributes';
+      case 'victory': return 'Victory';
+      case 'epilogue': return 'Epilogue';
       default: return phase;
     }
   };
@@ -223,7 +226,7 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
             </button>
           ) : (
             <button onClick={() => onNext()} className="transition-button large" aria-label="Advance to next game phase">
-              {currentPhase === 'night' ? 'Show Fallen' : 'Next Phase'}
+              {currentPhase === 'night' ? 'Show Fallen' : currentPhase === 'epilogue' ? 'Game Ended' : 'Next Phase'}
             </button>
           )}
         </div>

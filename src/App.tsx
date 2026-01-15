@@ -4,16 +4,16 @@ import SimulationScreen from './components/SimulationScreen';
 import WinnerScreen from './components/WinnerScreen';
 import SettingsPanel from './components/SettingsPanel';
 import TwitchSetup from './components/TwitchSetup';
-import { GameEngine } from './engine/gameEngine';
+import { GameLoop } from './engine/gameLoop';
 import { twitchIRC } from './services/twitchIRC';
-import type { Player, GamePhase, SimulationPhase, FallenTributeData, MajorEventConfig } from './types/game.types';
+import type { Player, GamePhase, SimulationPhase, FallenTributeData } from './types/game.types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.scss';
 
 function App() {
   const [gamePhase, setGamePhase] = useState<GamePhase>('setup');
   const gamePhaseRef = useRef<GamePhase>('setup');
-  const [gameEngine, setGameEngine] = useState<GameEngine | null>(null);
+  const [gameEngine, setGameEngine] = useState<GameLoop | null>(null);
   const [currentEvents, setCurrentEvents] = useState<string[]>([]);
   const [currentPhase, setCurrentPhase] = useState<SimulationPhase>('cornucopia');
   const [winner, setWinner] = useState<Player | null>(null);
@@ -170,23 +170,23 @@ function App() {
   };
 
   const startGame = (players: Player[]): void => {
-    const engine = new GameEngine(players);
+    const engine = new GameLoop(players);
     setGameEngine(engine);
     setGamePhase('simulation');
     
-    // Expose major event configuration to console
+    // Expose game configuration to console
     if (typeof window !== 'undefined') {
       window.HungryGames = {
-        majorEventConfig: engine.getMajorEventConfig(),
-        updateMajorEventConfig: (config: Partial<MajorEventConfig>) => engine.updateMajorEventConfig(config)
+        getConfig: () => engine.getConfig(),
+        setWinnerCount: (count: number) => engine.setWinnerCount(count)
       };
     }
     
-    // Generate first segment (Cornucopia)
+    // Generate first segment (Prologue)
     handleNext(engine);
   };
 
-  const handleNext = (engine: GameEngine | null = gameEngine): void => {
+  const handleNext = (engine: GameLoop | null = gameEngine): void => {
     if (!engine) return;
     const result = engine.nextSegment();
     setCurrentEvents(result.events);
