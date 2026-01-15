@@ -1,6 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { connectToDatabase } from './utils/mongodb';
-import { encryptToken } from './utils/encryption';
 import { TwitchIRCConnectRequest, TwitchIRCConnectResponse, TwitchConnection } from '../src/types/api.types';
 
 /**
@@ -8,7 +7,7 @@ import { TwitchIRCConnectRequest, TwitchIRCConnectResponse, TwitchConnection } f
  * Stores IRC connection information for the client to use
  * 
  * POST /api/twitch-irc
- * Body: { userId, channelName, oauthToken? }
+ * Body: { userId, channelName }
  * 
  * Note: Actual IRC connection happens client-side using tmi.js
  * This endpoint just stores the connection preferences
@@ -29,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         return;
     }
 
-    const { userId, channelName, oauthToken } = req.body as TwitchIRCConnectRequest;
+    const { userId, channelName } = req.body as TwitchIRCConnectRequest;
 
     if (!userId || !channelName) {
         res.status(400).json({ error: 'Missing userId or channelName' });
@@ -48,14 +47,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
             updated_at: new Date()
         };
 
-        // If OAuth token provided, encrypt and store it
-        if (oauthToken && process.env.JWT_ENCRYPTION_KEY) {
-            const { encrypted, iv, authTag } = encryptToken(oauthToken, process.env.JWT_ENCRYPTION_KEY);
-            connection.access_token_encrypted = encrypted;
-            connection.iv = iv;
-            connection.auth_tag = authTag;
-        }
-
         await collection.updateOne(
             { user_id: userId, connection_type: 'irc' },
             { $set: connection },
@@ -64,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
         const response: TwitchIRCConnectResponse = {
             success: true,
-            connectionType: oauthToken ? 'authenticated' : 'anonymous',
+            connectionType: 'anonymous',
             channelName: channelName.toLowerCase()
         };
 
@@ -74,5 +65,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         res.status(500).json({ error: 'Failed to store IRC connection' });
     }
 }
-
-

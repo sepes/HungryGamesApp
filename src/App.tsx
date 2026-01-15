@@ -25,12 +25,12 @@ function App() {
 
   // Chat integration state
   const [volunteers, setVolunteers] = useState<string[]>([]);
-  const [maxVolunteerSlots, setMaxVolunteerSlots] = useState<number>(24);
+  const [maxVolunteerSlots, setMaxVolunteerSlots] = useState<number>(0);
   const [preFilledNames, setPreFilledNames] = useState<string[]>([]);
   const [preFilledCount, setPreFilledCount] = useState<number>(0);
   const [twitchConnected, setTwitchConnected] = useState<boolean>(false);
   const [twitchChannelName, setTwitchChannelName] = useState<string>('');
-  const [twitchConnectionType, setTwitchConnectionType] = useState<'irc' | 'oauth' | null>(null);
+  const [twitchConnectionType, setTwitchConnectionType] = useState<'irc' | null>(null);
   const [showTwitchSetup, setShowTwitchSetup] = useState<boolean>(false);
 
   // Chat integration handlers
@@ -91,54 +91,49 @@ function App() {
     const savedChannelName = localStorage.getItem('twitchChannelName');
     
     if (savedConnectionType && savedChannelName) {
-      await connectToTwitch(savedChannelName, savedConnectionType as 'irc' | 'oauth');
+      await connectToTwitch(savedChannelName, savedConnectionType as 'irc');
     } else {
       setShowTwitchSetup(true);
     }
   };
 
-  const handleTwitchSetupComplete = async (channelName: string, connectionType: 'irc' | 'oauth'): Promise<void> => {
+  const handleTwitchSetupComplete = async (channelName: string, connectionType: 'irc'): Promise<void> => {
     setShowTwitchSetup(false);
     await connectToTwitch(channelName, connectionType);
   };
 
 
-  const connectToTwitch = async (channelName: string, connectionType: 'irc' | 'oauth'): Promise<void> => {
+  const connectToTwitch = async (channelName: string, _connectionType: 'irc'): Promise<void> => {
     try {
-      if (connectionType === 'irc') {
-        const savedToken = localStorage.getItem('twitchOAuthToken');
-        
-        // Disconnect existing connection first to avoid duplicates
-        if (twitchIRC.isConnected()) {
-          console.log('[connectToTwitch] Disconnecting existing connection');
-          await twitchIRC.disconnect();
-        }
-        
-        console.log('[connectToTwitch] Establishing new connection to', channelName);
-        await twitchIRC.connect({
-          channelName,
-          oauthToken: savedToken || undefined,
-            onMessage: (username: string, message: string) => {
-            console.log('[IRC] Message from', username, ':', message);
-            const volunteerKeywords = ['i volunteer', 'I volunteer', 'I VOLUNTEER'];
-            const isVolunteer = volunteerKeywords.some(keyword => message.includes(keyword));
-            console.log('[IRC] Is volunteer message?', isVolunteer, 'Current phase:', gamePhaseRef.current);
-            if (isVolunteer) {
-              addVolunteerFromChat(username);
-            }
-          },
-          onConnect: () => {
-            console.log('Connected to Twitch IRC');
-            setTwitchConnected(true);
-            setTwitchChannelName(channelName);
-            setTwitchConnectionType('irc');
-          },
-          onDisconnect: () => {
-            console.log('Disconnected from Twitch IRC');
-            setTwitchConnected(false);
-          }
-        });
+      // Disconnect existing connection first to avoid duplicates
+      if (twitchIRC.isConnected()) {
+        console.log('[connectToTwitch] Disconnecting existing connection');
+        await twitchIRC.disconnect();
       }
+      
+      console.log('[connectToTwitch] Establishing new connection to', channelName);
+      await twitchIRC.connect({
+        channelName,
+        onMessage: (username: string, message: string) => {
+          console.log('[IRC] Message from', username, ':', message);
+          const volunteerKeywords = ['i volunteer', 'I volunteer', 'I VOLUNTEER'];
+          const isVolunteer = volunteerKeywords.some(keyword => message.includes(keyword));
+          console.log('[IRC] Is volunteer message?', isVolunteer, 'Current phase:', gamePhaseRef.current);
+          if (isVolunteer) {
+            addVolunteerFromChat(username);
+          }
+        },
+        onConnect: () => {
+          console.log('Connected to Twitch IRC');
+          setTwitchConnected(true);
+          setTwitchChannelName(channelName);
+          setTwitchConnectionType('irc');
+        },
+        onDisconnect: () => {
+          console.log('Disconnected from Twitch IRC');
+          setTwitchConnected(false);
+        }
+      });
     } catch (error) {
       console.error('Failed to connect to Twitch:', error);
     }
@@ -149,7 +144,7 @@ function App() {
   };
 
   const handleDisconnectTwitch = async (): Promise<void> => {
-    if (twitchConnectionType === 'irc' && twitchIRC.isConnected()) {
+    if (twitchIRC.isConnected()) {
       await twitchIRC.disconnect();
     }
     setTwitchConnected(false);
@@ -157,7 +152,6 @@ function App() {
     setTwitchConnectionType(null);
     localStorage.removeItem('twitchConnectionType');
     localStorage.removeItem('twitchChannelName');
-    localStorage.removeItem('twitchOAuthToken');
   };
 
   const submitVolunteers = (volunteerList: string[]): void => {
@@ -227,10 +221,28 @@ function App() {
 
   const cancelVolunteerCollection = async (): Promise<void> => {
     setVolunteers([]);
-    setMaxVolunteerSlots(24); // Reset to default to indicate collection is not active
+    setMaxVolunteerSlots(0); // Reset to 0 to indicate collection is not active
     // Keep IRC connection active - don't disconnect
   };
 
+  // Auto-connect to Twitch on page load if saved connection info exists
+  const hasAutoConnected = useRef(false);
+  useEffect(() => {
+    // Prevent double-connection in React Strict Mode
+    if (hasAutoConnected.current) return;
+    
+    const savedConnectionType = localStorage.getItem('twitchConnectionType');
+    const savedChannelName = localStorage.getItem('twitchChannelName');
+    
+    if (savedConnectionType === 'irc' && savedChannelName) {
+      hasAutoConnected.current = true;
+      console.log('[App] Auto-connecting to saved Twitch channel:', savedChannelName);
+      connectToTwitch(savedChannelName, 'irc');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (twitchIRC.isConnected()) {

@@ -17,11 +17,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   enableTributeConfig,
   twitchConnected,
   twitchChannelName,
-  twitchConnectionType,
   onReconfigureTwitch,
   onDisconnectTwitch,
   volunteers = [],
-  maxVolunteerSlots = 24,
+  maxVolunteerSlots = 0,
   onStartVolunteerCollection,
   onSubmitVolunteers,
   onCancelVolunteerCollection
@@ -45,7 +44,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     if (onReconfigureTwitch) {
       onReconfigureTwitch();
     }
-    onClose();
+    // Keep settings panel open
   };
 
   const handleResetClick = (): void => {
@@ -106,7 +105,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </div>
                 <div className={styles.statusInfo}>
                   <p className={styles.statusLabel}>Connection Type:</p>
-                  <p className={styles.statusValue}>{twitchConnectionType === 'irc' ? 'IRC' : 'OAuth'}</p>
+                  <p className={styles.statusValue}>IRC</p>
                 </div>
                 <div className={styles.buttonGroup}>
                   <button 
@@ -172,11 +171,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               >
                 {showVolunteerCollection ? 'Hide Volunteer Collection' : 'Show Volunteer Collection'}
               </button>
-              {twitchConnected && volunteers.length === 0 && maxVolunteerSlots === 24 && (
+              {twitchConnected && maxVolunteerSlots === 0 && (
                 <button 
                   onClick={async () => {
                     if (onStartVolunteerCollection && gamePhase === 'setup') {
                       await onStartVolunteerCollection(24);
+                      setShowVolunteerCollection(true);
                     }
                   }}
                   className="transition-button small"
@@ -191,7 +191,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <div className={styles.volunteerCollectionContent}>
                 {twitchConnected ? (
                   <>
-                    {(volunteers.length > 0 || maxVolunteerSlots !== 24) ? (
+                    {maxVolunteerSlots > 0 ? (
                       <>
                         <div className={styles.volunteerInfo}>
                           <h4>How to Join</h4>

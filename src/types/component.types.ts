@@ -56,10 +56,10 @@ export interface SettingsPanelProps {
   enableTributeConfig?: boolean;
   twitchConnected?: boolean;
   twitchChannelName?: string;
-  twitchConnectionType?: 'irc' | 'oauth' | null;
+  twitchConnectionType?: 'irc' | null;
   onReconfigureTwitch?: () => void;
   onDisconnectTwitch?: () => Promise<void>;
-  onTwitchSetupComplete?: (channelName: string, connectionType: 'irc' | 'oauth') => Promise<void>;
+  onTwitchSetupComplete?: (channelName: string, connectionType: 'irc') => Promise<void>;
   volunteers?: string[];
   maxVolunteerSlots?: number;
   onStartVolunteerCollection?: (tributeCount: number) => Promise<void>;
