@@ -2,11 +2,14 @@
     "name": "hungry-games-app",
     "version": "1.0.0",
     "private": true,
+    "engines": {
+        "node": ">19"
+    },
     "dependencies": {
         "@twurple/api": "^7.4.0",
         "@twurple/auth": "^7.4.0",
         "@twurple/eventsub-http": "^7.4.0",
-        "body-parser": "^2.2.0",
+        "body-parser": "^2.2.1",
         "bootstrap": "^5.3.8",
         "dotenv": "^17.2.3",
         "express": "^5.1.0",

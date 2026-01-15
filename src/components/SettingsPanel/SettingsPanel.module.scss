@@ -66,7 +66,6 @@
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 2px solid var(--accent-primary);
-    
     h3 {
         color: var(--accent-primary);
         margin-bottom: 15px;
@@ -75,14 +74,13 @@
 
 // Match volunteer collection button widths - use fixed width to match narrower button
 .settingsSection:has(.volunteerCollectionContent) {
-    > button.transition-button.small {
+    >button.transition-button.small {
         width: 140px;
         min-width: 140px;
         max-width: 140px;
     }
-    
     .volunteerCollectionContent {
-        :global(.transition-button.small) {
+         :global(.transition-button.small) {
             width: 140px;
             min-width: 140px;
             max-width: 140px;
@@ -128,15 +126,27 @@
 }
 
 .confirmRevoke {
-    padding: 1rem;
-    background: rgba(244, 67, 54, 0.1);
-    border: 1px solid #f44336;
-    border-radius: 6px;
+    @include confirmation-dialog;
     margin-top: 0.5rem;
-    p {
-        margin: 0 0 0.75rem 0;
+}
+
+.checkboxContainer {
+    margin: 0.75rem 0;
+    label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
         color: var(--text-primary);
         font-size: 0.9rem;
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+        span {
+            user-select: none;
+        }
     }
 }
 
@@ -184,7 +194,6 @@
     flex-shrink: 0;
     opacity: 0.9;
     transition: opacity 0.2s;
-    
     &:hover {
         opacity: 1;
     }
@@ -195,7 +204,6 @@
     display: flex;
     gap: 0.75rem;
     margin-bottom: 1rem;
-    
     button {
         flex: 1 1 50%;
         min-width: 0;
@@ -204,14 +212,12 @@
 
 .volunteerCollectionContent {
     margin-top: 1rem;
-    
     // Match button widths - use the narrower width
-    :global(.transition-button.small) {
+     :global(.transition-button.small) {
         width: 140px; // Match the narrower "Start Collection" button width
         min-width: 140px;
     }
 }
-
 
 .volunteerInfo {
     margin-bottom: 1.5rem;
@@ -376,25 +382,21 @@
     background: var(--bg-tertiary);
     color: var(--text-primary);
     font-size: 0.9rem;
-    
     &:focus {
         outline: none;
         border-color: var(--accent-secondary);
         box-shadow: var(--shadow-light);
     }
-    
     &:disabled {
         background: var(--bg-secondary);
         opacity: 0.6;
     }
 }
 
-
 .twitchSetupContainer {
     @include nestedContent;
-    
     // Override TwitchSetup styles to match SettingsPanel theme
-    :global {
+     :global {
         .setupCard,
         .setupCardModal {
             background: transparent;
@@ -405,36 +407,29 @@
             border-radius: 0;
             max-height: none;
             overflow-y: visible;
-            
             h2 {
                 @include sectionHeading;
                 font-size: 1.2rem;
             }
         }
-        
         .description {
             @include sectionText;
             margin-bottom: 1rem;
         }
-        
         .form {
             gap: 1rem;
         }
-        
         .formGroup {
             label {
                 @include sectionHeading;
                 font-size: 0.9rem;
             }
-            
             input {
                 @include themedInput;
             }
-            
             small {
                 @include sectionText;
                 font-size: 0.8rem;
-                
                 a {
                     color: var(--accent-secondary);
                     text-decoration: none;
@@ -444,7 +439,6 @@
                 }
             }
         }
-        
         .error {
             padding: 1rem;
             background: rgba(244, 67, 54, 0.1);
@@ -453,34 +447,28 @@
             margin-top: 0;
             color: var(--error-color);
             font-size: 0.85rem;
-            
             strong {
                 display: block;
                 margin-bottom: 0.5rem;
                 font-size: 0.9rem;
             }
         }
-        
         .submitButton {
             @include transition-button-base;
             @include transition-button-size(10px 20px, $font-size-base);
         }
-        
         .security {
             @include themed-card;
             margin-top: 1rem;
-            
             h3 {
                 @include sectionHeading;
                 font-size: 0.9rem;
             }
-            
             p {
                 @include sectionText;
                 font-size: 0.8rem;
                 margin: 0;
             }
-            
             a {
                 color: var(--accent-secondary);
                 text-decoration: none;
@@ -489,32 +477,26 @@
                 }
             }
         }
-        
         .connectionOptions {
             gap: 1rem;
             margin: 1rem 0;
         }
-        
         .optionCard {
             @include themed-card;
             cursor: pointer;
-            
             &:hover {
                 transform: translateY(-2px);
             }
-            
             h3 {
                 @include sectionHeading;
                 font-size: 1rem;
                 margin: 0 0 0.5rem 0;
             }
-            
             p {
                 @include sectionText;
                 margin: 0 0 0.75rem 0;
                 font-size: 0.85rem;
             }
-            
             ul {
                 li {
                     color: var(--text-primary);
@@ -522,13 +504,11 @@
                 }
             }
         }
-        
         .backButton {
             @include transition-button-base;
             @include transition-button-size(10px 20px, $font-size-base);
             margin-bottom: 0.75rem;
         }
-        
         .closeButton {
             display: none; // Hide close button when not modal
         }

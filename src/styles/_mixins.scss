@@ -152,10 +152,24 @@
     border-radius: $border-radius-large;
     padding: 1rem;
     transition: all 0.2s;
-    
     &:hover {
         border-color: var(--accent-secondary);
         background: var(--bg-secondary);
         box-shadow: var(--shadow-light);
+    }
+}
+
+// Confirmation Dialog Mixin
+@mixin confirmation-dialog($padding: 1rem, $border-width: 1px, $border-radius: 6px, $text-align: left, $font-size: 0.9rem, $font-weight: normal) {
+    padding: $padding;
+    background: var(--error-background);
+    border: $border-width solid var(--error-color);
+    border-radius: $border-radius;
+    text-align: $text-align;
+    p {
+        margin: 0 0 0.75rem 0;
+        color: var(--text-primary);
+        font-size: $font-size;
+        font-weight: $font-weight;
     }
 }

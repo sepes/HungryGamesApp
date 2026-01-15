@@ -80,6 +80,13 @@ function App() {
     setMaxVolunteerSlots(tributeCount);
     setVolunteers([]);
     
+    // If already connected, just start listening (listening is already active via onMessage handler)
+    if (twitchConnected && twitchIRC.isConnected()) {
+      console.log('[openVolunteerCollection] Already connected, starting volunteer collection');
+      return;
+    }
+    
+    // Only connect if not already connected
     const savedConnectionType = localStorage.getItem('twitchConnectionType');
     const savedChannelName = localStorage.getItem('twitchChannelName');
     

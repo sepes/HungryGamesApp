@@ -309,13 +309,23 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     switch (cmd) {
       case 'help':
         addOutput('system', 'Available commands:');
-        addOutput('system', '  help     - Show this help message');
-        addOutput('system', '  clear    - Clear the terminal output');
-        addOutput('system', '  test     - Test color coding (info/warning/error)');
-        addOutput('system', '  autoplay [--dev] - Automatically advance game until winner is found');
-        addOutput('system', '             Use --dev flag for rapid testing (50ms delay)');
-        addOutput('system', '  stats    - Show detailed player statistics');
-        addOutput('system', '  tributes, tbs - Configure custom tribute counts (use "tributes --help")');
+        addOutput('system', '');
+        
+        // Format commands with aligned columns (30 char width for command/flags)
+        const formatHelpLine = (command: string, description: string) => {
+          const commandWidth = 30;
+          const paddedCommand = command.padEnd(commandWidth);
+          return `  ${paddedCommand}${description}`;
+        };
+        
+        addOutput('system', formatHelpLine('help', 'Show this help message'));
+        addOutput('system', formatHelpLine('clear', 'Clear the terminal output'));
+        addOutput('system', formatHelpLine('test', 'Test color coding (info/warning/error)'));
+        addOutput('system', formatHelpLine('autoplay [--dev]', 'Automatically advance game until winner is found'));
+        addOutput('system', formatHelpLine('', 'Use --dev flag for rapid testing (50ms delay)'));
+        addOutput('system', formatHelpLine('stats', 'Show detailed player statistics'));
+        addOutput('system', formatHelpLine('tributes, tbs', 'Configure custom tribute counts (use "tributes --help")'));
+        addOutput('system', formatHelpLine('askagain', 'Reset all "don\'t ask again" preferences'));
         addOutput('system', '');
         addOutput('system', 'More commands will be added in future updates. PS: there is no cheats to have your name win the game.');
         break;
@@ -387,6 +397,21 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         addOutput('system', `Most Dangerous: ${mostDangerous ? mostDangerous.name : 'N/A'} (${mostDangerous ? (mostDangerous.kills || 0) : 0} kills, ${mostDangerous ? (mostDangerous.inventory || []).filter(item => 
           EventGenerator.WEAPONS.includes(item.name)
         ).length : 0} weapons)`);
+        break;
+        
+      case 'askagain':
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const hadPreference = localStorage.getItem('skipResetConfirm') === 'true';
+          localStorage.removeItem('skipResetConfirm');
+          if (hadPreference) {
+            addOutput('info', 'All "don\'t ask again" preferences have been reset.');
+            addOutput('system', 'Confirmation dialogs will now appear again when resetting the game.');
+          } else {
+            addOutput('info', 'No "don\'t ask again" preferences were found. All confirmation dialogs are already enabled.');
+          }
+        } else {
+          addOutput('error', 'Unable to access localStorage. Preferences may not be saved.');
+        }
         break;
         
       case '':

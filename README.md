@@ -24,7 +24,7 @@ A text-based Hunger Games simulator built with React. Create custom tributes, wa
 
 ### Prerequisites
 
-- Node.js (version 14 or higher recommended)
+- Node.js (version >19 required)
 
 ### Installation
 
@@ -223,7 +223,7 @@ Launches the test runner in interactive watch mode.
 
 ## License
 
-This project is private and not licensed for public use.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 

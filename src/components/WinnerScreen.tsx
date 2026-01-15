@@ -5,6 +5,8 @@ import type { WinnerScreenProps } from '../types/component.types';
 
 const WinnerScreen: React.FC<WinnerScreenProps> = ({ winner, eventHistory, gameEngine, onReset }) => {
   const [showHistory, setShowHistory] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [dontAskAgainReset, setDontAskAgainReset] = useState(false);
   
   if (!winner) return null;
   
@@ -15,6 +17,29 @@ const WinnerScreen: React.FC<WinnerScreenProps> = ({ winner, eventHistory, gameE
   const fallenTributes = gameEngine?.players
     .filter(player => !player.isAlive)
     .sort((a, b) => b.kills - a.kills) || [];
+
+  const handleResetClick = (): void => {
+    const skipConfirm = localStorage.getItem('skipResetConfirm') === 'true';
+    if (skipConfirm) {
+      onReset();
+    } else {
+      setShowResetConfirm(true);
+    }
+  };
+
+  const handleResetConfirm = (): void => {
+    if (dontAskAgainReset) {
+      localStorage.setItem('skipResetConfirm', 'true');
+    }
+    onReset();
+    setShowResetConfirm(false);
+    setDontAskAgainReset(false);
+  };
+
+  const handleResetCancel = (): void => {
+    setShowResetConfirm(false);
+    setDontAskAgainReset(false);
+  };
 
   return (
     <div className={styles.winnerContainer}>
@@ -64,16 +89,51 @@ const WinnerScreen: React.FC<WinnerScreenProps> = ({ winner, eventHistory, gameE
         </section>
 
         <div className={styles.actionButtons}>
-          <button onClick={onReset} className="transition-button large" aria-label="Start a new Hunger Games simulation">
-            New Game
-          </button>
-          <button 
-            onClick={() => setShowHistory(true)} 
-            className="transition-button large" 
-            aria-label="View complete game history"
-          >
-            View Full Game History
-          </button>
+          {!showResetConfirm ? (
+            <>
+              <button onClick={handleResetClick} className="transition-button large" aria-label="Start a new Hunger Games simulation">
+                New Game
+              </button>
+              <button 
+                onClick={() => setShowHistory(true)} 
+                className="transition-button large" 
+                aria-label="View complete game history"
+              >
+                View Full Game History
+              </button>
+            </>
+          ) : (
+            <div className={styles.confirmReset}>
+              <p>Are you sure you want to start a new game? This will reset everything.</p>
+              <div className={styles.checkboxContainer}>
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={dontAskAgainReset}
+                    onChange={(e) => setDontAskAgainReset(e.target.checked)}
+                    aria-label="Don't ask again when resetting game"
+                  />
+                  <span>Don't ask again</span>
+                </label>
+              </div>
+              <div className={styles.confirmButtons}>
+                <button 
+                  onClick={handleResetConfirm} 
+                  className="danger-button large"
+                  aria-label="Confirm start new game"
+                >
+                  Yes, New Game
+                </button>
+                <button 
+                  onClick={handleResetCancel} 
+                  className="transition-button large"
+                  aria-label="Cancel new game"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

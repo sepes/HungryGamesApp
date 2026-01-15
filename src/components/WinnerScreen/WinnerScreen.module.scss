@@ -92,9 +92,44 @@
 
 .actionButtons {
     margin: 30px 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
+}
+
+.confirmReset {
+    @include confirmation-dialog( $padding: 1.5rem, $border-width: 2px, $border-radius: 8px, $text-align: center, $font-size: 1rem, $font-weight: 500);
+    p {
+        margin: 0 0 1rem 0;
+    }
+}
+
+.checkboxContainer {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: center;
+    label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+        span {
+            user-select: none;
+        }
+    }
+}
+
+.confirmButtons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
 }
 
 .winnerStats {

@@ -30,6 +30,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [showTerminal, setShowTerminal] = useState<boolean>(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState<boolean>(false);
   const [showVolunteerCollection, setShowVolunteerCollection] = useState<boolean>(false);
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
+  const [dontAskAgainReset, setDontAskAgainReset] = useState<boolean>(false);
 
   const handleDisconnect = async (): Promise<void> => {
     if (onDisconnectTwitch) {
@@ -44,6 +46,31 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       onReconfigureTwitch();
     }
     onClose();
+  };
+
+  const handleResetClick = (): void => {
+    const skipConfirm = localStorage.getItem('skipResetConfirm') === 'true';
+    if (skipConfirm) {
+      onResetGame();
+      onClose();
+    } else {
+      setShowResetConfirm(true);
+    }
+  };
+
+  const handleResetConfirm = (): void => {
+    if (dontAskAgainReset) {
+      localStorage.setItem('skipResetConfirm', 'true');
+    }
+    onResetGame();
+    setShowResetConfirm(false);
+    setDontAskAgainReset(false);
+    onClose();
+  };
+
+  const handleResetCancel = (): void => {
+    setShowResetConfirm(false);
+    setDontAskAgainReset(false);
   };
 
   return (
@@ -256,13 +283,46 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           {/* Game Controls Section */}
           <div className={styles.settingsSection}>
             <h3>Game Controls</h3>
-            <button 
-              onClick={onResetGame} 
-              className="danger-button small"
-              aria-label="Reset game and return to setup screen"
-            >
-              Reset Game
-            </button>
+            {!showResetConfirm ? (
+              <button 
+                onClick={handleResetClick} 
+                className="danger-button small"
+                aria-label="Reset game and return to setup screen"
+              >
+                Reset Game
+              </button>
+            ) : (
+              <div className={styles.confirmRevoke}>
+                <p>Are you sure? This will reset the game and return to setup.</p>
+                <div className={styles.checkboxContainer}>
+                  <label>
+                    <input 
+                      type="checkbox" 
+                      checked={dontAskAgainReset}
+                      onChange={(e) => setDontAskAgainReset(e.target.checked)}
+                      aria-label="Don't ask again when resetting game"
+                    />
+                    <span>Don't ask again</span>
+                  </label>
+                </div>
+                <div className={styles.confirmButtons}>
+                  <button 
+                    onClick={handleResetConfirm} 
+                    className="danger-button small"
+                    aria-label="Confirm reset game"
+                  >
+                    Yes, Reset Game
+                  </button>
+                  <button 
+                    onClick={handleResetCancel} 
+                    className="transition-button small"
+                    aria-label="Cancel reset"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Debug Terminal Section */}

@@ -337,7 +337,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
           rel="noopener noreferrer"
           className={styles.bugReportLink}
         >
-          Please report bugs here, also for feature requests
+          Report bugs and feature requests on sepes owlcat's GitHub
         </a>
       </div>
     </div>
