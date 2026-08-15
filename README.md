@@ -72,37 +72,6 @@ The optimized build will be created in the `build/` directory.
    - See leaderboards and survival statistics
    - Reset to start a new simulation
 
-## Project Structure
-
-```
-src/
-├── components/          # React UI components
-│   ├── SetupScreen/     # Initial game setup interface
-│   ├── SimulationScreen/# Main simulation display
-│   ├── WinnerScreen/    # Victory and statistics screen
-│   ├── TributesPanel/   # Tribute status display
-│   ├── TributeList/     # List of tributes
-│   ├── HistoryModal/    # Event history viewer
-│   ├── SettingsPanel/   # Configuration panel
-│   └── DebugTerminal/   # Developer debug tools
-├── engine/              # Game logic (see Game Engine section)
-│   ├── eventGenerator.js
-│   ├── eventTemplates.js
-│   ├── gameEngine.js
-│   └── README.md        # Detailed engine documentation
-├── styles/              # Global SCSS
-│   ├── global.scss      # Global styles
-│   ├── _variables.scss  # SCSS variables
-│   ├── _theme.scss      # Theme configuration
-│   └── _mixins.scss     # Reusable SCSS mixins
-├── utils/               # Helper utilities
-│   ├── nameGenerator.js # Random name generation
-│   ├── terminalContext.js # Debug terminal context
-│   └── useFocusTrap.js  # Accessibility focus management
-├── App.jsx              # Main application component
-└── index.js             # Application entry point
-```
-
 ## Game Engine Architecture
 
 The game engine is built with three core modules. For detailed technical documentation, see `src/engine/README.md`.
