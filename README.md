@@ -24,7 +24,7 @@ A text-based Hunger Games simulator built with React. Create custom tributes, wa
 
 ### Prerequisites
 
-- Node.js (version 14 or higher recommended)
+- Node.js (version 22 or higher recommended)
 
 ### Installation
 
