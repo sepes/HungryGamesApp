@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { generateRandomName } from '../utils/nameGenerator';
 import styles from './SetupScreen/SetupScreen.module.scss';
 import type { SetupScreenProps } from '../types/component.types';
@@ -33,7 +33,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
   }, [preFilledNames, preFilledCount, onClearPreFilled]);
 
   // Shared function to update player count while preserving names
-  const updatePlayerCountPreservingNames = (count: number): void => {
+  const updatePlayerCountPreservingNames = useCallback((count: number): void => {
     setPlayerCount(count);
     
     // Preserve existing names when changing count
@@ -45,7 +45,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
     });
     
     setNames(newNames);
-  };
+  }, [setPlayerCount, names, setNames]);
 
   const handleCountChange = (count: number): void => {
     updatePlayerCountPreservingNames(count);
@@ -65,7 +65,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
         delete (window as any).updateTributeConfig;
       }
     };
-  }, [onTributeConfigUpdate, names]); // Add 'names' dependency
+  }, [onTributeConfigUpdate, names, updatePlayerCountPreservingNames]); // Add 'names' dependency
 
   const handleNameChange = (index: number, value: string): void => {
     const newNames = [...names];
