@@ -59,7 +59,7 @@ const WinnerScreen: React.FC<WinnerScreenProps> = ({ winner, eventHistory, gameE
             {winner.name} has emerged victorious from the this year's Hunger Games, 
             outlasting all other tributes in a 
             brutal competition that lasted {daysSimulated} days.
-            {winner.kills > 0 && ` With ${winner.kills} kill${winner.kills > 1 ? 's' : ''}, they proved their dominance in the arena.`}
+            {winner.kills > 0 && ` With unmatched wit and ${winner.kills} kill${winner.kills > 1 ? 's' : ''}, they proved their dominance in the arena.`}
           </p>
         </section>
 

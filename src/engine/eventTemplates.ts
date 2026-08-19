@@ -345,7 +345,7 @@ export const eventTemplates: EventTemplates = {
             "{killer} uses all three prongs to catch {victim}'s blade, then thrusts home",
             "{killer} demonstrates their District 4 training by impaling {victim} with perfect precision",
             "{killer} throws their trident across the arena, the three points finding {victim}",
-            "{killer} hooks {victim} with an outer prong, pulling them onto the center tine",
+            "{killer} impales {victim} with a trident without mercy",
             "{killer} uses the trident to vault over {victim}, striking them from above"
         ],
         axe_combat_kills: [

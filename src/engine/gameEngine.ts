@@ -35,7 +35,7 @@ export class GameEngine {
         
         if (alive.length <= 1) {
             if (alive.length === 1) {
-                const winner = alive[0]!; // Safe: checked length === 1
+                const winner = alive[0]!;
                 this.gameOver = true;
                 this.winner = winner;
                 this.totalDays = this.day;
@@ -113,8 +113,8 @@ export class GameEngine {
             }
         }
 
-        // Prevent infinite games - if only 2 left and it's been many days, force confrontation
-        if (alive.length === 2 && this.day > 10) {
+        // Prevent infinite games - if only 2 left, force confrontation
+        if (alive.length === 2) {
             const p1 = alive[0]!; // Safe: checked length === 2
             const p2 = alive[1]!; // Safe: checked length === 2
             const winner = Math.random() < 0.5 ? p1 : p2;

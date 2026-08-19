@@ -11,7 +11,7 @@ interface FallenAnimationState {
   isHurried: boolean;
 }
 
-const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame: _onResetGame, tributeData }) => {
+const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gameEngine, currentPhase, showVictoryButton: showVictorButton, onShowVictory: onShowVictor, tributeData }) => {
   const [showTributesPanel, setShowTributesPanel] = useState<boolean>(false);
   const [fallenAnimation, setFallenAnimation] = useState<FallenAnimationState>({
     isPlaying: false,
@@ -217,14 +217,19 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
 
       <section className="right-panel">
         <div className="action-controls">
-          {showVictoryButton ? (
-            <button onClick={onShowVictory} className="transition-button large" aria-label="View victory screen">
-              View Victory
+          {showVictorButton ? (
+            <button onClick={onShowVictor} className="transition-button large" aria-label="View victory screen">
+              View Victor
             </button>
-          ) : (
-            <button onClick={() => onNext()} className="transition-button large" aria-label="Advance to next game phase">
+          ) : 
+           
+          (
+            <>
+            <button onClick={() => onNext()} className="transition-button large" aria-label="Go back to setup">
               {currentPhase === 'night' ? 'Show Fallen' : 'Next Phase'}
             </button>
+            {alivePlayers.length === 0 ? 'If this button does not work reset the game from setting.' : '' /*DELETEME */}
+            </>
           )}
         </div>
       </section>
