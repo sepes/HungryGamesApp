@@ -1458,8 +1458,11 @@ export class EventGenerator {
         }
         events.push("");
 
-        // Use existing target death system (same as cornucopia)
-        const targetDeaths = this.generateCornucopiaDeathCount(this.alivePlayers.length);
+        // Use existing target death system (same as cornucopia), unless this event
+        // is a non-lethal one
+        const targetDeaths = this.isLethalEvent(event)
+            ? this.generateCornucopiaDeathCount(this.alivePlayers.length)
+            : 0;
 
         // Select victims and generate death events
         const victims = this.selectEventVictims(targetDeaths);
@@ -1503,8 +1506,11 @@ export class EventGenerator {
         }
         events.push("");
 
-        // Use existing target death system (same as cornucopia)
-        const targetDeaths = this.generateCornucopiaDeathCount(this.alivePlayers.length);
+        // Use existing target death system (same as cornucopia), unless this event
+        // is a non-lethal one
+        const targetDeaths = this.isLethalEvent(event)
+            ? this.generateCornucopiaDeathCount(this.alivePlayers.length)
+            : 0;
 
         // Select victims and generate death events
         const victims = this.selectEventVictims(targetDeaths);
@@ -1521,6 +1527,12 @@ export class EventGenerator {
         this.updateAlivePlayers();
         this.checkAllianceEndgame();
         return events;
+    }
+
+    // An event with no death templates is non-lethal by design - announcement,
+    // survivor actions and stat effects only - so it selects no victims
+    isLethalEvent(event: any): boolean {
+        return Array.isArray(event.deathTemplates) && event.deathTemplates.length > 0;
     }
 
     selectEventVictims(count: number): Player[] {
@@ -1568,8 +1580,10 @@ export class EventGenerator {
             this.deadThisRound.push(victim);
         }
 
-        // Generate death text based on event type
-        const deathTemplates = event.deathTemplates || [
+        // Generate death text based on event type. An empty deathTemplates array is
+        // truthy, so this cannot be a plain `||` fallback - that is how an event with
+        // deathTemplates: [] used to pick an undefined template and throw
+        const deathTemplates = this.isLethalEvent(event) ? event.deathTemplates : [
             "{player} falls victim to the {event_name}",
             "{player} is overwhelmed by the {event_name}",
             "{player} cannot survive the {event_name}"
