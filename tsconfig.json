@@ -4,7 +4,9 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    // "node", not "bundler": react-scripts 5 enforces this and rewrites the file
+    // if it differs, and "bundler" needs TypeScript 5.x
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
@@ -25,12 +27,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    
-    // 2025 Enhancements
-    "verbatimModuleSyntax": true,
-    "resolvePackageJsonExports": true,
-    "resolvePackageJsonImports": true,
-    
+
     // Code Quality
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
