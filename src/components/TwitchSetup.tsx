@@ -50,6 +50,7 @@ export default function TwitchSetup({ onComplete, isModal = false, onClose }: Tw
     }
   };
 
+
   const containerClass = isModal ? styles.setupModal : styles.setupContainer;
   const cardClass = isModal ? styles.setupCardModal : styles.setupCard;
 
@@ -138,7 +139,7 @@ export default function TwitchSetup({ onComplete, isModal = false, onClose }: Tw
           <div className={styles.security}>
             <h3>About IRC Connection</h3>
             <p>
-              IRC is a lightweight protocol for connecting to Twitch chat. Anonymous connections work fine for reading chat. The connection happens in your browser.
+              IRC (internet relay chat) is a lightweight protocol for connecting to Twitch chat. Anonymous connections work fine for reading chat. The connection happens in your browser.
             </p>
           </div>
         </div>
