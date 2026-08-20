@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import TributesPanel from './TributesPanel';
+import EventText from './EventText';
 import styles from './SimulationScreen/SimulationScreen.module.scss';
 import type { SimulationScreenProps } from '../types/component.types';
 
@@ -161,7 +162,8 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
       <div className="center-panel" style={{ position: 'relative' }}>
         <section className={styles.eventDisplay} aria-label="Game events" aria-live="polite">
           {events.map((event, index) => (
-            <div key={index} className={styles.eventLine} dangerouslySetInnerHTML={{ __html: event }}>
+            <div key={index} className={styles.eventLine}>
+              <EventText text={event} />
             </div>
           ))}
         </section>

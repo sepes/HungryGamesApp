@@ -1,4 +1,5 @@
 import { eventTemplates, weapons, items } from './eventTemplates';
+import { markPlayerName } from '../utils/eventText';
 import type { Player, Item, MajorEventConfig, FallenTributeData } from '../types/game.types';
 import { GameEngine } from './gameEngine';
 
@@ -365,9 +366,10 @@ export class EventGenerator {
         return Math.max(1, Math.min(deathCount, totalTributes - 1));
     }
 
-    // Helper method to wrap player names in highlight spans
+    // Marks a player name for the renderer to highlight. Event lines are plain
+    // text - see src/utils/eventText.ts for why this is not an HTML span.
     highlightPlayerName(name: string): string {
-        return `<span class="player-highlight">${name}</span>`;
+        return markPlayerName(name);
     }
 
     generateCornucopiaEvents(): string[] {
