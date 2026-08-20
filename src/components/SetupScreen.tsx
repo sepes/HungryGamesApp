@@ -9,10 +9,49 @@ interface CustomTributeConfig {
   tributesPerDistrict: number;
 }
 
+interface DistrictLayout {
+  districtCount: number;
+  basePerDistrict: number;
+  remainder: number;
+  cutoff: number;
+}
+
+// Tributes are spread across the districts with the remainder handed out one each
+// to the first districts. Both directions of that mapping - which district a
+// tribute index lands in, and which index range a district covers - fall out of
+// these four numbers, so they get derived in one place.
+const getDistrictLayout = (playerCount: number, config: CustomTributeConfig | null): DistrictLayout => {
+  const districtCount = config ? config.districts : 12;
+  const basePerDistrict = config ? config.tributesPerDistrict : Math.floor(playerCount / 12);
+  const remainder = playerCount % districtCount;
+
+  return { districtCount, basePerDistrict, remainder, cutoff: remainder * (basePerDistrict + 1) };
+};
+
+const districtOfTribute = (tributeIndex: number, { basePerDistrict, remainder, cutoff }: DistrictLayout): number =>
+  tributeIndex < cutoff
+    ? Math.floor(tributeIndex / (basePerDistrict + 1)) + 1
+    : remainder + Math.floor((tributeIndex - cutoff) / basePerDistrict) + 1;
+
+const tributeRangeOfDistrict = (
+  districtIndex: number,
+  { basePerDistrict, remainder }: DistrictLayout
+): { startIndex: number; count: number } => {
+  const isPadded = districtIndex < remainder;
+
+  return {
+    count: isPadded ? basePerDistrict + 1 : basePerDistrict,
+    startIndex: isPadded
+      ? districtIndex * (basePerDistrict + 1)
+      : remainder * (basePerDistrict + 1) + (districtIndex - remainder) * basePerDistrict
+  };
+};
+
 const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName, onTributeConfigUpdate, onConnectToTwitch, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
   const [playerCount, setPlayerCount] = useState<number>(12);
   const [names, setNames] = useState<string[]>(Array(12).fill(''));
   const [customTributeConfig, setCustomTributeConfig] = useState<CustomTributeConfig | null>(null);
+  const districtLayout = getDistrictLayout(playerCount, customTributeConfig);
 
   // Load pre-filled names from volunteers when they exist
   React.useEffect(() => {
@@ -157,43 +196,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
     setValidationMessage('');
 
     // Create players with proper district assignment
-    const players = names.map((name, i) => {
-      let district: number;
-      if (customTributeConfig) {
-        const numDistricts = customTributeConfig.districts;
-        const basePerDistrict = customTributeConfig.tributesPerDistrict;
-        const remainder = playerCount % numDistricts;
-        const cutoff = remainder * (basePerDistrict + 1);
-        
-        // Distribute remainders from first districts onwards
-        if (i < cutoff) {
-          district = Math.floor(i / (basePerDistrict + 1)) + 1;
-        } else {
-          district = remainder + Math.floor((i - cutoff) / basePerDistrict) + 1;
-        }
-      } else {
-        const basePerDistrict = Math.floor(playerCount / 12);
-        const remainder = playerCount % 12;
-        const cutoff = remainder * (basePerDistrict + 1);
-        
-        if (i < cutoff) {
-          district = Math.floor(i / (basePerDistrict + 1)) + 1;
-        } else {
-          district = remainder + Math.floor((i - cutoff) / basePerDistrict) + 1;
-        }
-      }
-      
-      return {
-        id: `player-${i}`,
-        name: name.trim(),
-        district: district,
-        isAlive: true,
-        kills: 0,
-        items: [],
-        diedInPhase: null,
-        diedOnDay: null
-      };
-    });
+    const players = names.map((name, i) => ({
+      id: `player-${i}`,
+      name: name.trim(),
+      district: districtOfTribute(i, districtLayout),
+      isAlive: true,
+      kills: 0,
+      items: [],
+      diedInPhase: null,
+      diedOnDay: null
+    }));
 
     onStart(players);
   };
@@ -273,20 +285,9 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
           
           <fieldset>
             <div className={styles.districtsContainer}>
-              {Array.from({ length: customTributeConfig ? customTributeConfig.districts : 12 }, (_, districtIndex) => {
-                const numDistricts = customTributeConfig ? customTributeConfig.districts : 12;
-                const basePerDistrict = customTributeConfig ? customTributeConfig.tributesPerDistrict : Math.floor(playerCount / 12);
-                
-                // Distribute remainders from first districts onwards
-                const remainder = playerCount % numDistricts;
-                const districtTributeCount = districtIndex < remainder ? basePerDistrict + 1 : basePerDistrict;
-                
-                // Calculate start index: districts before remainder get +1, after get base amount
-                const startIndex = districtIndex < remainder 
-                  ? districtIndex * (basePerDistrict + 1)
-                  : remainder * (basePerDistrict + 1) + (districtIndex - remainder) * basePerDistrict;
-                
-                const districtTributes = names.slice(startIndex, startIndex + districtTributeCount);
+              {Array.from({ length: districtLayout.districtCount }, (_, districtIndex) => {
+                const { startIndex, count } = tributeRangeOfDistrict(districtIndex, districtLayout);
+                const districtTributes = names.slice(startIndex, startIndex + count);
                 
                 return (
                   <div key={districtIndex} className={styles.districtGroup}>
