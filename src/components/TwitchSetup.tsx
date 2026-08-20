@@ -7,7 +7,7 @@ export interface TwitchSetupProps {
   onClose?: () => void;
 }
 
-type ConnectionMode = 'select' | 'irc' | 'oauth';
+type ConnectionMode = 'select' | 'irc';
 
 export default function TwitchSetup({ onComplete, isModal = false, onClose }: TwitchSetupProps) {
   const [mode, setMode] = useState<ConnectionMode>('irc');
@@ -46,25 +46,6 @@ export default function TwitchSetup({ onComplete, isModal = false, onClose }: Tw
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOAuthStart = async (): Promise<void> => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch('/api/twitch-oauth?action=start');
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to start OAuth flow');
-      }
-
-      window.location.href = data.authUrl;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
       setLoading(false);
     }
   };

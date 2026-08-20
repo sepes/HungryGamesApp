@@ -70,25 +70,6 @@ export interface VercelResponse {
   end: () => void;
 }
 
-// Twitch OAuth Types
-export interface TwitchOAuthTokenResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  scope: string[];
-  token_type: string;
-}
-
-export interface TwitchUserInfo {
-  id: string;
-  login: string;
-  display_name: string;
-  type: string;
-  broadcaster_type: string;
-  description: string;
-  profile_image_url: string;
-}
-
 export interface TwitchConnection {
   user_id: string;
   connection_type: 'irc' | 'oauth';
@@ -115,19 +96,4 @@ export interface TwitchIRCConnectResponse {
   channelName: string;
 }
 
-export interface TwitchOAuthStartResponse {
-  authUrl: string;
-}
-
-export interface TwitchOAuthCallbackRequest {
-  code: string;
-  state: string;
-}
-
-export interface TwitchOAuthCallbackResponse {
-  success: boolean;
-  userId: string;
-  channelName: string;
-  displayName: string;
-}
 
