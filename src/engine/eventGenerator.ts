@@ -770,12 +770,21 @@ export class EventGenerator {
         return this.selectVictim(player);
     }
 
+    // Counted from allPlayers rather than the cached alivePlayers list, which is
+    // only refreshed at segment boundaries. Deaths land mid-segment, so the cached
+    // list would let the guards below wave through kills that empty the arena.
+    aliveCount(): number {
+        return this.allPlayers.reduce((count, player) => count + (player.isAlive ? 1 : 0), 0);
+    }
+
+    // A segment never takes the field below two tributes: the game engine forces a
+    // final confrontation at two, which is what guarantees a victor
     canKill() {
-        return this.alivePlayers.length > 2;
+        return this.aliveCount() > 2;
     }
 
     canDie() {
-        return this.alivePlayers.length > 2;
+        return this.aliveCount() > 2;
     }
 
     canFormTeam(player: Player): boolean {
