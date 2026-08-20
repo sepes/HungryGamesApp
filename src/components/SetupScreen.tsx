@@ -310,7 +310,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
                               onChange={(e) => handleNameChange(globalIndex, e.target.value)}
                               placeholder="Enter name"
                               maxLength={30}
-                              aria-label={`Tribute {tributeIndex + 1} from District {districtIndex + 1}`}
+                              aria-label={`Tribute ${tributeIndex + 1} from District ${districtIndex + 1}`}
                               aria-describedby={globalIndex === 0 ? "name-instructions" : undefined}
                             />
                           </div>
