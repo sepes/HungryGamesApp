@@ -3,17 +3,7 @@ import { getUserCredentialsCollection } from './utils/mongodb';
 import { RevokeRequest, RevokeResponse, RevokeErrorResponse } from '../src/types/api.types';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
+    // No CORS headers: the client is served from the same origin as this function
     if (req.method !== 'POST') {
         res.status(405).json({ error: 'Method not allowed' } as RevokeErrorResponse);
         return;
