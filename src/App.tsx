@@ -29,6 +29,7 @@ function App() {
   // Chat integration state
   const [volunteers, setVolunteers] = useState<string[]>([]);
   const [maxVolunteerSlots, setMaxVolunteerSlots] = useState<number>(24);
+  const maxVolunteerSlotsRef = useRef<number>(24);
   const [preFilledNames, setPreFilledNames] = useState<string[]>([]);
   const [preFilledCount, setPreFilledCount] = useState<number>(0);
   const [showVolunteerModal, setShowVolunteerModal] = useState<boolean>(false);
@@ -54,15 +55,22 @@ function App() {
     showVolunteerModalRef.current = showVolunteerModal;
   }, [showVolunteerModal]);
 
+  useEffect(() => {
+    maxVolunteerSlotsRef.current = maxVolunteerSlots;
+  }, [maxVolunteerSlots]);
+
   const addVolunteer = (username: string): void => {
     setVolunteers(prev => {
+      const volunteerCap = maxVolunteerSlotsRef.current;
+      console.log('[addVolunteer] Current cap from ref:', volunteerCap);
+      
       // If already volunteered, move to end of list
       if (prev.includes(username)) {
         console.log('[addVolunteer] User re-volunteered, moving to tail:', username);
         const filtered = prev.filter(name => name !== username);
         
         // If list is already full, just move them to the end
-        if (prev.length >= maxVolunteerSlots) {
+        if (prev.length >= volunteerCap) {
           return [...filtered, username];
         }
         
@@ -70,7 +78,7 @@ function App() {
         return [...filtered, username];
       }
       
-      if (prev.length >= maxVolunteerSlots) {
+      if (prev.length >= volunteerCap) {
         console.log('[addVolunteer] Slots full, cannot add more');
         return prev;
       }
@@ -87,6 +95,7 @@ function App() {
   const openVolunteerCollection = async (tributeCount: number): Promise<void> => {
     console.log('[openVolunteerCollection] Setting max volunteer slots to:', tributeCount);
     setMaxVolunteerSlots(tributeCount);
+    maxVolunteerSlotsRef.current = tributeCount; // Critical: set ref synchronously before connect
     setVolunteers([]);
     
     const savedConnectionType = localStorage.getItem('twitchConnectionType');
