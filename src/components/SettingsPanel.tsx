@@ -23,7 +23,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   maxVolunteerSlots = 0,
   onStartVolunteerCollection,
   onSubmitVolunteers,
-  onCancelVolunteerCollection
+  onCancelVolunteerCollection,
+  setupTributeCount = 12,
+  onMockVolunteers
 }) => {
   const containerRef = useFocusTrap(isOpen);
   const [showTerminal, setShowTerminal] = useState<boolean>(false);
@@ -175,7 +177,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <button 
                   onClick={async () => {
                     if (onStartVolunteerCollection && gamePhase === 'setup') {
-                      await onStartVolunteerCollection(24);
+                      await onStartVolunteerCollection(setupTributeCount);
                       setShowVolunteerCollection(true);
                     }
                   }}
@@ -344,6 +346,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   onShowVictory={onShowVictory}
                   showVictoryButton={showVictoryButton}
                   enableTributeConfig={enableTributeConfig}
+                  onMockVolunteers={onMockVolunteers}
                 />
               </div>
             )}

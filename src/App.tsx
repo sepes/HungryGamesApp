@@ -6,6 +6,7 @@ import SettingsPanel from './components/SettingsPanel';
 import TwitchSetup from './components/TwitchSetup';
 import { GameLoop } from './engine/gameLoop';
 import { twitchIRC } from './services/twitchIRC';
+import { generateAllNames } from './utils/nameGenerator';
 import type { Player, GamePhase, SimulationPhase, FallenTributeData } from './types/game.types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.scss';
@@ -26,6 +27,7 @@ function App() {
   // Chat integration state
   const [volunteers, setVolunteers] = useState<string[]>([]);
   const [maxVolunteerSlots, setMaxVolunteerSlots] = useState<number>(0);
+  const [setupTributeCount, setSetupTributeCount] = useState<number>(12);
   const [preFilledNames, setPreFilledNames] = useState<string[]>([]);
   const [preFilledCount, setPreFilledCount] = useState<number>(0);
   const [twitchConnected, setTwitchConnected] = useState<boolean>(false);
@@ -71,6 +73,29 @@ function App() {
       
       return newVolunteers;
     });
+  };
+
+  const handleSetupTributeCountChange = (count: number): void => {
+    setSetupTributeCount(count);
+    setMaxVolunteerSlots(prev => {
+      if (prev <= 0) {
+        return prev;
+      }
+      return count;
+    });
+    setVolunteers(prev => (prev.length > count ? prev.slice(0, count) : prev));
+  };
+
+  const mockVolunteers = (count: number): { added: number; slotLimit: number } => {
+    const slotLimit = maxVolunteerSlots > 0 ? maxVolunteerSlots : setupTributeCount;
+    const added = Math.min(count, slotLimit);
+
+    if (maxVolunteerSlots <= 0) {
+      setMaxVolunteerSlots(setupTributeCount);
+    }
+
+    setVolunteers(generateAllNames(added));
+    return { added, slotLimit };
   };
 
   const openVolunteerCollection = async (tributeCount: number): Promise<void> => {
@@ -278,6 +303,8 @@ function App() {
               setPreFilledNames([]);
               setPreFilledCount(0);
             }}
+            onTributeCountChange={handleSetupTributeCountChange}
+            setupTributeCount={setupTributeCount}
           />
         )}
         
@@ -325,6 +352,8 @@ function App() {
         onStartVolunteerCollection={openVolunteerCollection}
         onSubmitVolunteers={submitVolunteers}
         onCancelVolunteerCollection={cancelVolunteerCollection}
+        setupTributeCount={setupTributeCount}
+        onMockVolunteers={mockVolunteers}
       />
     </div>
   );

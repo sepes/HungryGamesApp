@@ -9,7 +9,7 @@ interface CustomTributeConfig {
   tributesPerDistrict: number;
 }
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdate, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdate, preFilledNames = [], preFilledCount = 0, onClearPreFilled, onTributeCountChange, setupTributeCount }) => {
   const [playerCount, setPlayerCount] = useState<number>(12);
   const [names, setNames] = useState<string[]>(Array(12).fill(''));
   const [customTributeConfig, setCustomTributeConfig] = useState<CustomTributeConfig | null>(null);
@@ -24,6 +24,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
         newNames[idx] = name;
       });
       setNames(newNames);
+      onTributeCountChange?.(preFilledCount);
       
       // Clear the pre-filled names after loading
       if (onClearPreFilled) {
@@ -47,9 +48,18 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
     setNames(newNames);
   }, [setPlayerCount, names, setNames]);
 
+  // Sync when tribute count changes externally
+  React.useEffect(() => {
+    if (setupTributeCount !== undefined && setupTributeCount !== playerCount) {
+      updatePlayerCountPreservingNames(setupTributeCount);
+      setCustomTributeConfig(null);
+    }
+  }, [setupTributeCount, playerCount, updatePlayerCountPreservingNames]);
+
   const handleCountChange = (count: number): void => {
     updatePlayerCountPreservingNames(count);
     setCustomTributeConfig(null); // Clear custom config when using preset buttons
+    onTributeCountChange?.(count);
   };
 
   // Handle custom tribute configuration from terminal
@@ -58,6 +68,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
       (window as any).updateTributeConfig = (config: CustomTributeConfig) => {
         setCustomTributeConfig(config);
         updatePlayerCountPreservingNames(config.tributes);
+        onTributeCountChange?.(config.tributes);
       };
     }
     return () => {
@@ -65,7 +76,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
         delete (window as any).updateTributeConfig;
       }
     };
-  }, [onTributeConfigUpdate, names, updatePlayerCountPreservingNames]); // Add 'names' dependency
+  }, [onTributeConfigUpdate, names, updatePlayerCountPreservingNames, onTributeCountChange]);
 
   const handleNameChange = (index: number, value: string): void => {
     const newNames = [...names];

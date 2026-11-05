@@ -16,9 +16,10 @@ interface DebugTerminalProps {
   onShowVictory: () => void;
   showVictoryButton: boolean;
   enableTributeConfig?: boolean;
+  onMockVolunteers?: (count: number) => { added: number; slotLimit: number };
 }
 
-const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, onNext, onShowVictory: _onShowVictory, showVictoryButton: _showVictoryButton, enableTributeConfig }) => {
+const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, onNext, onShowVictory: _onShowVictory, showVictoryButton: _showVictoryButton, enableTributeConfig, onMockVolunteers }) => {
   const [output, setOutput] = useState<TerminalOutput[]>([
     { type: 'system', text: 'Debug Terminal initialized. Type "help" for available commands.' }
   ]);
@@ -304,6 +305,39 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
       handleTributesCommand(numericArgs, calculateOnly);
       return;
     }
+
+    if (cmd === 'mock') {
+      if (gamePhase !== 'setup') {
+        addOutput('error', 'Mock command is only available during setup phase.');
+        return;
+      }
+      if (!onMockVolunteers) {
+        addOutput('error', 'Mock volunteers is not available.');
+        return;
+      }
+      if (args.length !== 1) {
+        addOutput('error', 'Usage: mock [number-of-volunteers]');
+        return;
+      }
+      const count = parseInt(args[0]!, 10);
+      if (Number.isNaN(count) || count <= 0) {
+        addOutput('error', 'Number of volunteers must be a positive integer.');
+        return;
+      }
+      if (count > 1024) {
+        addOutput('error', 'Maximum number of volunteers is 1024.');
+        return;
+      }
+      const result = onMockVolunteers(count);
+      addOutput(
+        'system',
+        `Mocked ${result.added} volunteer${result.added === 1 ? '' : 's'} using random name generator (${result.added} / ${result.slotLimit} slots).`
+      );
+      if (count > result.slotLimit) {
+        addOutput('warning', `Requested ${count} volunteers but tribute count allows ${result.slotLimit}.`);
+      }
+      return;
+    }
     
     // Regular commands
     switch (cmd) {
@@ -325,6 +359,7 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         addOutput('system', formatHelpLine('', 'Use --dev flag for rapid testing (50ms delay)'));
         addOutput('system', formatHelpLine('stats', 'Show detailed player statistics'));
         addOutput('system', formatHelpLine('tributes, tbs', 'Configure custom tribute counts (use "tributes --help")'));
+        addOutput('system', formatHelpLine('mock [number]', 'Add mock volunteers (does not change tribute count)'));
         addOutput('system', formatHelpLine('askagain', 'Reset all "don\'t ask again" preferences'));
         addOutput('system', '');
         addOutput('system', 'More commands will be added in future updates. PS: there is no cheats to have your name win the game.');

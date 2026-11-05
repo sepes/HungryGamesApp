@@ -11,6 +11,8 @@ export interface SetupScreenProps {
   preFilledNames?: string[];
   preFilledCount?: number;
   onClearPreFilled?: () => void;
+  onTributeCountChange?: (count: number) => void;
+  setupTributeCount?: number;
 }
 
 // Volunteer Screen Props
@@ -65,6 +67,8 @@ export interface SettingsPanelProps {
   onStartVolunteerCollection?: (tributeCount: number) => Promise<void>;
   onSubmitVolunteers?: (volunteerList: string[]) => void;
   onCancelVolunteerCollection?: () => Promise<void>;
+  setupTributeCount?: number;
+  onMockVolunteers?: (count: number) => { added: number; slotLimit: number };
 }
 
 // Tributes Panel Props
