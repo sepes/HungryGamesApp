@@ -1,3 +1,2 @@
-build/
-node_modules
-.tsc.log
+node_modules/
+build

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './DebugTerminal/DebugTerminal.module.scss';
-import { GameEngine } from '../engine/gameEngine';
-import { EventGenerator } from '../engine/eventGenerator';
+import { GameLoop } from '../engine/gameLoop';
+import { WEAPONS } from '../engine/inventory';
 import type { GamePhase } from '../types/game.types';
 
 interface TerminalOutput {
@@ -10,7 +10,7 @@ interface TerminalOutput {
 }
 
 interface DebugTerminalProps {
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   gamePhase: GamePhase;
   onNext: () => void;
   onShowVictory: () => void;
@@ -92,7 +92,7 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         
         // Add extra delay for fallen phase to allow animation to complete
         if (gameEngine.phase === 'fallen') {
-          const fallenCount = gameEngine.fallenTributeData?.length || 0;
+          const fallenCount = gameEngine.deadThisRound?.length || 0;
           // Each tribute animation takes 4000ms (1s fade in + 2s display + 1s fade out)
           delay += fallenCount * 4000;
         }
@@ -309,13 +309,23 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     switch (cmd) {
       case 'help':
         addOutput('system', 'Available commands:');
-        addOutput('system', '  help     - Show this help message');
-        addOutput('system', '  clear    - Clear the terminal output');
-        addOutput('system', '  test     - Test color coding (info/warning/error)');
-        addOutput('system', '  autoplay [--dev] - Automatically advance game until winner is found');
-        addOutput('system', '             Use --dev flag for rapid testing (50ms delay)');
-        addOutput('system', '  stats    - Show detailed player statistics');
-        addOutput('system', '  tributes, tbs - Configure custom tribute counts (use "tributes --help")');
+        addOutput('system', '');
+        
+        // Format commands with aligned columns (30 char width for command/flags)
+        const formatHelpLine = (command: string, description: string) => {
+          const commandWidth = 30;
+          const paddedCommand = command.padEnd(commandWidth);
+          return `  ${paddedCommand}${description}`;
+        };
+        
+        addOutput('system', formatHelpLine('help', 'Show this help message'));
+        addOutput('system', formatHelpLine('clear', 'Clear the terminal output'));
+        addOutput('system', formatHelpLine('test', 'Test color coding (info/warning/error)'));
+        addOutput('system', formatHelpLine('autoplay [--dev]', 'Automatically advance game until winner is found'));
+        addOutput('system', formatHelpLine('', 'Use --dev flag for rapid testing (50ms delay)'));
+        addOutput('system', formatHelpLine('stats', 'Show detailed player statistics'));
+        addOutput('system', formatHelpLine('tributes, tbs', 'Configure custom tribute counts (use "tributes --help")'));
+        addOutput('system', formatHelpLine('askagain', 'Reset all "don\'t ask again" preferences'));
         addOutput('system', '');
         addOutput('system', 'More commands will be added in future updates. PS: there is no cheats to have your name win the game.');
         break;
@@ -373,10 +383,10 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         }, alivePlayers[0]) : null;
         const mostDangerous = alivePlayers.length > 0 ? alivePlayers.reduce((best, player) => {
           const currentScore = (player.kills || 0) + (player.inventory || []).filter(item => 
-            EventGenerator.WEAPONS.includes(item.name)
+            WEAPONS.includes(item.name)
           ).length;
           const bestScore = ((best?.kills) || 0) + ((best?.inventory) || []).filter(item => 
-            EventGenerator.WEAPONS.includes(item.name)
+            WEAPONS.includes(item.name)
           ).length;
           return currentScore > bestScore ? player : best;
         }, alivePlayers[0]) : null;
@@ -385,8 +395,23 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         addOutput('system', `Average Mental Health: ${alivePlayers.length > 0 ? Math.round(avgMentalHealth) : 0}/100`);
         addOutput('system', `Most Well-Equipped: ${mostEquipped ? mostEquipped.name : 'N/A'} (${mostEquipped ? (mostEquipped.inventory || []).length : 0} items)`);
         addOutput('system', `Most Dangerous: ${mostDangerous ? mostDangerous.name : 'N/A'} (${mostDangerous ? (mostDangerous.kills || 0) : 0} kills, ${mostDangerous ? (mostDangerous.inventory || []).filter(item => 
-          EventGenerator.WEAPONS.includes(item.name)
+          WEAPONS.includes(item.name)
         ).length : 0} weapons)`);
+        break;
+        
+      case 'askagain':
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const hadPreference = localStorage.getItem('skipResetConfirm') === 'true';
+          localStorage.removeItem('skipResetConfirm');
+          if (hadPreference) {
+            addOutput('info', 'All "don\'t ask again" preferences have been reset.');
+            addOutput('system', 'Confirmation dialogs will now appear again when resetting the game.');
+          } else {
+            addOutput('info', 'No "don\'t ask again" preferences were found. All confirmation dialogs are already enabled.');
+          }
+        } else {
+          addOutput('error', 'Unable to access localStorage. Preferences may not be saved.');
+        }
         break;
         
       case '':

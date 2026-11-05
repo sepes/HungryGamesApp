@@ -3,18 +3,17 @@ import SetupScreen from './components/SetupScreen';
 import SimulationScreen from './components/SimulationScreen';
 import WinnerScreen from './components/WinnerScreen';
 import SettingsPanel from './components/SettingsPanel';
-import VolunteerScreen from './components/VolunteerScreen';
 import TwitchSetup from './components/TwitchSetup';
-import { GameEngine } from './engine/gameEngine';
+import { GameLoop } from './engine/gameLoop';
 import { twitchIRC } from './services/twitchIRC';
-import type { Player, GamePhase, SimulationPhase, FallenTributeData, MajorEventConfig } from './types/game.types';
+import type { Player, GamePhase, SimulationPhase, FallenTributeData } from './types/game.types';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.scss';
 
 function App() {
   const [gamePhase, setGamePhase] = useState<GamePhase>('setup');
   const gamePhaseRef = useRef<GamePhase>('setup');
-  const [gameEngine, setGameEngine] = useState<GameEngine | null>(null);
+  const [gameEngine, setGameEngine] = useState<GameLoop | null>(null);
   const [currentEvents, setCurrentEvents] = useState<string[]>([]);
   const [currentPhase, setCurrentPhase] = useState<SimulationPhase>('cornucopia');
   const [winner, setWinner] = useState<Player | null>(null);
@@ -23,25 +22,20 @@ function App() {
   const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(false);
   const [tributeData, setTributeData] = useState<FallenTributeData[] | null>(null);
   
-  // State to track where TwitchSetup was opened from
-  const [twitchSetupContext, setTwitchSetupContext] = useState<'setup' | 'volunteer' | null>(null);
 
   // Chat integration state
   const [volunteers, setVolunteers] = useState<string[]>([]);
-  const [maxVolunteerSlots, setMaxVolunteerSlots] = useState<number>(24);
-  const maxVolunteerSlotsRef = useRef<number>(24);
+  const [maxVolunteerSlots, setMaxVolunteerSlots] = useState<number>(0);
   const [preFilledNames, setPreFilledNames] = useState<string[]>([]);
   const [preFilledCount, setPreFilledCount] = useState<number>(0);
-  const [showVolunteerModal, setShowVolunteerModal] = useState<boolean>(false);
-  const showVolunteerModalRef = useRef<boolean>(false);
   const [twitchConnected, setTwitchConnected] = useState<boolean>(false);
   const [twitchChannelName, setTwitchChannelName] = useState<string>('');
-  const [twitchConnectionType, setTwitchConnectionType] = useState<'irc' | 'oauth' | null>(null);
+  const [twitchConnectionType, setTwitchConnectionType] = useState<'irc' | null>(null);
   const [showTwitchSetup, setShowTwitchSetup] = useState<boolean>(false);
 
   // Chat integration handlers
   const addVolunteerFromChat = (username: string): void => {
-    if (showVolunteerModalRef.current && gamePhaseRef.current === 'setup') {
+    if (gamePhaseRef.current === 'setup') {
       addVolunteer(username);
     }
   };
@@ -51,26 +45,15 @@ function App() {
     gamePhaseRef.current = gamePhase;
   }, [gamePhase]);
 
-  useEffect(() => {
-    showVolunteerModalRef.current = showVolunteerModal;
-  }, [showVolunteerModal]);
-
-  useEffect(() => {
-    maxVolunteerSlotsRef.current = maxVolunteerSlots;
-  }, [maxVolunteerSlots]);
-
   const addVolunteer = (username: string): void => {
     setVolunteers(prev => {
-      const volunteerCap = maxVolunteerSlotsRef.current;
-      console.log('[addVolunteer] Current cap from ref:', volunteerCap);
-      
       // If already volunteered, move to end of list
       if (prev.includes(username)) {
         console.log('[addVolunteer] User re-volunteered, moving to tail:', username);
         const filtered = prev.filter(name => name !== username);
         
         // If list is already full, just move them to the end
-        if (prev.length >= volunteerCap) {
+        if (prev.length >= maxVolunteerSlots) {
           return [...filtered, username];
         }
         
@@ -78,7 +61,7 @@ function App() {
         return [...filtered, username];
       }
       
-      if (prev.length >= volunteerCap) {
+      if (prev.length >= maxVolunteerSlots) {
         console.log('[addVolunteer] Slots full, cannot add more');
         return prev;
       }
@@ -95,75 +78,62 @@ function App() {
   const openVolunteerCollection = async (tributeCount: number): Promise<void> => {
     console.log('[openVolunteerCollection] Setting max volunteer slots to:', tributeCount);
     setMaxVolunteerSlots(tributeCount);
-    maxVolunteerSlotsRef.current = tributeCount; // Critical: set ref synchronously before connect
     setVolunteers([]);
     
+    // If already connected, just start listening (listening is already active via onMessage handler)
+    if (twitchConnected && twitchIRC.isConnected()) {
+      console.log('[openVolunteerCollection] Already connected, starting volunteer collection');
+      return;
+    }
+    
+    // Only connect if not already connected
     const savedConnectionType = localStorage.getItem('twitchConnectionType');
     const savedChannelName = localStorage.getItem('twitchChannelName');
     
     if (savedConnectionType && savedChannelName) {
-      await connectToTwitch(savedChannelName, savedConnectionType as 'irc' | 'oauth');
-      setShowVolunteerModal(true);
+      await connectToTwitch(savedChannelName, savedConnectionType as 'irc');
     } else {
-      setTwitchSetupContext('volunteer');
       setShowTwitchSetup(true);
     }
   };
 
-  const handleTwitchSetupComplete = async (channelName: string, connectionType: 'irc' | 'oauth'): Promise<void> => {
+  const handleTwitchSetupComplete = async (channelName: string, connectionType: 'irc'): Promise<void> => {
     setShowTwitchSetup(false);
     await connectToTwitch(channelName, connectionType);
-    
-    // If opened from volunteer context, show volunteer collection modal
-    // If opened from setup, just stay on setup screen with connection ready
-    if (twitchSetupContext === 'volunteer') {
-      setShowVolunteerModal(true);
-    }
-    
-    setTwitchSetupContext(null);
   };
 
-  const handleConnectToTwitch = (): void => {
-    setTwitchSetupContext('setup');
-    setShowTwitchSetup(true);
-  };
 
-  const connectToTwitch = async (channelName: string, connectionType: 'irc' | 'oauth'): Promise<void> => {
+  const connectToTwitch = async (channelName: string, _connectionType: 'irc'): Promise<void> => {
     try {
-      if (connectionType === 'irc') {
-        const savedToken = localStorage.getItem('twitchOAuthToken');
-        
-        // Disconnect existing connection first to avoid duplicates
-        if (twitchIRC.isConnected()) {
-          console.log('[connectToTwitch] Disconnecting existing connection');
-          await twitchIRC.disconnect();
-        }
-        
-        console.log('[connectToTwitch] Establishing new connection to', channelName);
-        await twitchIRC.connect({
-          channelName,
-          oauthToken: savedToken || undefined,
-            onMessage: (username: string, message: string) => {
-            console.log('[IRC] Message from', username, ':', message);
-            const volunteerKeywords = ['i volunteer', 'I volunteer', 'I VOLUNTEER'];
-            const isVolunteer = volunteerKeywords.some(keyword => message.includes(keyword));
-            console.log('[IRC] Is volunteer message?', isVolunteer, 'Current phase:', gamePhaseRef.current, 'Show modal:', showVolunteerModalRef.current);
-            if (isVolunteer) {
-              addVolunteerFromChat(username);
-            }
-          },
-          onConnect: () => {
-            console.log('Connected to Twitch IRC');
-            setTwitchConnected(true);
-            setTwitchChannelName(channelName);
-            setTwitchConnectionType('irc');
-          },
-          onDisconnect: () => {
-            console.log('Disconnected from Twitch IRC');
-            setTwitchConnected(false);
-          }
-        });
+      // Disconnect existing connection first to avoid duplicates
+      if (twitchIRC.isConnected()) {
+        console.log('[connectToTwitch] Disconnecting existing connection');
+        await twitchIRC.disconnect();
       }
+      
+      console.log('[connectToTwitch] Establishing new connection to', channelName);
+      await twitchIRC.connect({
+        channelName,
+        onMessage: (username: string, message: string) => {
+          console.log('[IRC] Message from', username, ':', message);
+          const volunteerKeywords = ['i volunteer', 'I volunteer', 'I VOLUNTEER'];
+          const isVolunteer = volunteerKeywords.some(keyword => message.includes(keyword));
+          console.log('[IRC] Is volunteer message?', isVolunteer, 'Current phase:', gamePhaseRef.current);
+          if (isVolunteer) {
+            addVolunteerFromChat(username);
+          }
+        },
+        onConnect: () => {
+          console.log('Connected to Twitch IRC');
+          setTwitchConnected(true);
+          setTwitchChannelName(channelName);
+          setTwitchConnectionType('irc');
+        },
+        onDisconnect: () => {
+          console.log('Disconnected from Twitch IRC');
+          setTwitchConnected(false);
+        }
+      });
     } catch (error) {
       console.error('Failed to connect to Twitch:', error);
     }
@@ -174,7 +144,7 @@ function App() {
   };
 
   const handleDisconnectTwitch = async (): Promise<void> => {
-    if (twitchConnectionType === 'irc' && twitchIRC.isConnected()) {
+    if (twitchIRC.isConnected()) {
       await twitchIRC.disconnect();
     }
     setTwitchConnected(false);
@@ -182,44 +152,41 @@ function App() {
     setTwitchConnectionType(null);
     localStorage.removeItem('twitchConnectionType');
     localStorage.removeItem('twitchChannelName');
-    localStorage.removeItem('twitchOAuthToken');
   };
 
   const submitVolunteers = (volunteerList: string[]): void => {
-    // Set pre-filled names and close modal
+    // Set pre-filled names
     setPreFilledNames(volunteerList);
     setPreFilledCount(maxVolunteerSlots); // Remember the tribute count
-    setShowVolunteerModal(false);
     
-    // Disconnect IRC but keep connection info saved for easy reconnection
-    if (twitchConnectionType === 'irc' && twitchIRC.isConnected()) {
-      twitchIRC.disconnect();
-      // Don't set twitchConnected to false - keep showing as "connected" in UI
-      // so user can easily reconnect when clicking "Use Chat Volunteers" again
-    }
+    // Preserve IRC connection - do NOT disconnect, keep connection details in localStorage
+    // Connection details are already saved in localStorage, so we just keep the connection active
     
     // Clear volunteers after transferring (privacy)
     setVolunteers([]);
+    
+    // Close SettingsPanel
+    setShowSettingsPanel(false);
   };
 
   const startGame = (players: Player[]): void => {
-    const engine = new GameEngine(players);
+    const engine = new GameLoop(players);
     setGameEngine(engine);
     setGamePhase('simulation');
     
-    // Expose major event configuration to console
+    // Expose game configuration to console
     if (typeof window !== 'undefined') {
       window.HungryGames = {
-        majorEventConfig: engine.getMajorEventConfig(),
-        updateMajorEventConfig: (config: Partial<MajorEventConfig>) => engine.updateMajorEventConfig(config)
+        getConfig: () => engine.getConfig(),
+        setWinnerCount: (count: number) => engine.setWinnerCount(count)
       };
     }
     
-    // Generate first segment (Cornucopia)
+    // Generate first segment (Prologue)
     handleNext(engine);
   };
 
-  const handleNext = (engine: GameEngine | null = gameEngine): void => {
+  const handleNext = (engine: GameLoop | null = gameEngine): void => {
     if (!engine) return;
     const result = engine.nextSegment();
     setCurrentEvents(result.events);
@@ -254,15 +221,28 @@ function App() {
 
   const cancelVolunteerCollection = async (): Promise<void> => {
     setVolunteers([]);
-    setShowVolunteerModal(false);
-    
-    // Disconnect IRC but keep connection info saved
-    if (twitchConnectionType === 'irc' && twitchIRC.isConnected()) {
-      await twitchIRC.disconnect();
-      // Keep twitchConnected true so user can easily reconnect
-    }
+    setMaxVolunteerSlots(0); // Reset to 0 to indicate collection is not active
+    // Keep IRC connection active - don't disconnect
   };
 
+  // Auto-connect to Twitch on page load if saved connection info exists
+  const hasAutoConnected = useRef(false);
+  useEffect(() => {
+    // Prevent double-connection in React Strict Mode
+    if (hasAutoConnected.current) return;
+    
+    const savedConnectionType = localStorage.getItem('twitchConnectionType');
+    const savedChannelName = localStorage.getItem('twitchChannelName');
+    
+    if (savedConnectionType === 'irc' && savedChannelName) {
+      hasAutoConnected.current = true;
+      console.log('[App] Auto-connecting to saved Twitch channel:', savedChannelName);
+      connectToTwitch(savedChannelName, 'irc');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (twitchIRC.isConnected()) {
@@ -294,25 +274,10 @@ function App() {
           />
         )}
         
-        {!showTwitchSetup && showVolunteerModal && gamePhase === 'setup' && (
-          <VolunteerScreen 
-            volunteers={volunteers}
-            maxSlots={maxVolunteerSlots}
-            onStartGame={() => submitVolunteers(volunteers)}
-            onCancel={cancelVolunteerCollection}
-            channelName={twitchChannelName || 'Connecting...'}
-            isConnected={twitchConnected}
-          />
-        )}
-        
-        {!showTwitchSetup && !showVolunteerModal && gamePhase === 'setup' && (
+        {!showTwitchSetup && gamePhase === 'setup' && (
           <SetupScreen 
             onStart={startGame}
-            onOpenVolunteers={openVolunteerCollection}
             onTributeConfigUpdate={true}
-            seConnected={twitchConnected}
-            seChannelName={twitchChannelName}
-            onConnectToTwitch={handleConnectToTwitch}
             preFilledNames={preFilledNames}
             preFilledCount={preFilledCount}
             onClearPreFilled={() => {
@@ -360,6 +325,12 @@ function App() {
         twitchConnectionType={twitchConnectionType}
         onReconfigureTwitch={handleReconfigureTwitch}
         onDisconnectTwitch={handleDisconnectTwitch}
+        onTwitchSetupComplete={handleTwitchSetupComplete}
+        volunteers={volunteers}
+        maxVolunteerSlots={maxVolunteerSlots}
+        onStartVolunteerCollection={openVolunteerCollection}
+        onSubmitVolunteers={submitVolunteers}
+        onCancelVolunteerCollection={cancelVolunteerCollection}
       />
     </div>
   );

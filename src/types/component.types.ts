@@ -1,5 +1,5 @@
 import type { GamePhase, Player, FallenTributeData, SimulationPhase } from './game.types';
-import type { GameEngine } from '../engine/gameEngine';
+import type { GameLoop } from '../engine/gameLoop';
 
 // App Component Props
 export interface AppProps {}
@@ -7,11 +7,7 @@ export interface AppProps {}
 // Setup Screen Props
 export interface SetupScreenProps {
   onStart: (players: Player[]) => void;
-  onOpenVolunteers: (tributeCount: number) => Promise<void>;
-  seConnected?: boolean;
-  seChannelName?: string;
   onTributeConfigUpdate?: boolean;
-  onConnectToTwitch?: () => void;
   preFilledNames?: string[];
   preFilledCount?: number;
   onClearPreFilled?: () => void;
@@ -31,7 +27,7 @@ export interface VolunteerScreenProps {
 export interface SimulationScreenProps {
   events: string[];
   onNext: () => void;
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   currentPhase: SimulationPhase;
   showVictoryButton: boolean;
   onShowVictory: () => void;
@@ -43,7 +39,7 @@ export interface SimulationScreenProps {
 export interface WinnerScreenProps {
   winner: Player;
   eventHistory: string[][];
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   onReset: () => void;
 }
 
@@ -52,7 +48,7 @@ export interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onResetGame: () => void;
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   gamePhase: GamePhase;
   onNext: () => void;
   onShowVictory: () => void;
@@ -60,14 +56,20 @@ export interface SettingsPanelProps {
   enableTributeConfig?: boolean;
   twitchConnected?: boolean;
   twitchChannelName?: string;
-  twitchConnectionType?: 'irc' | 'oauth' | null;
+  twitchConnectionType?: 'irc' | null;
   onReconfigureTwitch?: () => void;
   onDisconnectTwitch?: () => Promise<void>;
+  onTwitchSetupComplete?: (channelName: string, connectionType: 'irc') => Promise<void>;
+  volunteers?: string[];
+  maxVolunteerSlots?: number;
+  onStartVolunteerCollection?: (tributeCount: number) => Promise<void>;
+  onSubmitVolunteers?: (volunteerList: string[]) => void;
+  onCancelVolunteerCollection?: () => Promise<void>;
 }
 
 // Tributes Panel Props
 export interface TributesPanelProps {
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   currentPhase: SimulationPhase;
 }
 
@@ -82,7 +84,7 @@ export interface HistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   eventHistory: string[][];
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
 }
 
 // Terminal Context Types

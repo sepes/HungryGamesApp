@@ -2,7 +2,6 @@ import tmi from 'tmi.js';
 
 export interface TwitchIRCConfig {
   channelName: string;
-  oauthToken?: string;
   onMessage?: (username: string, message: string) => void;
   onConnect?: () => void;
   onDisconnect?: () => void;
@@ -18,19 +17,10 @@ class TwitchIRCService {
   async connect(config: TwitchIRCConfig): Promise<void> {
     this.config = config;
 
-    const clientConfig: tmi.Options = {
+    // Connect anonymously to listen to chat
+    this.client = new tmi.Client({
       channels: [config.channelName]
-    };
-
-    // Use OAuth if provided, otherwise connect anonymously
-    if (config.oauthToken) {
-      clientConfig.identity = {
-        username: config.channelName,
-        password: `oauth:${config.oauthToken.replace('oauth:', '')}`
-      };
-    }
-
-    this.client = new tmi.Client(clientConfig);
+    });
 
     // Set up event handlers
     this.client.on('message', (_channel: string, tags: any, message: string, self: boolean) => {
@@ -83,7 +73,10 @@ class TwitchIRCService {
    * Check if connected
    */
   isConnected(): boolean {
-    return this.client !== null;
+    if (!this.client) return false;
+    // Check actual connection state - tmi.js readyState returns 'OPEN' when connected
+    const state = this.client.readyState();
+    return state === 'OPEN';
   }
 }
 

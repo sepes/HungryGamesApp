@@ -9,49 +9,10 @@ interface CustomTributeConfig {
   tributesPerDistrict: number;
 }
 
-interface DistrictLayout {
-  districtCount: number;
-  basePerDistrict: number;
-  remainder: number;
-  cutoff: number;
-}
-
-// Tributes are spread across the districts with the remainder handed out one each
-// to the first districts. Both directions of that mapping - which district a
-// tribute index lands in, and which index range a district covers - fall out of
-// these four numbers, so they get derived in one place.
-const getDistrictLayout = (playerCount: number, config: CustomTributeConfig | null): DistrictLayout => {
-  const districtCount = config ? config.districts : 12;
-  const basePerDistrict = config ? config.tributesPerDistrict : Math.floor(playerCount / 12);
-  const remainder = playerCount % districtCount;
-
-  return { districtCount, basePerDistrict, remainder, cutoff: remainder * (basePerDistrict + 1) };
-};
-
-const districtOfTribute = (tributeIndex: number, { basePerDistrict, remainder, cutoff }: DistrictLayout): number =>
-  tributeIndex < cutoff
-    ? Math.floor(tributeIndex / (basePerDistrict + 1)) + 1
-    : remainder + Math.floor((tributeIndex - cutoff) / basePerDistrict) + 1;
-
-const tributeRangeOfDistrict = (
-  districtIndex: number,
-  { basePerDistrict, remainder }: DistrictLayout
-): { startIndex: number; count: number } => {
-  const isPadded = districtIndex < remainder;
-
-  return {
-    count: isPadded ? basePerDistrict + 1 : basePerDistrict,
-    startIndex: isPadded
-      ? districtIndex * (basePerDistrict + 1)
-      : remainder * (basePerDistrict + 1) + (districtIndex - remainder) * basePerDistrict
-  };
-};
-
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName, onTributeConfigUpdate, onConnectToTwitch, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdate, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
   const [playerCount, setPlayerCount] = useState<number>(12);
   const [names, setNames] = useState<string[]>(Array(12).fill(''));
   const [customTributeConfig, setCustomTributeConfig] = useState<CustomTributeConfig | null>(null);
-  const districtLayout = getDistrictLayout(playerCount, customTributeConfig);
 
   // Load pre-filled names from volunteers when they exist
   React.useEffect(() => {
@@ -166,18 +127,6 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
 
   const [validationMessage, setValidationMessage] = useState('');
 
-  const handleUseVolunteers = () => {
-    if (!seConnected) {
-      // If not connected, trigger the connection flow
-      if (onConnectToTwitch) {
-        onConnectToTwitch();
-      }
-      return;
-    }
-    console.log('[SetupScreen] Opening volunteers with playerCount:', playerCount);
-    onOpenVolunteers(playerCount);
-  };
-
   const startGame = () => {
     // Validate names
     const filledNames = names.filter(n => n.trim() !== '');
@@ -196,16 +145,43 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
     setValidationMessage('');
 
     // Create players with proper district assignment
-    const players = names.map((name, i) => ({
-      id: `player-${i}`,
-      name: name.trim(),
-      district: districtOfTribute(i, districtLayout),
-      isAlive: true,
-      kills: 0,
-      items: [],
-      diedInPhase: null,
-      diedOnDay: null
-    }));
+    const players = names.map((name, i) => {
+      let district: number;
+      if (customTributeConfig) {
+        const numDistricts = customTributeConfig.districts;
+        const basePerDistrict = customTributeConfig.tributesPerDistrict;
+        const remainder = playerCount % numDistricts;
+        const cutoff = remainder * (basePerDistrict + 1);
+        
+        // Distribute remainders from first districts onwards
+        if (i < cutoff) {
+          district = Math.floor(i / (basePerDistrict + 1)) + 1;
+        } else {
+          district = remainder + Math.floor((i - cutoff) / basePerDistrict) + 1;
+        }
+      } else {
+        const basePerDistrict = Math.floor(playerCount / 12);
+        const remainder = playerCount % 12;
+        const cutoff = remainder * (basePerDistrict + 1);
+        
+        if (i < cutoff) {
+          district = Math.floor(i / (basePerDistrict + 1)) + 1;
+        } else {
+          district = remainder + Math.floor((i - cutoff) / basePerDistrict) + 1;
+        }
+      }
+      
+      return {
+        id: `player-${i}`,
+        name: name.trim(),
+        district: district,
+        isAlive: true,
+        kills: 0,
+        items: [],
+        diedInPhase: null,
+        diedOnDay: null
+      };
+    });
 
     onStart(players);
   };
@@ -285,9 +261,20 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
           
           <fieldset>
             <div className={styles.districtsContainer}>
-              {Array.from({ length: districtLayout.districtCount }, (_, districtIndex) => {
-                const { startIndex, count } = tributeRangeOfDistrict(districtIndex, districtLayout);
-                const districtTributes = names.slice(startIndex, startIndex + count);
+              {Array.from({ length: customTributeConfig ? customTributeConfig.districts : 12 }, (_, districtIndex) => {
+                const numDistricts = customTributeConfig ? customTributeConfig.districts : 12;
+                const basePerDistrict = customTributeConfig ? customTributeConfig.tributesPerDistrict : Math.floor(playerCount / 12);
+                
+                // Distribute remainders from first districts onwards
+                const remainder = playerCount % numDistricts;
+                const districtTributeCount = districtIndex < remainder ? basePerDistrict + 1 : basePerDistrict;
+                
+                // Calculate start index: districts before remainder get +1, after get base amount
+                const startIndex = districtIndex < remainder 
+                  ? districtIndex * (basePerDistrict + 1)
+                  : remainder * (basePerDistrict + 1) + (districtIndex - remainder) * basePerDistrict;
+                
+                const districtTributes = names.slice(startIndex, startIndex + districtTributeCount);
                 
                 return (
                   <div key={districtIndex} className={styles.districtGroup}>
@@ -311,7 +298,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
                               onChange={(e) => handleNameChange(globalIndex, e.target.value)}
                               placeholder="Enter name"
                               maxLength={30}
-                              aria-label={`Tribute ${tributeIndex + 1} from District ${districtIndex + 1}`}
+                              aria-label={`Tribute {tributeIndex + 1} from District {districtIndex + 1}`}
                               aria-describedby={globalIndex === 0 ? "name-instructions" : undefined}
                             />
                           </div>
@@ -337,37 +324,21 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
       
       <div className="right-panel">
         <div className={styles.actionControls}>
-          {seConnected && (
-            <>
-          <div className={styles.volunteerOption}>
-            <p className={styles.volunteerInfo}>
-              {seConnected ? (
-                <>Connected to: <strong>{seChannelName}</strong></>
-              ) : (
-                'Not connected to Twitch'
-              )}
-            </p>
-            <button 
-              onClick={handleUseVolunteers}
-              className="transition-button large"
-              aria-label={seConnected ? "Use chat volunteers to fill tribute slots" : "Connect to Twitch to use chat volunteers"}
-            >
-              Use Chat Volunteers
-            </button>
-            <p className={styles.volunteerHelp}>
-              {seConnected 
-                ? 'Let your viewers volunteer as tributes!' 
-                : 'Connect to Twitch to let viewers volunteer!'
-              }
-            </p>
-          </div>
-          <div className={styles.divider}>or</div>
-          </>
-        )}  
           <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
             Start the Games
           </button>
         </div>
+      </div>
+      
+      <div className={styles.footerLink}>
+        <a 
+          href="https://github.com/sepes/HungryGamesApp/issues" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className={styles.bugReportLink}
+        >
+          Report bugs and feature requests on sepes owlcat's GitHub
+        </a>
       </div>
     </div>
   );

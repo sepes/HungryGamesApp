@@ -2,10 +2,10 @@ import React from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import styles from './TributesPanel/TributesPanel.module.scss';
 import type { Player } from '../types/game.types';
-import { GameEngine } from '../engine/gameEngine';
+import { GameLoop } from '../engine/gameLoop';
 
 interface TributesPanelProps {
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   isOpen: boolean;
   onClose: () => void;
 }

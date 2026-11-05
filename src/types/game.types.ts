@@ -1,6 +1,6 @@
 // Game Phase Types
 export type GamePhase = 'setup' | 'simulation' | 'winner';
-export type SimulationPhase = 'cornucopia' | 'day' | 'night' | 'fallen';
+export type SimulationPhase = 'prologue' | 'cornucopia' | 'day' | 'night' | 'fallen' | 'victory' | 'epilogue';
 
 // Player/Tribute Types
 export interface Player {
@@ -53,7 +53,8 @@ export interface FallenTributeData {
 export interface GameSegmentResult {
   phase: SimulationPhase | 'winner';
   events: string[];
-  winner: Player | null;
+  winner: Player | null;  // First victor for compatibility
+  winners: Player[];      // All victors (future-proofed)
   alive: number;
   total: number;
   tributeData?: FallenTributeData[];

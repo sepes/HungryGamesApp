@@ -24,15 +24,15 @@ A text-based Hunger Games simulator built with React. Create custom tributes, wa
 
 ### Prerequisites
 
-- Node.js (version 22 or higher recommended)
+- Node.js (version >19 required)
 
 ### Installation
 
 ```bash
-npm install --ignore-scripts
+npm ci
 ```
 
-**Note:**`npm install --ignore-scripts` Prevents execution of lifecycle scripts during installation.
+**Note:** `npm ci` is short for `npm install --ignore-scripts`, which prevents execution of lifecycle scripts during installation. This protects against supply chain attacks. This is now the recommended installation method for npm packages.
 
 ### Running the Application
 
@@ -71,6 +71,37 @@ The optimized build will be created in the `build/` directory.
    - Review complete event history
    - See leaderboards and survival statistics
    - Reset to start a new simulation
+
+## Project Structure
+
+```
+src/
+├── components/          # React UI components
+│   ├── SetupScreen/     # Initial game setup interface
+│   ├── SimulationScreen/# Main simulation display
+│   ├── WinnerScreen/    # Victory and statistics screen
+│   ├── TributesPanel/   # Tribute status display
+│   ├── TributeList/     # List of tributes
+│   ├── HistoryModal/    # Event history viewer
+│   ├── SettingsPanel/   # Configuration panel
+│   └── DebugTerminal/   # Developer debug tools
+├── engine/              # Game logic (see Game Engine section)
+│   ├── eventGenerator.js
+│   ├── eventTemplates.js
+│   ├── gameEngine.js
+│   └── README.md        # Detailed engine documentation
+├── styles/              # Global SCSS
+│   ├── global.scss      # Global styles
+│   ├── _variables.scss  # SCSS variables
+│   ├── _theme.scss      # Theme configuration
+│   └── _mixins.scss     # Reusable SCSS mixins
+├── utils/               # Helper utilities
+│   ├── nameGenerator.js # Random name generation
+│   ├── terminalContext.js # Debug terminal context
+│   └── useFocusTrap.js  # Accessibility focus management
+├── App.jsx              # Main application component
+└── index.js             # Application entry point
+```
 
 ## Game Engine Architecture
 
@@ -192,7 +223,7 @@ Launches the test runner in interactive watch mode.
 
 ## License
 
-This project is private and not licensed for public use.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
