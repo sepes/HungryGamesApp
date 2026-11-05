@@ -33,13 +33,36 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [showVolunteerCollection, setShowVolunteerCollection] = useState<boolean>(false);
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [dontAskAgainReset, setDontAskAgainReset] = useState<boolean>(false);
+  const [dontAskAgainDisconnect, setDontAskAgainDisconnect] = useState<boolean>(false);
 
   const handleDisconnect = async (): Promise<void> => {
     if (onDisconnectTwitch) {
       await onDisconnectTwitch();
     }
     setShowDisconnectConfirm(false);
+    setDontAskAgainDisconnect(false);
     onClose();
+  };
+
+  const handleDisconnectClick = (): void => {
+    const skipConfirm = localStorage.getItem('skipTwitchDisconnectConfirm') === 'true';
+    if (skipConfirm) {
+      void handleDisconnect();
+    } else {
+      setShowDisconnectConfirm(true);
+    }
+  };
+
+  const handleDisconnectConfirm = (): void => {
+    if (dontAskAgainDisconnect) {
+      localStorage.setItem('skipTwitchDisconnectConfirm', 'true');
+    }
+    void handleDisconnect();
+  };
+
+  const handleDisconnectCancel = (): void => {
+    setShowDisconnectConfirm(false);
+    setDontAskAgainDisconnect(false);
   };
 
   const handleReconfigure = (): void => {
@@ -119,7 +142,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   </button>
                   {!showDisconnectConfirm ? (
                     <button 
-                      onClick={() => setShowDisconnectConfirm(true)} 
+                      onClick={handleDisconnectClick} 
                       className="danger-button small"
                       aria-label="Disconnect from Twitch"
                     >
@@ -128,16 +151,27 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   ) : (
                     <div className={styles.confirmRevoke}>
                       <p>Are you sure? This will disconnect from Twitch chat.</p>
+                      <div className={styles.checkboxContainer}>
+                        <label>
+                          <input 
+                            type="checkbox" 
+                            checked={dontAskAgainDisconnect}
+                            onChange={(e) => setDontAskAgainDisconnect(e.target.checked)}
+                            aria-label="Don't ask again when disconnecting from Twitch"
+                          />
+                          <span>Don't ask again</span>
+                        </label>
+                      </div>
                       <div className={styles.confirmButtons}>
                         <button 
-                          onClick={handleDisconnect} 
+                          onClick={handleDisconnectConfirm} 
                           className="danger-button small"
                           aria-label="Confirm disconnect"
                         >
                           Yes, Disconnect
                         </button>
                         <button 
-                          onClick={() => setShowDisconnectConfirm(false)} 
+                          onClick={handleDisconnectCancel} 
                           className="transition-button small"
                           aria-label="Cancel disconnect"
                         >

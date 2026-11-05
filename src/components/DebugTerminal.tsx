@@ -436,11 +436,13 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         
       case 'askagain':
         if (typeof window !== 'undefined' && window.localStorage) {
-          const hadPreference = localStorage.getItem('skipResetConfirm') === 'true';
+          const hadResetPreference = localStorage.getItem('skipResetConfirm') === 'true';
+          const hadDisconnectPreference = localStorage.getItem('skipTwitchDisconnectConfirm') === 'true';
           localStorage.removeItem('skipResetConfirm');
-          if (hadPreference) {
+          localStorage.removeItem('skipTwitchDisconnectConfirm');
+          if (hadResetPreference || hadDisconnectPreference) {
             addOutput('info', 'All "don\'t ask again" preferences have been reset.');
-            addOutput('system', 'Confirmation dialogs will now appear again when resetting the game.');
+            addOutput('system', 'Confirmation dialogs will now appear again when resetting the game or disconnecting from Twitch.');
           } else {
             addOutput('info', 'No "don\'t ask again" preferences were found. All confirmation dialogs are already enabled.');
           }
