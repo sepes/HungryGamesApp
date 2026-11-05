@@ -69,8 +69,6 @@ function App() {
       const newVolunteers = [...prev, username];
       console.log('[addVolunteer] Added volunteer. Total:', newVolunteers.length);
       
-      // Removed auto-start on full - user must click submit
-      
       return newVolunteers;
     });
   };
@@ -157,10 +155,7 @@ function App() {
   const submitVolunteers = (volunteerList: string[]): void => {
     // Set pre-filled names
     setPreFilledNames(volunteerList);
-    setPreFilledCount(maxVolunteerSlots); // Remember the tribute count
-    
-    // Preserve IRC connection - do NOT disconnect, keep connection details in localStorage
-    // Connection details are already saved in localStorage, so we just keep the connection active
+    setPreFilledCount(maxVolunteerSlots);
     
     // Clear volunteers after transferring (privacy)
     setVolunteers([]);
@@ -222,7 +217,6 @@ function App() {
   const cancelVolunteerCollection = async (): Promise<void> => {
     setVolunteers([]);
     setMaxVolunteerSlots(0); // Reset to 0 to indicate collection is not active
-    // Keep IRC connection active - don't disconnect
   };
 
   // Auto-connect to Twitch on page load if saved connection info exists
