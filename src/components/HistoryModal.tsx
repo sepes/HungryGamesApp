@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
+import EventText from './EventText';
 import styles from './HistoryModal/HistoryModal.module.scss';
 import type { HistoryModalProps } from '../types/component.types';
 
@@ -52,7 +53,9 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, eventHisto
               {eventHistory.map((segment, idx) => (
                 <div key={idx} className="history-segment">
                   {segment.map((event, i) => (
-                    <div key={i} className={styles.historyEvent} dangerouslySetInnerHTML={{ __html: event }} />
+                    <div key={i} className={styles.historyEvent}>
+                      <EventText text={event} />
+                    </div>
                   ))}
                   <hr className={styles.segmentDivider} />
                 </div>

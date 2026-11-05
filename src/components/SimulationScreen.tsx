@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import TributesPanel from './TributesPanel';
+import EventText from './EventText';
 import styles from './SimulationScreen/SimulationScreen.module.scss';
 import type { SimulationScreenProps } from '../types/component.types';
 
@@ -11,34 +12,50 @@ interface FallenAnimationState {
   isHurried: boolean;
 }
 
+// Per-tribute timings. Normal total is 4000ms per tribute, which the debug
+// terminal's autoplay delay assumes - keep the two in sync.
+const FADE_MS = 1000;
+const DISPLAY_MS = 2000;
+const FADE_MS_HURRIED = 500;
+const DISPLAY_MS_HURRIED = 1000;
+
+const IDLE_ANIMATION: FallenAnimationState = {
+  isPlaying: false,
+  currentIndex: 0,
+  isVisible: false,
+  isAnimating: false,
+  isHurried: false
+};
+
 const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gameEngine, currentPhase, showVictoryButton: showVictorButton, onShowVictory: onShowVictor, tributeData }) => {
   const [showTributesPanel, setShowTributesPanel] = useState<boolean>(false);
-  const [fallenAnimation, setFallenAnimation] = useState<FallenAnimationState>({
-    isPlaying: false,
-    currentIndex: 0,
-    isVisible: false,
-    isAnimating: false,
-    isHurried: false
-  });
+  const [fallenAnimation, setFallenAnimation] = useState<FallenAnimationState>(IDLE_ANIMATION);
+
+  // Every pending step of the animation chain, so all of them can be cancelled
+  // together on skip, phase change or unmount
+  const timersRef = useRef<number[]>([]);
+  // Read inside scheduled steps, so hurrying does not have to restart the effect
+  const isHurriedRef = useRef<boolean>(false);
+
+  const clearTimers = useCallback((): void => {
+    timersRef.current.forEach(id => window.clearTimeout(id));
+    timersRef.current = [];
+  }, []);
+
+  const scheduleStep = useCallback((step: () => void, delay: number): void => {
+    timersRef.current.push(window.setTimeout(step, delay));
+  }, []);
+
+  useEffect(() => {
+    isHurriedRef.current = fallenAnimation.isHurried;
+  }, [fallenAnimation.isHurried]);
 
   // Handle fallen cannon animation
   useEffect(() => {
     if (currentPhase === 'fallen' && tributeData && tributeData.length > 0) {
-      setFallenAnimation({
-        isPlaying: true,
-        currentIndex: 0,
-        isVisible: false,
-        isAnimating: false,
-        isHurried: false
-      });
+      setFallenAnimation({ ...IDLE_ANIMATION, isPlaying: true });
     } else {
-      setFallenAnimation({
-        isPlaying: false,
-        currentIndex: 0,
-        isVisible: false,
-        isAnimating: false,
-        isHurried: false
-      });
+      setFallenAnimation(IDLE_ANIMATION);
     }
   }, [currentPhase, tributeData]);
 
@@ -49,63 +66,56 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
     const currentTribute = tributeData[fallenAnimation.currentIndex];
     if (!currentTribute) return;
 
+    const isLastTribute = fallenAnimation.currentIndex >= tributeData.length - 1;
+    const fadeMs = (): number => (isHurriedRef.current ? FADE_MS_HURRIED : FADE_MS);
+    const displayMs = (): number => (isHurriedRef.current ? DISPLAY_MS_HURRIED : DISPLAY_MS);
+
     // Start fade in
     setFallenAnimation(prev => ({ ...prev, isAnimating: true, isVisible: true }));
- 
+
     // After fade in completes, wait, then fade out
-    const fadeInTimeout = setTimeout(() => {
+    scheduleStep(() => {
       setFallenAnimation(prev => ({ ...prev, isAnimating: false }));
-      
+
       // Wait for display time, then fade out
-      const displayTimeout = setTimeout(() => {
+      scheduleStep(() => {
         setFallenAnimation(prev => ({ ...prev, isAnimating: true, isVisible: false }));
-        
+
         // After fade out completes, move to next tribute or end
-        const fadeOutTimeout = setTimeout(() => {
-          if (fallenAnimation.currentIndex < tributeData.length - 1) {
+        scheduleStep(() => {
+          if (isLastTribute) {
+            // Animation complete
+            setFallenAnimation(IDLE_ANIMATION);
+          } else {
             setFallenAnimation(prev => ({
               ...prev,
               currentIndex: prev.currentIndex + 1,
               isAnimating: false
             }));
-          } else {
-            // Animation complete
-            setFallenAnimation({
-              isPlaying: false,
-              currentIndex: 0,
-              isVisible: false,
-              isAnimating: false,
-              isHurried: false
-            });
           }
-        }, fallenAnimation.isHurried ? 500 : 1000); // Fade out duration
+        }, fadeMs());
+      }, displayMs());
+    }, fadeMs());
 
-        return () => clearTimeout(fadeOutTimeout);
-      }, fallenAnimation.isHurried ? 1000 : 2000); // Display time
+    // Cancels every step still pending, whichever stage the chain is in
+    return clearTimers;
+  }, [fallenAnimation.currentIndex, fallenAnimation.isPlaying, tributeData, scheduleStep, clearTimers]);
 
-      return () => clearTimeout(displayTimeout);
-    }, fallenAnimation.isHurried ? 500 : 1000); // Fade in duration
-
-    return () => clearTimeout(fadeInTimeout);
-  }, [fallenAnimation.currentIndex, fallenAnimation.isPlaying, fallenAnimation.isHurried, tributeData]);
-  
   if (!gameEngine) return null;
   
   const alivePlayers = gameEngine.players.filter(p => p.isAlive);
   const totalPlayers = gameEngine.players.length;
 
   const hurryUpAnimation = () => {
+    // Picked up by the pending steps through isHurriedRef, so the current
+    // tribute keeps playing instead of restarting
+    isHurriedRef.current = true;
     setFallenAnimation(prev => ({ ...prev, isHurried: true }));
   };
 
   const skipFallenAnimation = () => {
-    setFallenAnimation({
-      isPlaying: false,
-      currentIndex: 0,
-      isVisible: false,
-      isAnimating: false,
-      isHurried: false
-    });
+    clearTimers();
+    setFallenAnimation(IDLE_ANIMATION);
   };
 
   const getPhaseDisplayName = (phase: string) => {
@@ -152,7 +162,8 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
       <div className="center-panel" style={{ position: 'relative' }}>
         <section className={styles.eventDisplay} aria-label="Game events" aria-live="polite">
           {events.map((event, index) => (
-            <div key={index} className={styles.eventLine} dangerouslySetInnerHTML={{ __html: event }}>
+            <div key={index} className={styles.eventLine}>
+              <EventText text={event} />
             </div>
           ))}
         </section>

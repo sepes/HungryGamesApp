@@ -1,29 +1,5 @@
 {
     "devCommand": "react-scripts start",
     "buildCommand": "npm run build",
-    "outputDirectory": "build",
-    "rewrites": [{
-        "source": "/api/(.*)",
-        "destination": "/api/$1"
-    }],
-    "headers": [{
-        "source": "/api/(.*)",
-        "headers": [{
-                "key": "Access-Control-Allow-Credentials",
-                "value": "true"
-            },
-            {
-                "key": "Access-Control-Allow-Origin",
-                "value": "*"
-            },
-            {
-                "key": "Access-Control-Allow-Methods",
-                "value": "GET,OPTIONS,POST,DELETE"
-            },
-            {
-                "key": "Access-Control-Allow-Headers",
-                "value": "Content-Type"
-            }
-        ]
-    }]
+    "outputDirectory": "build"
 }

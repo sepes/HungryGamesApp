@@ -1,4 +1,5 @@
 import { eventTemplates, weapons, items } from './eventTemplates';
+import { markPlayerName } from '../utils/eventText';
 import type { Player, Item, MajorEventConfig, FallenTributeData } from '../types/game.types';
 import { GameEngine } from './gameEngine';
 
@@ -19,6 +20,12 @@ export class EventGenerator {
         dayChance: 0.08, // 8% chance per day phase
         nightChance: 0.05 // 5% chance per night phase
     };
+
+    // Cornucopia mortality, as a fraction of the tributes present
+    static CORNUCOPIA_MIN_MORTALITY = 0.30;
+    static CORNUCOPIA_MAX_MORTALITY = 0.50;
+    static CORNUCOPIA_MEAN_MORTALITY = 0.40;
+    static CORNUCOPIA_MORTALITY_STDDEV = 0.05;
 
     // Item type constants
     static WEAPONS: string[] = ['sword', 'knife', 'spear', 'bow', 'axe', 'mace', 'trident', 'dagger', 'sickle', 'machete', 'club'];
@@ -333,31 +340,36 @@ export class EventGenerator {
         });
     }
 
-    // Generate bell curve death count for cornucopia: 8-12 deaths out of 24 tributes
+    // Generate bell curve death count for cornucopia: 30-50% of the tributes present
+    // (at the 24-tribute design point this is the original 8-12 range)
     generateCornucopiaDeathCount(totalTributes: number): number {
+        if (totalTributes < 2) return 0;
+
         // Box-Muller transform for normal distribution
         const u1 = Math.random();
         const u2 = Math.random();
         const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 
-        // Scale to 8-12 deaths range
-        // Mean at 10 deaths (middle of 8-12 range)
-        // Standard deviation to give good spread within the range
-        const mean = 10;
-        const stdDev = 1.2; // Smaller std dev for tighter distribution
+        // Mean at 40% mortality (middle of the 30-50% range)
+        // Std dev is 5% of the field, keeping the spread inside the range
+        const mean = totalTributes * EventGenerator.CORNUCOPIA_MEAN_MORTALITY;
+        const stdDev = totalTributes * EventGenerator.CORNUCOPIA_MORTALITY_STDDEV;
 
-        let deathCount = mean + (z0 * stdDev);
+        let deathCount = Math.round(mean + (z0 * stdDev));
 
-        // Clamp to 8-12 range
-        deathCount = Math.max(8, Math.min(12, Math.round(deathCount)));
+        // Clamp to the 30-50% band
+        const minDeaths = Math.round(totalTributes * EventGenerator.CORNUCOPIA_MIN_MORTALITY);
+        const maxDeaths = Math.round(totalTributes * EventGenerator.CORNUCOPIA_MAX_MORTALITY);
+        deathCount = Math.max(minDeaths, Math.min(maxDeaths, deathCount));
 
-        // Ensure we don't exceed the number of alive tributes
-        return Math.min(deathCount, totalTributes);
+        // Always leave at least one tribute standing, and never fewer than one death
+        return Math.max(1, Math.min(deathCount, totalTributes - 1));
     }
 
-    // Helper method to wrap player names in highlight spans
+    // Marks a player name for the renderer to highlight. Event lines are plain
+    // text - see src/utils/eventText.ts for why this is not an HTML span.
     highlightPlayerName(name: string): string {
-        return `<span class="player-highlight">${name}</span>`;
+        return markPlayerName(name);
     }
 
     generateCornucopiaEvents(): string[] {
@@ -760,12 +772,21 @@ export class EventGenerator {
         return this.selectVictim(player);
     }
 
+    // Counted from allPlayers rather than the cached alivePlayers list, which is
+    // only refreshed at segment boundaries. Deaths land mid-segment, so the cached
+    // list would let the guards below wave through kills that empty the arena.
+    aliveCount(): number {
+        return this.allPlayers.reduce((count, player) => count + (player.isAlive ? 1 : 0), 0);
+    }
+
+    // A segment never takes the field below two tributes: the game engine forces a
+    // final confrontation at two, which is what guarantees a victor
     canKill() {
-        return this.alivePlayers.length > 2;
+        return this.aliveCount() > 2;
     }
 
     canDie() {
-        return this.alivePlayers.length > 2;
+        return this.aliveCount() > 2;
     }
 
     canFormTeam(player: Player): boolean {
@@ -1439,8 +1460,11 @@ export class EventGenerator {
         }
         events.push("");
 
-        // Use existing target death system (same as cornucopia)
-        const targetDeaths = this.generateCornucopiaDeathCount(this.alivePlayers.length);
+        // Use existing target death system (same as cornucopia), unless this event
+        // is a non-lethal one
+        const targetDeaths = this.isLethalEvent(event)
+            ? this.generateCornucopiaDeathCount(this.alivePlayers.length)
+            : 0;
 
         // Select victims and generate death events
         const victims = this.selectEventVictims(targetDeaths);
@@ -1484,8 +1508,11 @@ export class EventGenerator {
         }
         events.push("");
 
-        // Use existing target death system (same as cornucopia)
-        const targetDeaths = this.generateCornucopiaDeathCount(this.alivePlayers.length);
+        // Use existing target death system (same as cornucopia), unless this event
+        // is a non-lethal one
+        const targetDeaths = this.isLethalEvent(event)
+            ? this.generateCornucopiaDeathCount(this.alivePlayers.length)
+            : 0;
 
         // Select victims and generate death events
         const victims = this.selectEventVictims(targetDeaths);
@@ -1502,6 +1529,12 @@ export class EventGenerator {
         this.updateAlivePlayers();
         this.checkAllianceEndgame();
         return events;
+    }
+
+    // An event with no death templates is non-lethal by design - announcement,
+    // survivor actions and stat effects only - so it selects no victims
+    isLethalEvent(event: any): boolean {
+        return Array.isArray(event.deathTemplates) && event.deathTemplates.length > 0;
     }
 
     selectEventVictims(count: number): Player[] {
@@ -1549,8 +1582,10 @@ export class EventGenerator {
             this.deadThisRound.push(victim);
         }
 
-        // Generate death text based on event type
-        const deathTemplates = event.deathTemplates || [
+        // Generate death text based on event type. An empty deathTemplates array is
+        // truthy, so this cannot be a plain `||` fallback - that is how an event with
+        // deathTemplates: [] used to pick an undefined template and throw
+        const deathTemplates = this.isLethalEvent(event) ? event.deathTemplates : [
             "{player} falls victim to the {event_name}",
             "{player} is overwhelmed by the {event_name}",
             "{player} cannot survive the {event_name}"

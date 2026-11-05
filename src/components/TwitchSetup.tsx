@@ -7,7 +7,7 @@ export interface TwitchSetupProps {
   onClose?: () => void;
 }
 
-type ConnectionMode = 'select' | 'irc' | 'oauth';
+type ConnectionMode = 'select' | 'irc';
 
 export default function TwitchSetup({ onComplete, isModal = false, onClose }: TwitchSetupProps) {
   const [mode, setMode] = useState<ConnectionMode>('irc');
