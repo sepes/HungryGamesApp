@@ -1,5 +1,6 @@
 import type { GamePhase, Player, FallenTributeData, SimulationPhase } from './game.types';
-import type { GameEngine } from '../engine/gameEngine';
+import type { GameLoop } from '../engine/gameLoop';
+import type { TwitchConnectionStatus } from '../services/twitchIRC';
 
 // App Component Props
 export interface AppProps {}
@@ -7,14 +8,12 @@ export interface AppProps {}
 // Setup Screen Props
 export interface SetupScreenProps {
   onStart: (players: Player[]) => void;
-  onOpenVolunteers: (tributeCount: number) => Promise<void>;
-  seConnected?: boolean;
-  seChannelName?: string;
   onTributeConfigUpdate?: boolean;
-  onConnectToTwitch?: () => void;
   preFilledNames?: string[];
   preFilledCount?: number;
   onClearPreFilled?: () => void;
+  onTributeCountChange?: (count: number) => void;
+  setupTributeCount?: number;
 }
 
 // Volunteer Screen Props
@@ -31,19 +30,22 @@ export interface VolunteerScreenProps {
 export interface SimulationScreenProps {
   events: string[];
   onNext: () => void;
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   currentPhase: SimulationPhase;
   showVictoryButton: boolean;
   onShowVictory: () => void;
   onResetGame: () => void;
   tributeData: FallenTributeData[] | null;
+  showDamage: boolean;
+  skipFallen: boolean;
+  onFallenAnimationComplete: () => void;
 }
 
 // Winner Screen Props
 export interface WinnerScreenProps {
   winner: Player;
   eventHistory: string[][];
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   onReset: () => void;
 }
 
@@ -52,22 +54,40 @@ export interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onResetGame: () => void;
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   gamePhase: GamePhase;
+  currentPhase: SimulationPhase;
+  stepCount: number;
+  isFallenAnimating: boolean;
   onNext: () => void;
   onShowVictory: () => void;
   showVictoryButton: boolean;
   enableTributeConfig?: boolean;
   twitchConnected?: boolean;
+  twitchStatus?: TwitchConnectionStatus;
+  twitchError?: string;
   twitchChannelName?: string;
-  twitchConnectionType?: 'irc' | 'oauth' | null;
+  twitchConnectionType?: 'irc' | null;
   onReconfigureTwitch?: () => void;
   onDisconnectTwitch?: () => Promise<void>;
+  onRetryTwitchConnection?: () => Promise<void>;
+  onTwitchSetupComplete?: (channelName: string, connectionType: 'irc') => Promise<void>;
+  volunteers?: string[];
+  maxVolunteerSlots?: number;
+  onStartVolunteerCollection?: (tributeCount: number) => Promise<void>;
+  onSubmitVolunteers?: (volunteerList: string[]) => void;
+  onCancelVolunteerCollection?: () => Promise<void>;
+  setupTributeCount?: number;
+  onMockVolunteers?: (count: number) => { added: number; slotLimit: number };
+  showDamage: boolean;
+  onToggleDamage: (mode?: 'on' | 'off') => boolean;
+  skipFallen: boolean;
+  onToggleSkipFallen: (mode?: 'on' | 'off') => boolean;
 }
 
 // Tributes Panel Props
 export interface TributesPanelProps {
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   currentPhase: SimulationPhase;
 }
 
@@ -82,7 +102,7 @@ export interface HistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   eventHistory: string[][];
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
 }
 
 // Terminal Context Types

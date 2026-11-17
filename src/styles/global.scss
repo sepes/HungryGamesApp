@@ -736,6 +736,7 @@ code {
     }
     .left-panel,
     .right-panel {
+        height: auto;
         max-height: 40vh;
     }
 }
@@ -790,6 +791,7 @@ code {
     }
     .left-panel,
     .right-panel {
+        height: auto;
         max-height: 30vh;
     }
 }

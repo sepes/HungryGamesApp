@@ -243,3 +243,24 @@
         right: 0;
     }
 }
+
+.footerLink {
+    grid-column: 1 / -1;
+    text-align: right;
+    padding: 1rem 0;
+    margin-top: auto;
+}
+
+.bugReportLink {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+    &:hover {
+        color: var(--accent-secondary);
+        text-decoration: underline;
+    }
+    &:visited {
+        color: var(--text-secondary);
+    }
+}

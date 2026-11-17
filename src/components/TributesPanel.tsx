@@ -1,17 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import styles from './TributesPanel/TributesPanel.module.scss';
 import type { Player } from '../types/game.types';
-import { GameEngine } from '../engine/gameEngine';
+import { GameLoop } from '../engine/gameLoop';
 
 interface TributesPanelProps {
-  gameEngine: GameEngine | null;
+  gameEngine: GameLoop | null;
   isOpen: boolean;
   onClose: () => void;
+  showDamage: boolean;
 }
 
-const TributesPanel: React.FC<TributesPanelProps> = ({ gameEngine, isOpen, onClose }) => {
+const TributesPanel: React.FC<TributesPanelProps> = ({ gameEngine, isOpen, onClose, showDamage }) => {
   const containerRef = useFocusTrap(isOpen);
+  const [showDamageFor, setShowDamageFor] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!gameEngine) return;
+    if (showDamage) {
+      setShowDamageFor(new Set(gameEngine.players.map(p => p.id)));
+    } else {
+      setShowDamageFor(new Set());
+    }
+  }, [showDamage, gameEngine]);
+
+  const toggleDamage = (playerId: string) => {
+    setShowDamageFor(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(playerId)) {
+        newSet.delete(playerId);
+      } else {
+        newSet.add(playerId);
+      }
+      return newSet;
+    });
+  };
 
   if (!gameEngine) return null;
 
@@ -67,8 +90,26 @@ const TributesPanel: React.FC<TributesPanelProps> = ({ gameEngine, isOpen, onClo
                         <div className={styles.tributeNameSection}>
                           <span className={styles.tributeName}>{player.name}</span>
                         </div>
-                        <div className={styles.tributeKills}>
-                          {player.kills} kills
+                        <div className={styles.tributeStats}>
+                          <div className={styles.tributeKills}>
+                            {player.kills} kills
+                          </div>
+                          {player.isAlive && (
+                            <>
+                              <button 
+                                onClick={() => toggleDamage(player.id)} 
+                                className={styles.damageToggleButton}
+                                aria-label={showDamageFor.has(player.id) ? "Hide damage" : "Show damage"}
+                              >
+                                dmg
+                              </button>
+                              {showDamageFor.has(player.id) && (
+                                <div className={styles.tributeDamage}>
+                                  {player.damage || 0}
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className={styles.tributeStatus}>
@@ -77,7 +118,7 @@ const TributesPanel: React.FC<TributesPanelProps> = ({ gameEngine, isOpen, onClo
                             <span className={styles.tributeStatusAlive}>Alive</span>
                             {player.inventory && player.inventory.length > 0 && (
                               <div className="tribute-inventory">
-                                <strong>Items:</strong> {player.inventory.map((item) => `${item.name} (${item.uses})`).join(', ')}
+                                <strong>Items:</strong> {player.inventory.map((item) => item.name).join(', ')}
                               </div>
                             )}
                             {player.alliances && player.alliances.length > 0 && (

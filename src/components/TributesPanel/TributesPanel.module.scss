@@ -95,8 +95,39 @@
     font-weight: bold;
 }
 
+.tributeStats {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .tributeKills {
     color: var(--text-secondary);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.damageToggleButton {
+    padding: 2px 6px;
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border: 1px outset var(--accent-primary);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+    text-shadow: var(--shadow-color);
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.damageToggleButton:hover {
+    filter: brightness(0.9);
+    border: 1px inset var(--accent-primary);
+}
+
+.tributeDamage {
+    color: var(--error-color);
     font-weight: bold;
     font-size: 14px;
 }

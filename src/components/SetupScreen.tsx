@@ -9,7 +9,7 @@ interface CustomTributeConfig {
   tributesPerDistrict: number;
 }
 
-const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, seConnected, seChannelName, onTributeConfigUpdate, onConnectToTwitch, preFilledNames = [], preFilledCount = 0, onClearPreFilled }) => {
+const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdate, preFilledNames = [], preFilledCount = 0, onClearPreFilled, onTributeCountChange, setupTributeCount }) => {
   const [playerCount, setPlayerCount] = useState<number>(12);
   const [names, setNames] = useState<string[]>(Array(12).fill(''));
   const [customTributeConfig, setCustomTributeConfig] = useState<CustomTributeConfig | null>(null);
@@ -24,13 +24,14 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
         newNames[idx] = name;
       });
       setNames(newNames);
+      onTributeCountChange?.(preFilledCount);
       
       // Clear the pre-filled names after loading
       if (onClearPreFilled) {
         onClearPreFilled();
       }
     }
-  }, [preFilledNames, preFilledCount, onClearPreFilled]);
+  }, [preFilledNames, preFilledCount, onClearPreFilled, onTributeCountChange]);
 
   // Shared function to update player count while preserving names
   const updatePlayerCountPreservingNames = useCallback((count: number): void => {
@@ -47,9 +48,18 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
     setNames(newNames);
   }, [setPlayerCount, names, setNames]);
 
+  // Sync when tribute count changes externally
+  React.useEffect(() => {
+    if (setupTributeCount !== undefined && setupTributeCount !== playerCount) {
+      updatePlayerCountPreservingNames(setupTributeCount);
+      setCustomTributeConfig(null);
+    }
+  }, [setupTributeCount, playerCount, updatePlayerCountPreservingNames]);
+
   const handleCountChange = (count: number): void => {
     updatePlayerCountPreservingNames(count);
     setCustomTributeConfig(null); // Clear custom config when using preset buttons
+    onTributeCountChange?.(count);
   };
 
   // Handle custom tribute configuration from terminal
@@ -58,6 +68,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
       (window as any).updateTributeConfig = (config: CustomTributeConfig) => {
         setCustomTributeConfig(config);
         updatePlayerCountPreservingNames(config.tributes);
+        onTributeCountChange?.(config.tributes);
       };
     }
     return () => {
@@ -65,7 +76,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
         delete (window as any).updateTributeConfig;
       }
     };
-  }, [onTributeConfigUpdate, names, updatePlayerCountPreservingNames]); // Add 'names' dependency
+  }, [onTributeConfigUpdate, names, updatePlayerCountPreservingNames, onTributeCountChange]);
 
   const handleNameChange = (index: number, value: string): void => {
     const newNames = [...names];
@@ -127,18 +138,6 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
 
   const [validationMessage, setValidationMessage] = useState('');
 
-  const handleUseVolunteers = () => {
-    if (!seConnected) {
-      // If not connected, trigger the connection flow
-      if (onConnectToTwitch) {
-        onConnectToTwitch();
-      }
-      return;
-    }
-    console.log('[SetupScreen] Opening volunteers with playerCount:', playerCount);
-    onOpenVolunteers(playerCount);
-  };
-
   const startGame = () => {
     // Validate names
     const filledNames = names.filter(n => n.trim() !== '');
@@ -189,7 +188,6 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
         district: district,
         isAlive: true,
         kills: 0,
-        items: [],
         diedInPhase: null,
         diedOnDay: null
       };
@@ -336,37 +334,21 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onOpenVolunteers, se
       
       <div className="right-panel">
         <div className={styles.actionControls}>
-          {seConnected && (
-            <>
-          <div className={styles.volunteerOption}>
-            <p className={styles.volunteerInfo}>
-              {seConnected ? (
-                <>Connected to: <strong>{seChannelName}</strong></>
-              ) : (
-                'Not connected to Twitch'
-              )}
-            </p>
-            <button 
-              onClick={handleUseVolunteers}
-              className="transition-button large"
-              aria-label={seConnected ? "Use chat volunteers to fill tribute slots" : "Connect to Twitch to use chat volunteers"}
-            >
-              Use Chat Volunteers
-            </button>
-            <p className={styles.volunteerHelp}>
-              {seConnected 
-                ? 'Let your viewers volunteer as tributes!' 
-                : 'Connect to Twitch to let viewers volunteer!'
-              }
-            </p>
-          </div>
-          <div className={styles.divider}>or</div>
-          </>
-        )}  
           <button onClick={startGame} className="transition-button large" aria-label="Start the Hunger Games simulation">
             Start the Games
           </button>
         </div>
+      </div>
+      
+      <div className={styles.footerLink}>
+        <a 
+          href="https://github.com/sepes/HungryGamesApp/issues" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className={styles.bugReportLink}
+        >
+          Report bugs and feature requests on sepes owlcat's GitHub
+        </a>
       </div>
     </div>
   );
