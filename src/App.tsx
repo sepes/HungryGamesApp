@@ -75,10 +75,6 @@ function App() {
     maxVolunteerSlotsRef.current = maxVolunteerSlots;
   }, [maxVolunteerSlots]);
 
-  useEffect(() => {
-    maxVolunteerSlotsRef.current = maxVolunteerSlots;
-  }, [maxVolunteerSlots]);
-
   const addVolunteer = (username: string): void => {
     setVolunteers(prev => {
       const slotCap = maxVolunteerSlotsRef.current;
@@ -131,7 +127,6 @@ function App() {
   const openVolunteerCollection = async (tributeCount: number): Promise<void> => {
     maxVolunteerSlotsRef.current = tributeCount;
     setMaxVolunteerSlots(tributeCount);
-    maxVolunteerSlotsRef.current = tributeCount; // Critical: set ref synchronously before connect
     setVolunteers([]);
 
     if (twitchConnected && twitchIRC.isConnected()) {
