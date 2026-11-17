@@ -1,46 +1,65 @@
 # Hunger Games Engine
 
-Complete rewrite of the game engine with arena generation, terrain-restricted actions, and weighted decay RNG.
+Damage-based simulation (0–100, death when **damage &gt; 100**), uniform random template choice, optional weapon/tool **gates** only.
+
+## Data Source
+
+All narrative content sourced from `action_templates.xlsx`:
+- **Actions.csv** → `actions.ts` actionPool
+- **Prologue.csv** → `arena.ts` generatePrologue()
+- **MajorEvents.csv** → documented in `majorEvents.md` (not yet implemented)
+- **Lists.csv** → reference data for valid types/phases/terrains/weapons
 
 ## Architecture
 
 ### 1. arena.ts
 Arena generator that creates static terrain at game start:
-- **Terrain types**: Forest (Oak/Pine/Rainforest/Mixed), Rivers, Lake (with Islands), Mountain, Desert, Plains, Hills
-- **Generation**: Probabilistic terrain selection based on configured percentages
-- **Prologue**: Generates arena description text (structure only, templates added later)
+- **Terrain types**: Forest, River, Lake, Islands, Mountain, Desert, Plains, Hills, No Terrain (`no_terrain` fallback when none roll)
+- **Generation**: Probabilistic terrain selection based on configured percentages (Forest 85%, River 75%, Lake 50%, etc.)
+- **Prologue**: Generates arena description from Prologue.csv templates
+  - Shows terrains present in the arena with their descriptions
+  - Displays `[TODO: terrain description]` for terrains without CSV text yet
 
 ### 2. actions.ts
-Action definitions with terrain requirements:
-- **Action structure**: id, type (solo/versus/group), phase, terrainRequired, deathChance, templates
-- **Terrain validation**: Actions only available if arena has ALL required terrains
+Action definitions from Actions.csv:
+- **Source**: Generated from `action_templates.xlsx - Actions.csv` (integer damage 0–100)
+- **Action structure**: id, type (solo/versus/group), phase, terrainRequired, **damageDelta**, **templates**, optional **requiredItem** / **giveItem**
+- **Terrain validation**: Actions are available if the arena has ANY of the listed terrains (OR logic, e.g. `river, lake` requires river or lake)
 - **Template placeholders**: {player}, {killer}, {victim}, {player1-3}, {killer1-3}, {victim1-3}
-- **Major events**: Can replace full Day/Night loop with dayTemplates and nightTemplates
+- **Cannon sounds**: Random cannon template shown after deaths (templates defined in actions.ts)
+- **Weapon/tool gates**: CSV "weapon/tool" column → `requiredItem`
+- **Split actions**: Same id with different damage values becomes separate actions (e.g. `climb_tree_d0`, `climb_tree_d2`)
 
-### 3. actionResolver.ts
-Weighted decay RNG system:
-- **Weight decay**: After use, action weight *= 0.3 (70% reduction)
-- **Daily reset**: All weights reset to 1.0 after each day cycle (Fallen phase)
-- **Selection**: Weighted random from terrain-valid actions
-- **Participant assignment**: Resolves solo/versus/group actions with appropriate players
+### 3. templateEngine.ts (replaces old actionResolver.ts)
+- **Selection**: Uniform random among terrain-valid actions (with beat retry if participants or gates fail)
+- **Damage**: Same **damageDelta** applied to every target in the beat; stored damage clamped to 0–100
+- **Death threshold**: Death at damage >= 100
+- **Death order**: Higher overflow dies first
+- **Alliances**: Versus never picks allied pairs; group never picks a set that contains an allied pair; alliances clear when no outsiders remain (see `allianceRules.ts`)
+- **Item acquisition**: Actions with `giveItem` field grant items to participants (solo/group) or killer (versus)
 
-### 4. inventory.ts
+### 4. allianceRules.ts
+Alliance management and dissolution:
+- **Symmetric alliances**: Both players must list each other's ID
+- **Targeting prevention**: Versus/group actions skip allied pairs
+- **Auto-dissolution**: When everyone alive is in one alliance component, alliances clear
+
+### 5. inventory.ts
 Inventory management system:
-- **Item categories**: Weapons (permanent), Tools (permanent), Consumables (depletable)
-- **Capacity limits**: Max 2 weapons, 1 tool without backpack, unlimited with backpack
-- **Stat effects**: Items affect kill/survival probabilities
-- **Looting**: Automatic looting on kills (respects capacity)
+- **Gating only**: Tracks items carried by each tribute (`hasItem`, `addItemToInventory`)
+- **Acquisition**: Items granted via `giveItem` field in actions and checked via `requiredItem`
 
-### 5. gameLoop.ts
+### 6. gameLoop.ts
 Main game controller (replaces old gameEngine.ts):
 - **Phase cycle**: Prologue → Cornucopia → Day → Night → Fallen → (loop) → Victory → Epilogue
 - **Victory condition**: Immediate check after any death, configurable winnerCount (default: 1)
 - **2-player fix**: Removed guards that prevented kills when only 2 players remain
 - **Frontend compatibility**: Same interface as old GameEngine
+- **Cornucopia / day / night**: Several **damage beats** per segment (proto counts in code)
 
-### 6. types.ts
+### 7. types.ts
 Engine-specific type definitions:
-- Arena, TerrainType, Action, MajorEvent, ResolvedAction, GameConfig
+- Arena, TerrainType, Action, MajorEvent, GameConfig
 
 ## Key Features
 
@@ -49,15 +68,11 @@ Engine-specific type definitions:
 - **Terrain restrictions**: Actions require specific terrain combinations
 - **Prologue**: Arena description shown before Cornucopia
 
-### Weighted Decay RNG
-- **Variety**: Prevents action repetition through weight decay
-- **Recovery**: Full weight reset after each day cycle
-- **Terrain-aware**: Only selects actions valid for current arena
+### Template RNG
+- **Uniform**: No weights; tune odds by adding/removing template rows
 
 ### Inventory System
-- **Simplified uses**: Only consumables deplete (medicine, matches, food, water)
-- **Capacity management**: Backpack expands tool capacity
-- **Stat integration**: Items affect combat and survival probabilities
+- **Template-driven**: Items (`knife`, `medkit`, etc.) are acquired from actions with `giveItem` and gate actions with `requiredItem`
 
 ### Victory System
 - **Immediate detection**: Game ends as soon as winnerCount players remain
@@ -97,12 +112,33 @@ window.HungryGames = {
 2. **Cornucopia** - Initial bloodbath (once after prologue)
 3. **Day** - Exploration, encounters, survival
 4. **Night** - Rest, ambush, exposure dangers
-5. **Fallen** - Announce deaths, reset action weights
+5. **Fallen** - Announce deaths from the preceding day/night
 6. **Victory** - Triggered when winnerCount or fewer players remain
 7. **Epilogue** - Final narrative (after victory)
 
+## Simulation Test
+
+`gameSimulation.test.ts` plays many full games headlessly and checks engine invariants. Run it after regenerating `actions.ts` or changing engine logic.
+
+```bash
+CI=true npx react-scripts test src/engine/gameSimulation.test.ts --watchAll=false
+
+# More games / different tribute count
+SIM_GAMES=1000 SIM_TRIBUTES=24 CI=true npx react-scripts test src/engine/gameSimulation.test.ts --watchAll=false
+```
+
+It fails when:
+- A game does not reach victory within 1000 segments
+- A game ends with anything other than exactly one survivor
+- Victory is returned while more than one tribute was alive (the final phase prints would be lost)
+- A living tribute has damage outside 0-99
+- A tribute alive at the start of a day/night phase is not named in that phase's prints
+
+It also logs a summary: segments per game and the number of `[TODO: No viable template]` lines (missing templates).
+
 ## Notes
 
-- **No templates generated**: All template structures are placeholders. Actual content added separately.
-- **Terrain requirements**: Actions use AND logic - arena must have ALL listed terrains.
-- **Weight reset**: Happens after Fallen phase, before next Day phase.
+- **All templates from CSV**: No generated content; everything comes from `action_templates.xlsx`
+- **Phase "any"**: Means day or night only. It never applies to special phases like cornucopia or major events
+- **Terrain requirements**: Actions use OR logic - arena needs at least one of the listed terrains (e.g. "river, lake" requires river or lake)
+- **Regenerating actions.ts**: When CSV changes, re-run the Python script that parses Actions.csv and outputs TypeScript

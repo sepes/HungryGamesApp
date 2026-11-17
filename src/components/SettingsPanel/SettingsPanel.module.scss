@@ -102,13 +102,36 @@
 }
 
 .statusConnected {
-    color: #4caf50;
+    color: #66bb6a;
     font-weight: 600;
     margin: 0;
 }
 
+.statusConnecting {
+    color: #ffca28;
+    font-weight: 600;
+    margin: 0;
+}
+
+.statusError {
+    color: #ff7b7b;
+    font-weight: 600;
+    margin: 0;
+}
+
+.statusErrorDetail {
+    color: #ff9e9e;
+    background: var(--error-background);
+    border: 1px solid #ff7b7b;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
 .statusDisconnected {
-    color: #f44336;
+    color: #ff7b7b;
     font-weight: 600;
     margin-bottom: 1rem;
 }

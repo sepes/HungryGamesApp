@@ -73,7 +73,7 @@
     padding: 20px;
     border: none;
     border-radius: 0;
-    font-family: 'Courier New', monospace;
+    font-family: $font-family-print;
     font-size: 14px;
     line-height: 1.5;
 }
@@ -86,7 +86,7 @@
     padding: 20px;
     border: 2px solid var(--accent-secondary);
     border-radius: 8px;
-    font-family: 'Courier New', monospace;
+    font-family: $font-family-print;
     font-size: 14px;
     line-height: 1.5;
 }

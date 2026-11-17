@@ -72,24 +72,6 @@
     font-weight: bold;
 }
 
-.finalMessage {
-    margin: 30px 0;
-    padding: 25px;
-    background: var(--bg-tertiary);
-    border-radius: 10px;
-    font-size: 16px;
-    line-height: 1.6;
-    border: 3px solid var(--accent-secondary);
-    color: var(--text-secondary);
-}
-
-.finalMessage h3 {
-    margin: 0 0 15px 0;
-    color: var(--accent-secondary);
-    font-size: 20px;
-    text-shadow: var(--shadow-color);
-}
-
 .actionButtons {
     margin: 30px 0;
     display: flex;

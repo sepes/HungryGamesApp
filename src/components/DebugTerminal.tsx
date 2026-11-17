@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './DebugTerminal/DebugTerminal.module.scss';
 import { GameLoop } from '../engine/gameLoop';
-import { WEAPONS } from '../engine/inventory';
-import type { GamePhase } from '../types/game.types';
+import type { GamePhase, SimulationPhase } from '../types/game.types';
 
 interface TerminalOutput {
   type: 'system' | 'error' | 'success' | 'info' | 'command' | 'warning';
@@ -12,23 +11,42 @@ interface TerminalOutput {
 interface DebugTerminalProps {
   gameEngine: GameLoop | null;
   gamePhase: GamePhase;
+  currentPhase: SimulationPhase;
+  stepCount: number;
+  isFallenAnimating: boolean;
   onNext: () => void;
   onShowVictory: () => void;
   showVictoryButton: boolean;
   enableTributeConfig?: boolean;
   onMockVolunteers?: (count: number) => { added: number; slotLimit: number };
+  onToggleDamage: (mode?: 'on' | 'off') => boolean;
+  skipFallen: boolean;
+  onToggleSkipFallen: (mode?: 'on' | 'off') => boolean;
 }
 
-const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, onNext, onShowVictory: _onShowVictory, showVictoryButton: _showVictoryButton, enableTributeConfig, onMockVolunteers }) => {
+const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, currentPhase, stepCount, isFallenAnimating, onNext, onShowVictory: _onShowVictory, showVictoryButton, enableTributeConfig, onMockVolunteers, onToggleDamage, skipFallen, onToggleSkipFallen }) => {
   const [output, setOutput] = useState<TerminalOutput[]>([
     { type: 'system', text: 'Debug Terminal initialized. Type "help" for available commands.' }
   ]);
   const [input, setInput] = useState<string>('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
-  const [isAutoplaying, setIsAutoplaying] = useState<boolean>(false);
+  const [autoplayMode, setAutoplayMode] = useState<'off' | 'normal' | 'dev'>('off');
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const onNextRef = useRef(onNext);
+  onNextRef.current = onNext;
+  const onToggleSkipFallenRef = useRef(onToggleSkipFallen);
+  onToggleSkipFallenRef.current = onToggleSkipFallen;
+  // skipfallen value to restore when autoplay ends; null when there is nothing to restore
+  const skipFallenBeforeAutoplayRef = useRef<boolean | null>(null);
+
+  const restoreSkipFallen = () => {
+    if (skipFallenBeforeAutoplayRef.current === false) {
+      onToggleSkipFallenRef.current('off');
+    }
+    skipFallenBeforeAutoplayRef.current = null;
+  };
 
   // Auto-scroll to bottom when new output is added
   useEffect(() => {
@@ -48,66 +66,102 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
     setOutput(prev => [...prev, { type, text }]);
   };
 
-  const autoplayGame = async (devMode = false) => {
-    if (gamePhase !== 'simulation') {
+  useEffect(() => {
+    if (autoplayMode === 'off') {
+      restoreSkipFallen();
+    }
+  }, [autoplayMode]);
+
+  useEffect(() => () => restoreSkipFallen(), []);
+
+  // Drive autoplay reactively so phase changes, manual clicks, skipfallen, and resets stay in sync
+  useEffect(() => {
+    if (autoplayMode === 'off') return;
+
+    if (!gameEngine || gamePhase !== 'simulation') {
+      setAutoplayMode('off');
+      return;
+    }
+
+    if (gameEngine.gameOver || showVictoryButton) {
+      setAutoplayMode('off');
+      addOutput('info', gameEngine.winner ? 'Autoplay complete! Winner found.' : 'Autoplay complete! Game ended.');
+      return;
+    }
+
+    if (autoplayMode === 'normal' && currentPhase === 'fallen' && isFallenAnimating && !skipFallen) {
+      return;
+    }
+
+    const delay = autoplayMode === 'dev' ? 50 : 333;
+
+    const timer = setTimeout(() => {
+      onNextRef.current();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [autoplayMode, gameEngine, gamePhase, showVictoryButton, currentPhase, stepCount, isFallenAnimating, skipFallen]);
+
+  const handleAutoplayCommand = (args: string[]) => {
+    const validFlags = new Set(['--dev', '-on', '-off', '--stop', 'stop']);
+    const invalidArg = args.find(arg => !validFlags.has(arg.toLowerCase()));
+    const normalizedArgs = args.map(arg => arg.toLowerCase());
+    const wantsStop = normalizedArgs.some(arg => arg === '-off' || arg === '--stop' || arg === 'stop');
+    const wantsDev = normalizedArgs.includes('--dev');
+    const wantsOn = normalizedArgs.includes('-on');
+
+    if (invalidArg || (wantsStop && (wantsDev || wantsOn)) || args.length > 2) {
+      addOutput('error', 'Usage: autoplay [--dev | -off]');
+      return;
+    }
+
+    if (wantsStop) {
+      if (autoplayMode === 'off') {
+        addOutput('info', 'Autoplay is not currently running.');
+      } else {
+        setAutoplayMode('off');
+        addOutput('info', 'Autoplay stopped.');
+      }
+      return;
+    }
+
+    if (autoplayMode !== 'off') {
+      if (wantsDev && autoplayMode === 'normal') {
+        setAutoplayMode('dev');
+        addOutput('info', 'Switched autoplay to DEV MODE (fast forward).');
+        return;
+      }
+      if (!wantsDev && !wantsOn) {
+        setAutoplayMode('off');
+        addOutput('info', 'Autoplay stopped.');
+        return;
+      }
+      addOutput('info', 'Autoplay is already running. Use "autoplay -off" to stop.');
+      return;
+    }
+
+    if (gamePhase !== 'simulation' || !gameEngine) {
       addOutput('error', 'Autoplay is only available during simulation phase.');
       return;
     }
 
-    if (isAutoplaying) {
-      addOutput('error', 'Autoplay is already running.');
+    if (gameEngine.gameOver || showVictoryButton) {
+      addOutput('info', 'Game is already over! Winner has already been found.');
       return;
     }
 
-    setIsAutoplaying(true);
-    if (devMode) {
+    skipFallenBeforeAutoplayRef.current = skipFallen;
+    if (!skipFallen) {
+      onToggleSkipFallen('on');
+    }
+
+    const nextMode = wantsDev ? 'dev' : 'normal';
+    setAutoplayMode(nextMode);
+    if (wantsDev) {
       addOutput('info', 'Starting autoplay (DEV MODE - fast forward)... Game will advance rapidly until a winner is found.');
     } else {
       addOutput('info', 'Starting autoplay... Game will advance automatically until a winner is found.');
     }
-    
-    const autoplayStep = () => {
-      // Check if game engine exists and phase is valid
-      if (!gameEngine || gamePhase !== 'simulation') {
-        setIsAutoplaying(false);
-        return;
-      }
-      
-      // Check if game is already over (game engine detected winner at start of phase)
-      if (gameEngine.gameOver) {
-        setIsAutoplaying(false);
-        addOutput('info', 'Autoplay complete! Winner found.');
-        return;
-      }
-      
-      // Calculate delay before advancing
-      const alivePlayers = gameEngine.players.filter(p => p.isAlive);
-      let delay: number;
-      
-      if (devMode) {
-        // Dev mode: minimal delay for rapid testing
-        delay = 50;
-      } else {
-        // Normal mode: Calculate dynamic delay: 5000ms base + 3000ms per alive player
-        delay = 5000 + (3000 * alivePlayers.length);
-        
-        // Add extra delay for fallen phase to allow animation to complete
-        if (gameEngine.phase === 'fallen') {
-          const fallenCount = gameEngine.deadThisRound?.length || 0;
-          // Each tribute animation takes 4000ms (1s fade in + 2s display + 1s fade out)
-          delay += fallenCount * 4000;
-        }
-      }
-      
-      // Advance the game
-      onNext();
-      
-      // Schedule next step with calculated delay
-      setTimeout(autoplayStep, delay);
-    };
-    
-    // Start the autoplay loop
-    autoplayStep();
   };
 
   const handleTributesCommand = (args: string[], calculateOnly = false) => {
@@ -355,11 +409,13 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         addOutput('system', formatHelpLine('help', 'Show this help message'));
         addOutput('system', formatHelpLine('clear', 'Clear the terminal output'));
         addOutput('system', formatHelpLine('test', 'Test color coding (info/warning/error)'));
-        addOutput('system', formatHelpLine('autoplay [--dev]', 'Automatically advance game until winner is found'));
+        addOutput('system', formatHelpLine('autoplay [--dev|-off]', 'Automatically advance game until winner is found'));
         addOutput('system', formatHelpLine('', 'Use --dev flag for rapid testing (50ms delay)'));
         addOutput('system', formatHelpLine('stats', 'Show detailed player statistics'));
         addOutput('system', formatHelpLine('tributes, tbs', 'Configure custom tribute counts (use "tributes --help")'));
         addOutput('system', formatHelpLine('mock [number]', 'Add mock volunteers (does not change tribute count)'));
+        addOutput('system', formatHelpLine('dmg [-on|-off]', 'Toggle damage visibility in tributes panel'));
+        addOutput('system', formatHelpLine('skipfallen [-on|-off]', 'Toggle skipping fallen tribute animations'));
         addOutput('system', formatHelpLine('askagain', 'Reset all "don\'t ask again" preferences'));
         addOutput('system', '');
         addOutput('system', 'More commands will be added in future updates. PS: there is no cheats to have your name win the game.');
@@ -376,8 +432,7 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         break;
         
       case 'autoplay':
-        // Check for --dev flag
-        autoplayGame(args.includes('--dev'));
+        handleAutoplayCommand(args);
         break;
         
       case 'stats':
@@ -392,17 +447,19 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         // Per-player stats
         gameEngine.players.forEach(player => {
           const status = player.isAlive ? 'ALIVE' : 'DEAD';
-          const inventory = player.inventory ? player.inventory.map(item => `${item.name}(${item.uses})`).join(', ') : 'None';
-          const alliances = player.alliances ? player.alliances.map(allyId => {
-            const ally = gameEngine.players.find(p => p.id === allyId);
-            return ally ? ally.name : 'Unknown';
-          }).join(', ') : 'None';
+          const inventory = player.inventory && player.inventory.length > 0
+            ? player.inventory.map(item => item.name).join(', ')
+            : 'None';
+          const alliances = player.alliances && player.alliances.length > 0
+            ? player.alliances.map(allyId => {
+                const ally = gameEngine.players.find(p => p.id === allyId);
+                return ally ? ally.name : 'Unknown';
+              }).join(', ')
+            : 'None';
           
           addOutput('info', `${player.name} (District ${player.district}) - ${status}`);
           addOutput('system', `  Kills: ${player.kills || 0}`);
-          addOutput('system', `  Mental Health: ${Math.round(player.mentalHealth || 75)}/100`);
-          addOutput('system', `  Courage: ${Math.round(player.courage || 50)}/100`);
-          addOutput('system', `  Cowardice: ${Math.round(player.cowardice || 0)}/100`);
+          addOutput('system', `  Damage: ${player.damage ?? 0}/100`);
           addOutput('system', `  Inventory: ${inventory}`);
           addOutput('system', `  Alliances: ${alliances}`);
           addOutput('system', '');
@@ -410,30 +467,51 @@ const DebugTerminal: React.FC<DebugTerminalProps> = ({ gameEngine, gamePhase, on
         
         // Summary statistics
         const alivePlayers = gameEngine.players.filter(p => p.isAlive);
-        const avgMentalHealth = alivePlayers.reduce((sum, p) => sum + (p.mentalHealth || 75), 0) / alivePlayers.length;
+        const avgDamage = alivePlayers.length > 0
+          ? alivePlayers.reduce((sum, p) => sum + (p.damage ?? 0), 0) / alivePlayers.length
+          : 0;
         const mostEquipped = alivePlayers.length > 0 ? alivePlayers.reduce((best, player) => {
           const currentItems = (player.inventory || []).length;
           const bestItems = ((best?.inventory) || []).length;
           return currentItems > bestItems ? player : best;
         }, alivePlayers[0]) : null;
         const mostDangerous = alivePlayers.length > 0 ? alivePlayers.reduce((best, player) => {
-          const currentScore = (player.kills || 0) + (player.inventory || []).filter(item => 
-            WEAPONS.includes(item.name)
-          ).length;
-          const bestScore = ((best?.kills) || 0) + ((best?.inventory) || []).filter(item => 
-            WEAPONS.includes(item.name)
-          ).length;
+          const currentScore = (player.kills || 0) + (player.inventory || []).length;
+          const bestScore = ((best?.kills) || 0) + ((best?.inventory) || []).length;
           return currentScore > bestScore ? player : best;
         }, alivePlayers[0]) : null;
         
         addOutput('system', '=== SUMMARY STATISTICS ===');
-        addOutput('system', `Average Mental Health: ${alivePlayers.length > 0 ? Math.round(avgMentalHealth) : 0}/100`);
+        addOutput('system', `Average Damage (Alive): ${Math.round(avgDamage)}/100`);
         addOutput('system', `Most Well-Equipped: ${mostEquipped ? mostEquipped.name : 'N/A'} (${mostEquipped ? (mostEquipped.inventory || []).length : 0} items)`);
-        addOutput('system', `Most Dangerous: ${mostDangerous ? mostDangerous.name : 'N/A'} (${mostDangerous ? (mostDangerous.kills || 0) : 0} kills, ${mostDangerous ? (mostDangerous.inventory || []).filter(item => 
-          WEAPONS.includes(item.name)
-        ).length : 0} weapons)`);
+        addOutput('system', `Most Dangerous: ${mostDangerous ? mostDangerous.name : 'N/A'} (${mostDangerous ? (mostDangerous.kills || 0) : 0} kills, ${mostDangerous ? (mostDangerous.inventory || []).length : 0} items)`);
         break;
         
+      case 'dmg': {
+        const flag = args[0]?.toLowerCase();
+        if (args.length > 1 || (flag && flag !== '-on' && flag !== '-off')) {
+          addOutput('error', 'Usage: dmg [-on | -off]');
+          break;
+        }
+        const mode = flag === '-on' ? 'on' : flag === '-off' ? 'off' : undefined;
+        const isVisible = onToggleDamage(mode);
+        addOutput('info', `Tribute damage visibility: ${isVisible ? 'ON' : 'OFF'}`);
+        break;
+      }
+
+      case 'skipfallen': {
+        const flag = args[0]?.toLowerCase();
+        if (args.length > 1 || (flag && flag !== '-on' && flag !== '-off')) {
+          addOutput('error', 'Usage: skipfallen [-on | -off]');
+          break;
+        }
+        const mode = flag === '-on' ? 'on' : flag === '-off' ? 'off' : undefined;
+        skipFallenBeforeAutoplayRef.current = null;
+        const isSkipped = onToggleSkipFallen(mode);
+        addOutput('info', `Skip fallen animations: ${isSkipped ? 'ON' : 'OFF'}`);
+        break;
+      }
+
       case 'askagain':
         if (typeof window !== 'undefined' && window.localStorage) {
           const hadResetPreference = localStorage.getItem('skipResetConfirm') === 'true';

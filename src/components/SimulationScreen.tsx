@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import TributesPanel from './TributesPanel';
+import EventText from './EventText';
 import styles from './SimulationScreen/SimulationScreen.module.scss';
 import type { SimulationScreenProps } from '../types/component.types';
 
@@ -11,7 +12,7 @@ interface FallenAnimationState {
   isHurried: boolean;
 }
 
-const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame: _onResetGame, tributeData }) => {
+const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gameEngine, currentPhase, showVictoryButton, onShowVictory, onResetGame: _onResetGame, tributeData, showDamage, skipFallen, onFallenAnimationComplete }) => {
   const [showTributesPanel, setShowTributesPanel] = useState<boolean>(false);
   const [fallenAnimation, setFallenAnimation] = useState<FallenAnimationState>({
     isPlaying: false,
@@ -20,10 +21,12 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
     isAnimating: false,
     isHurried: false
   });
+  const skipFallenRef = useRef<boolean>(skipFallen);
+  skipFallenRef.current = skipFallen;
 
   // Handle fallen cannon animation
   useEffect(() => {
-    if (currentPhase === 'fallen' && tributeData && tributeData.length > 0) {
+    if (!skipFallenRef.current && currentPhase === 'fallen' && tributeData && tributeData.length > 0) {
       setFallenAnimation({
         isPlaying: true,
         currentIndex: 0,
@@ -42,12 +45,30 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
     }
   }, [currentPhase, tributeData]);
 
+  useEffect(() => {
+    if (skipFallen) {
+      setFallenAnimation({
+        isPlaying: false,
+        currentIndex: 0,
+        isVisible: false,
+        isAnimating: false,
+        isHurried: false
+      });
+    }
+  }, [skipFallen]);
+
+  const onFallenAnimationCompleteRef = useRef(onFallenAnimationComplete);
+  onFallenAnimationCompleteRef.current = onFallenAnimationComplete;
+
   // Animation sequence
   useEffect(() => {
     if (!fallenAnimation.isPlaying || !tributeData || tributeData.length === 0) return;
 
     const currentTribute = tributeData[fallenAnimation.currentIndex];
     if (!currentTribute) return;
+
+    let displayTimeout: ReturnType<typeof setTimeout> | undefined;
+    let fadeOutTimeout: ReturnType<typeof setTimeout> | undefined;
 
     // Start fade in
     setFallenAnimation(prev => ({ ...prev, isAnimating: true, isVisible: true }));
@@ -57,11 +78,11 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
       setFallenAnimation(prev => ({ ...prev, isAnimating: false }));
       
       // Wait for display time, then fade out
-      const displayTimeout = setTimeout(() => {
+      displayTimeout = setTimeout(() => {
         setFallenAnimation(prev => ({ ...prev, isAnimating: true, isVisible: false }));
         
         // After fade out completes, move to next tribute or end
-        const fadeOutTimeout = setTimeout(() => {
+        fadeOutTimeout = setTimeout(() => {
           if (fallenAnimation.currentIndex < tributeData.length - 1) {
             setFallenAnimation(prev => ({
               ...prev,
@@ -77,16 +98,17 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
               isAnimating: false,
               isHurried: false
             });
+            onFallenAnimationCompleteRef.current();
           }
         }, fallenAnimation.isHurried ? 500 : 1000); // Fade out duration
-
-        return () => clearTimeout(fadeOutTimeout);
       }, fallenAnimation.isHurried ? 1000 : 2000); // Display time
-
-      return () => clearTimeout(displayTimeout);
     }, fallenAnimation.isHurried ? 500 : 1000); // Fade in duration
 
-    return () => clearTimeout(fadeInTimeout);
+    return () => {
+      clearTimeout(fadeInTimeout);
+      if (displayTimeout) clearTimeout(displayTimeout);
+      if (fadeOutTimeout) clearTimeout(fadeOutTimeout);
+    };
   }, [fallenAnimation.currentIndex, fallenAnimation.isPlaying, fallenAnimation.isHurried, tributeData]);
   
   if (!gameEngine) return null;
@@ -106,6 +128,7 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
       isAnimating: false,
       isHurried: false
     });
+    onFallenAnimationComplete();
   };
 
   const getPhaseDisplayName = (phase: string) => {
@@ -155,7 +178,8 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
       <div className="center-panel" style={{ position: 'relative' }}>
         <section className={styles.eventDisplay} aria-label="Game events" aria-live="polite">
           {events.map((event, index) => (
-            <div key={index} className={styles.eventLine} dangerouslySetInnerHTML={{ __html: event }}>
+            <div key={index} className={styles.eventLine}>
+              <EventText text={event} />
             </div>
           ))}
         </section>
@@ -236,6 +260,7 @@ const SimulationScreen: React.FC<SimulationScreenProps> = ({ events, onNext, gam
         gameEngine={gameEngine}
         isOpen={showTributesPanel}
         onClose={() => setShowTributesPanel(false)}
+        showDamage={showDamage}
       />
     </div>
   );

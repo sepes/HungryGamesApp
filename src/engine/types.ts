@@ -1,24 +1,18 @@
-import type { Player } from '../types/game.types';
-
 // Terrain Types
-export type TerrainType = 
-  | 'forest' 
-  | 'forest_oak' 
-  | 'forest_pine' 
-  | 'forest_rainforest' 
-  | 'forest_mixed'
-  | 'river' 
-  | 'lake' 
-  | 'lake_islands'
-  | 'mountain' 
-  | 'desert' 
-  | 'plains' 
-  | 'hills';
+export type TerrainType =
+  | 'forest'
+  | 'river'
+  | 'lake'
+  | 'islands'
+  | 'mountain'
+  | 'desert'
+  | 'plains'
+  | 'hills'
+  | 'no_terrain';
 
 // Arena State
 export interface Arena {
   terrains: Set<TerrainType>;
-  forestType?: 'oak' | 'pine' | 'rainforest' | 'mixed';
   hasIslands: boolean;
 }
 
@@ -31,33 +25,29 @@ export interface Action {
   id: string;
   type: ActionType;
   phase: ActionPhase;
-  terrainRequired?: TerrainType[];  // Arena must have ALL listed terrains
-  deathChance: number;              // 0-1, chance this action kills
-  templates: string[];              // Narrative variations with placeholders
-  // Example templates:
-  // "{player} climbs a tree for the night"
-  // "{killer} ambushes {victim} from the treetops"
-  // "{player1} and {player2} make a bonfire together"
+  terrainRequired?: TerrainType[];
+  /** Added to each target's tracked damage (integer 0–100; death at >= 100). May be negative. */
+  damageDelta: number;
+  /** Relative selection weight multiplier (default: 1). */
+  chanceMultiplier?: number;
+  templates: string[];
+  /** If set, participant(s) must have this item in inventory to trigger the action. */
+  requiredItem?: string;
+  /** Group only: if true, at least one participant must have requiredItem. */
+  groupGateAnyParticipant?: boolean;
+  /** If set, give this item to participants (solo/group) or killer (versus) when action resolves. */
+  giveItem?: string;
 }
 
 // Major Event Definition
 export interface MajorEvent {
   id: string;
-  terrainRequired?: TerrainType[];  // Arena must have ALL listed terrains
-  dayTemplates: string[];           // Templates for day portion
-  nightTemplates: string[];         // Templates for night portion
-  // Example: "{player} survives the flood by climbing to higher ground"
-}
-
-// Resolved Action (action selected and participants assigned)
-export interface ResolvedAction {
-  action: Action;
-  participants: Player[];
-  killers?: Player[];
-  victims?: Player[];
+  terrainRequired?: TerrainType[];
+  dayTemplates: string[];
+  nightTemplates: string[];
 }
 
 // Game Configuration
 export interface GameConfig {
-  winnerCount: number;  // Default: 1
+  winnerCount: number;
 }

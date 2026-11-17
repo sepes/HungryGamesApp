@@ -31,7 +31,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
         onClearPreFilled();
       }
     }
-  }, [preFilledNames, preFilledCount, onClearPreFilled]);
+  }, [preFilledNames, preFilledCount, onClearPreFilled, onTributeCountChange]);
 
   // Shared function to update player count while preserving names
   const updatePlayerCountPreservingNames = useCallback((count: number): void => {
@@ -188,7 +188,6 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStart, onTributeConfigUpdat
         district: district,
         isAlive: true,
         kills: 0,
-        items: [],
         diedInPhase: null,
         diedOnDay: null
       };

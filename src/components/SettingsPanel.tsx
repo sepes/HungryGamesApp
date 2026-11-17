@@ -11,21 +11,30 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onResetGame, 
   gameEngine, 
   gamePhase, 
+  currentPhase,
+  stepCount,
+  isFallenAnimating,
   onNext, 
   onShowVictory, 
   showVictoryButton, 
   enableTributeConfig,
   twitchConnected,
+  twitchStatus = twitchConnected ? 'connected' : 'disconnected',
+  twitchError = '',
   twitchChannelName,
   onReconfigureTwitch,
   onDisconnectTwitch,
+  onRetryTwitchConnection,
   volunteers = [],
   maxVolunteerSlots = 0,
   onStartVolunteerCollection,
   onSubmitVolunteers,
   onCancelVolunteerCollection,
   setupTributeCount = 12,
-  onMockVolunteers
+  onMockVolunteers,
+  onToggleDamage,
+  skipFallen,
+  onToggleSkipFallen
 }) => {
   const containerRef = useFocusTrap(isOpen);
   const [showTerminal, setShowTerminal] = useState<boolean>(false);
@@ -34,6 +43,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [dontAskAgainReset, setDontAskAgainReset] = useState<boolean>(false);
   const [dontAskAgainDisconnect, setDontAskAgainDisconnect] = useState<boolean>(false);
+  const [retryingConnection, setRetryingConnection] = useState<boolean>(false);
+
+  const handleRetryConnection = async (): Promise<void> => {
+    if (!onRetryTwitchConnection || retryingConnection) return;
+    setRetryingConnection(true);
+    try {
+      await onRetryTwitchConnection();
+    } finally {
+      setRetryingConnection(false);
+    }
+  };
 
   const handleDisconnect = async (): Promise<void> => {
     if (onDisconnectTwitch) {
@@ -118,21 +138,47 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               Twitch Chat Integration
               <img src={twitchLogo} alt="Twitch Logo" className={styles.twitchLogo} />
             </h3>
-            {twitchConnected ? (
+            {twitchStatus !== 'disconnected' || twitchChannelName ? (
               <>
-                <div className={styles.statusInfo}>
+                <div className={styles.statusInfo} role="status" aria-live="polite">
                   <p className={styles.statusLabel}>Status:</p>
-                  <p className={styles.statusConnected}>Connected</p>
+                  {twitchStatus === 'connected' && (
+                    <p className={styles.statusConnected}>Connected</p>
+                  )}
+                  {twitchStatus === 'connecting' && (
+                    <p className={styles.statusConnecting}>Connecting...</p>
+                  )}
+                  {twitchStatus === 'error' && (
+                    <p className={styles.statusError}>Connection Failed</p>
+                  )}
                 </div>
-                <div className={styles.statusInfo}>
-                  <p className={styles.statusLabel}>Channel:</p>
-                  <p className={styles.statusValue}>{twitchChannelName}</p>
-                </div>
+                {twitchError && (
+                  <p className={styles.statusErrorDetail} role="alert">
+                    {twitchError}
+                  </p>
+                )}
+                {twitchChannelName && (
+                  <div className={styles.statusInfo}>
+                    <p className={styles.statusLabel}>Channel:</p>
+                    <p className={styles.statusValue}>{twitchChannelName}</p>
+                  </div>
+                )}
                 <div className={styles.statusInfo}>
                   <p className={styles.statusLabel}>Connection Type:</p>
                   <p className={styles.statusValue}>IRC</p>
                 </div>
                 <div className={styles.buttonGroup}>
+                  {twitchStatus === 'error' && onRetryTwitchConnection && (
+                    <button
+                      onClick={handleRetryConnection}
+                      className="transition-button small"
+                      disabled={retryingConnection}
+                      aria-busy={retryingConnection}
+                      aria-label="Retry Twitch connection"
+                    >
+                      {retryingConnection ? 'Connecting...' : 'Retry Connection'}
+                    </button>
+                  )}
                   <button 
                     onClick={handleReconfigure} 
                     className="transition-button small"
@@ -225,91 +271,104 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             </div>
             {showVolunteerCollection && (
               <div className={styles.volunteerCollectionContent}>
-                {twitchConnected ? (
+                {maxVolunteerSlots > 0 ? (
                   <>
-                    {maxVolunteerSlots > 0 ? (
-                      <>
-                        <div className={styles.volunteerInfo}>
-                          <h4>How to Join</h4>
-                          <p>
-                            Viewers can type <strong>&quot;I volunteer&quot;</strong> in chat to enter the Hunger Games!
-                          </p>
-                        </div>
+                    {!twitchConnected && (
+                      <p className={styles.statusErrorDetail} role="alert">
+                        {twitchStatus === 'connecting'
+                          ? 'Connecting to Twitch chat...'
+                          : `Twitch connection lost${twitchError ? `: ${twitchError}` : '.'}`}
+                      </p>
+                    )}
+                    <div className={styles.volunteerInfo}>
+                      <h4>How to Join</h4>
+                      <p>
+                        Viewers can type <strong>&quot;I volunteer&quot;</strong> in chat to enter the Hunger Games!
+                      </p>
+                    </div>
 
-                        <div className={styles.slotStatus} aria-live="polite">
-                          <h4>Volunteer Status</h4>
-                          <div className={styles.statusBar}>
-                            <div className={styles.progressBar}>
-                              <div 
-                                className={styles.progress} 
-                                style={{ width: `${(volunteers.length / maxVolunteerSlots) * 100}%` }}
-                                role="progressbar"
-                                aria-valuenow={volunteers.length}
-                                aria-valuemin={0}
-                                aria-valuemax={maxVolunteerSlots}
-                                aria-label={`${volunteers.length} out of ${maxVolunteerSlots} volunteer slots filled`}
-                              />
-                            </div>
-                            <span className={styles.statusText}>
-                              {volunteers.length} / {maxVolunteerSlots} Tributes
-                            </span>
-                          </div>
+                    <div className={styles.slotStatus} aria-live="polite">
+                      <h4>Volunteer Status</h4>
+                      <div className={styles.statusBar}>
+                        <div className={styles.progressBar}>
+                          <div 
+                            className={styles.progress} 
+                            style={{ width: `${(volunteers.length / maxVolunteerSlots) * 100}%` }}
+                            role="progressbar"
+                            aria-valuenow={volunteers.length}
+                            aria-valuemin={0}
+                            aria-valuemax={maxVolunteerSlots}
+                            aria-label={`${volunteers.length} out of ${maxVolunteerSlots} volunteer slots filled`}
+                          />
                         </div>
+                        <span className={styles.statusText}>
+                          {volunteers.length} / {maxVolunteerSlots} Tributes
+                        </span>
+                      </div>
+                    </div>
 
-                        <div className={styles.volunteerList}>
-                          <h4 id="volunteer-list-heading">Current Volunteers</h4>
-                          {volunteers.length === 0 ? (
-                            <p className={styles.emptyMessage}>Waiting for volunteers...</p>
-                          ) : (
-                            <ul aria-labelledby="volunteer-list-heading">
-                              {volunteers.map((name: string, idx: number) => (
-                                <li key={idx} className={styles.volunteerItem}>
-                                  <span className={styles.volunteerNumber}>{idx + 1}</span>
-                                  <span className={styles.volunteerName}>{name}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
+                    <div className={styles.volunteerList}>
+                      <h4 id="volunteer-list-heading">Current Volunteers</h4>
+                      {volunteers.length === 0 ? (
+                        <p className={styles.emptyMessage}>
+                          {twitchConnected ? 'Waiting for volunteers...' : 'Connection required to receive volunteers.'}
+                        </p>
+                      ) : (
+                        <ul aria-labelledby="volunteer-list-heading">
+                          {volunteers.map((name: string, idx: number) => (
+                            <li key={idx} className={styles.volunteerItem}>
+                              <span className={styles.volunteerNumber}>{idx + 1}</span>
+                              <span className={styles.volunteerName}>{name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
 
-                        <div className={styles.volunteerActions}>
-                          <button 
-                            onClick={() => {
-                              if (onSubmitVolunteers && volunteers.length >= 1) {
-                                onSubmitVolunteers(volunteers);
-                              }
-                            }}
-                            className="transition-button small"
-                            disabled={gamePhase !== 'setup' || !twitchConnected || volunteers.length < 1}
-                            aria-label={volunteers.length >= 1 ? 'Submit volunteers and return to setup' : `Need at least 1 volunteer to submit (currently ${volunteers.length})`}
-                            title={volunteers.length < maxVolunteerSlots && volunteers.length >= 1 ? 'Submit incomplete list - remaining slots will be empty' : undefined}
-                          >
-                            {volunteers.length < 1 
-                              ? 'Waiting for Volunteers' 
-                              : volunteers.length === maxVolunteerSlots 
-                                ? `Submit (${volunteers.length} Tributes)` 
-                                : `Submit anyway (${volunteers.length}/${maxVolunteerSlots})`}
-                          </button>
-                          
-                          <button 
-                            onClick={() => {
-                              if (onCancelVolunteerCollection) {
-                                onCancelVolunteerCollection();
-                              }
-                            }}
-                            className="transition-button small orange"
-                            disabled={gamePhase !== 'setup' || !twitchConnected}
-                            aria-label="Cancel volunteer collection"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </>
-                    ) : null}
+                    <div className={styles.volunteerActions}>
+                      <button 
+                        onClick={() => {
+                          if (onSubmitVolunteers && volunteers.length >= 1) {
+                            onSubmitVolunteers(volunteers);
+                          }
+                        }}
+                        className="transition-button small"
+                        disabled={gamePhase !== 'setup' || volunteers.length < 1}
+                        aria-label={volunteers.length >= 1 ? 'Submit volunteers and return to setup' : `Need at least 1 volunteer to submit (currently ${volunteers.length})`}
+                        title={volunteers.length < maxVolunteerSlots && volunteers.length >= 1 ? 'Submit incomplete list - remaining slots will be empty' : undefined}
+                      >
+                        {volunteers.length < 1 
+                          ? 'Waiting for Volunteers' 
+                          : volunteers.length === maxVolunteerSlots 
+                            ? `Submit (${volunteers.length} Tributes)` 
+                            : `Submit anyway (${volunteers.length}/${maxVolunteerSlots})`}
+                      </button>
+                      
+                      <button 
+                        onClick={() => {
+                          if (onCancelVolunteerCollection) {
+                            onCancelVolunteerCollection();
+                          }
+                        }}
+                        className="transition-button small orange"
+                        disabled={gamePhase !== 'setup'}
+                        aria-label="Cancel volunteer collection"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </>
+                ) : twitchConnected ? (
+                  <p className={styles.emptyMessage}>
+                    Click Start Collection to begin accepting volunteers from chat.
+                  </p>
                 ) : (
                   <p className={styles.statusDisconnected}>
-                    Connect to Twitch Chat to enable volunteer collection.
+                    {twitchStatus === 'error'
+                      ? `Twitch connection failed${twitchError ? `: ${twitchError}` : '.'}`
+                      : twitchStatus === 'connecting'
+                        ? 'Connecting to Twitch Chat...'
+                        : 'Connect to Twitch Chat to enable volunteer collection.'}
                   </p>
                 )}
               </div>
@@ -376,11 +435,17 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <DebugTerminal 
                   gameEngine={gameEngine}
                   gamePhase={gamePhase}
+                  currentPhase={currentPhase}
+                  stepCount={stepCount}
+                  isFallenAnimating={isFallenAnimating}
                   onNext={onNext}
                   onShowVictory={onShowVictory}
                   showVictoryButton={showVictoryButton}
                   enableTributeConfig={enableTributeConfig}
                   onMockVolunteers={onMockVolunteers}
+                  onToggleDamage={onToggleDamage}
+                  skipFallen={skipFallen}
+                  onToggleSkipFallen={onToggleSkipFallen}
                 />
               </div>
             )}

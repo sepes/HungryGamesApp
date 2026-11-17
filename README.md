@@ -140,16 +140,19 @@ Events organized by game phase:
 ### Usage Example
 
 ```javascript
-import { GameEngine } from './engine/gameEngine';
+import { GameLoop } from './engine/gameLoop';
 
-const engine = new GameEngine(players);
+const engine = new GameLoop(players);
 const result = engine.nextSegment();
 
 // Result contains:
-// - phase: current game phase
+// - phase: current game phase (prologue, cornucopia, day, night, fallen, winner, epilogue)
 // - events: array of event strings
 // - winner: winning player (if game over)
-// - day: current day number
+// - winners: all victors array
+// - alive: number of alive players
+// - total: total players
+// - tributeData: fallen tribute data (for Fallen phase animation)
 ```
 
 ## Key Features
@@ -220,6 +223,14 @@ npm test
 ```
 
 Launches the test runner in interactive watch mode.
+
+To run only the whole-game simulation test (plays many games and checks engine rules):
+
+```bash
+CI=true npx react-scripts test src/engine/gameSimulation.test.ts --watchAll=false
+```
+
+See "Simulation Test" in `src/engine/README.md` for options and what it checks.
 
 ## License
 
